@@ -1,0 +1,35 @@
+{
+  "type": "module",
+  "name": "projeto_alumni_backend",
+  "version": "1.0.0",
+  "description": "Projeto de criação do sistema Alumni da FATEC-Sorocaba",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NicolasAFerro/Alumni-backend.git"
+  },
+  "keywords": [
+    "Alumni",
+    "fatec",
+    "fatecso",
+    "alumnifatec",
+    "alumnifatecsorocaba",
+    "fatecsorocaba"
+  ],
+  "author": "Leonardo Silva, Nicolas Ferro, Gabriel Bellato",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NicolasAFerro/Alumni-backend/issues"
+  },
+  "homepage": "https://github.com/NicolasAFerro/Alumni-backend#readme",
+  "dependencies": {
+    "@prisma/client": "^6.16.3",
+    "bcryptjs": "^3.0.2",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "prisma": "^6.16.3"
+  }
+}
