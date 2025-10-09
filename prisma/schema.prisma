@@ -18,6 +18,8 @@ model Usuario {
   tipoUsuario          TipoUsuario    @relation(fields: [idTipoUsuario], references: [id])
   relacoesCursos       UsuarioCurso[]
   dataCriacao          DateTime       @default(now())
+  tokenResetarSenha    String?
+  senhaAlteradaEm      DateTime?       @default(now())
 }
 
 model TipoUsuario {
