@@ -8,12 +8,12 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 export const enviarRecuperacao = async (userInfo, req) => {
   //pegar usuario com base no email informado
-  const user = await prisma.usuario.findUnique({
+  const user = await prisma.user.findUnique({
     where: { email: userInfo.email },
   });
 
   if (!user) {
-    throw new Error('Email não cadastrado!');
+    throw new CustomError('Email não cadastrado!', 404);
   }
 
   //gerar o token para resetar senha
@@ -58,18 +58,15 @@ export const enviarRecuperacao = async (userInfo, req) => {
       where: { id: user.id },
       data: { tokenResetarSenha: undefined },
     });
-    throw new Error(
+    throw new CustomError(
       'Algo de errado aconteceu. Por favor, tente novamente mais tarde',
+      500,
     );
   }
 };
 
 export const resetarSenha = async userInfo => {
   const token = userInfo.params.token;
-
-  if (!token) {
-    throw new Error('Acesso negado');
-  }
 
   jwt.verify(token, JWT_SECRET);
 
@@ -78,7 +75,11 @@ export const resetarSenha = async userInfo => {
   });
 
   if (!user) {
-    throw new Error('Erro inesperado, tente novamente mais tarde');
+    throw new CustomError('Erro inesperado, tente novamente mais tarde', 500);
+  }
+
+  if (userInfo.body.password == null || userInfo.body.password == '') {
+    throw new CustomError('Senha inválida', 401);
   }
 
   const salt = await bcrypt.genSalt(10);

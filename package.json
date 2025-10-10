@@ -30,7 +30,10 @@
     "nodemailer": "^7.0.9"
   },
   "devDependencies": {
-    "prisma": "^6.17.0",
-    "nodemon": "^3.1.10"
+    "eslint": "^8.57.1",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2",
+    "prettier-eslint": "^16.4.2",
+    "prisma": "^6.17.0"
   }
 }

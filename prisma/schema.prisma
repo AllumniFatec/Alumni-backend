@@ -8,39 +8,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Usuario {
+model User {
   id                   String         @id @default(auto()) @map("_id") @db.ObjectId
-  nome                 String
+  name                 String
   email                String         @unique
-  senha                String
-  anoIngressoFaculdade Int
-  idTipoUsuario        String         @db.ObjectId
-  tipoUsuario          TipoUsuario    @relation(fields: [idTipoUsuario], references: [id])
-  relacoesCursos       UsuarioCurso[]
-  dataCriacao          DateTime       @default(now())
-  tokenResetarSenha    String?
-  senhaAlteradaEm      DateTime?       @default(now())
+  password             String
+  enrollmentYear       Int
+  idUserType           String         @db.ObjectId
+  userType             UserType    @relation(fields: [idUserType], references: [id])
+  coursesRelation      UserCourse[]
+  createDate           DateTime       @default(now())
+  tokenPasswordReset   String?
+  updatedPassword      DateTime?       @default(now())
 }
 
-model TipoUsuario {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  tipoUsuario String    @unique
-  usuarios    Usuario[]
+model UserType {
+  id                   String    @id @default(auto()) @map("_id") @db.ObjectId
+  userType             String    @unique
+  users                User[]
 }
 
-model Curso {
-  id               String         @id @default(auto()) @map("_id") @db.ObjectId
-  nome             String         @unique
-  sigla            String         @unique
-  relacoesUsuarios UsuarioCurso[]
+model Course {
+  id                   String         @id @default(auto()) @map("_id") @db.ObjectId
+  name                 String         @unique
+  abbreviation         String         @unique
+  usersRelation        UserCourse[]
 }
 
-model UsuarioCurso {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  usuario   Usuario @relation(fields: [usuarioId], references: [id])
-  usuarioId String  @db.ObjectId
-  curso     Curso   @relation(fields: [cursoId], references: [id])
-  cursoId   String  @db.ObjectId
+model UserCourse {
+  id                   String  @id @default(auto()) @map("_id") @db.ObjectId
+  user                 User @relation(fields: [userId], references: [id])
+  userId               String  @db.ObjectId
+  course               Course   @relation(fields: [courseId], references: [id])
+  courseId             String  @db.ObjectId
 
-  @@unique([usuarioId, cursoId])
+  @@unique([userId, courseId])
 }
