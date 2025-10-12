@@ -1,73 +1,78 @@
-import { PrismaClient } from '../generated/prisma/index.js';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import { PrismaClient } from "../generated/prisma/index.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import CustomError from "../utils/CustomError.js";
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
 
 //Cadastro
-export const cadastrarUsuario = async userInfo => {
-  const isExist = await prisma.usuario.findUnique({
+export const registerUser = async (userInfo) => {
+  const isExist = await prisma.user.findUnique({
     where: { email: userInfo.email },
   });
 
   if (isExist) {
-    throw new Error('Usuário já cadastrado!');
+    throw new CustomError("Usuário já cadastrado!", 409);
   }
 
-  const tipoUsuario = await prisma.tipoUsuario.findUnique({
-    where: { tipoUsuario: userInfo.type },
+  const userType = await prisma.userType.findUnique({
+    where: { userType: userInfo.type },
   });
 
-  if (!tipoUsuario) {
-    throw new Error('Tipo de usuário inválido!');
+  if (!userType) {
+    throw new CustomError("Tipo de usuário inválido!", 422);
+  }
+
+  if (userInfo.password == null || userInfo.password == "") {
+    throw new CustomError("Senha inválida", 401);
   }
 
   const salt = await bcrypt.genSalt(10);
   const hashPassword = await bcrypt.hash(userInfo.password, salt);
 
-  const user = await prisma.usuario.create({
+  const user = await prisma.user.create({
     data: {
-      nome: userInfo.name,
+      name: userInfo.name,
       email: userInfo.email,
-      senha: hashPassword,
-      anoIngressoFaculdade: parseInt(userInfo.yearJoin),
-      idTipoUsuario: tipoUsuario.id,
+      password: hashPassword,
+      enrollmentYear: parseInt(userInfo.yearJoin),
+      idUserType: userType.id,
     },
   });
 
-  const cursoId = await prisma.curso.findUnique({
-    where: { nome: userInfo.course },
+  const courseId = await prisma.course.findUnique({
+    where: { name: userInfo.course },
   });
 
-  const relacoesCursos = await prisma.usuarioCurso.create({
+  const relacoesCursos = await prisma.userCourse.create({
     data: {
-      usuarioId: user.id,
-      cursoId: cursoId.id,
+      userId: user.id,
+      courseId: courseId.id,
     },
   });
 
-  return { message: 'Usuário cadastrado com sucesso!' };
+  return { message: "Usuário cadastrado com sucesso!" };
 };
 
 //Login
-export const loginUsuario = async userInfo => {
-  const user = await prisma.usuario.findUnique({
+export const loginUser = async (userInfo) => {
+  const user = await prisma.user.findUnique({
     where: { email: userInfo.email },
-    include: { tipoUsuario: true },
+    include: { userType: true },
   });
 
   if (!user) {
-    throw new Error('Usuário não encontrado!');
+    throw new CustomError("Usuário não encontrado!", 404);
   }
 
-  const isMatch = await bcrypt.compare(userInfo.password, user.senha);
+  const isMatch = await bcrypt.compare(userInfo.password, user.password);
 
   if (!isMatch) {
-    throw new Error('Senha incorreta!');
+    throw new CustomError("Senha incorreta!", 401);
   }
 
-  const isAdmin = user.tipoUsuario.tipoUsuario == 'Admin';
+  const isAdmin = user.userType.userType == "Admin";
 
   const token = jwt.sign(
     {
@@ -75,35 +80,31 @@ export const loginUsuario = async userInfo => {
       admin: isAdmin,
     },
     JWT_SECRET,
-    { expiresIn: '5d' },
+    { expiresIn: "5d" }
   );
 
   return token;
 };
 
 //Listar
-export const listarUsuarios = async () => {
-  const users = await prisma.usuario.findMany({
+export const listUsers = async () => {
+  const users = await prisma.user.findMany({
     select: {
-      nome: true,
+      name: true,
       email: true,
-      anoIngressoFaculdade: true,
-      tipoUsuario: {
-        select: { tipoUsuario: true },
+      enrollmentYear: true,
+      userType: {
+        select: { userType: true },
       },
-      relacoesCursos: {
+      coursesRelation: {
         select: {
-          curso: {
-            select: { nome: true },
+          course: {
+            select: { name: true },
           },
         },
       },
     },
   });
-
-  if (users.length === 0) {
-    throw new Error('Nenhum usuario cadastrado!');
-  }
 
   return users;
 };

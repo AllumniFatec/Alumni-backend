@@ -1,18 +1,25 @@
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const auth = (req, res, next) => {
-  const token = req.headers.authorization;
+  let token = null;
+  if (req.headers.authorization?.startsWith("Bearer ")) {
+    token = req.headers.authorization.split(" ")[1];
+  } else if (req.params.token) {
+    token = req.params.token;
+  } else if (req.query.token) {
+    token = req.query.token;
+  }
 
   if (!token) {
-    return res.status(401).json({ message: 'Acesso negado!' });
+    return res.status(401).json({ message: "Acesso negado!" });
   }
 
   try {
-    jwt.verify(token.replace('Bearer ', ''), JWT_SECRET);
+    jwt.verify(token, JWT_SECRET);
   } catch (err) {
-    return res.status(401).json({ message: 'Token inválido' });
+    return res.status(401).json({ message: "Token inválido" });
   }
 
   next();

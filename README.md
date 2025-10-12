@@ -72,19 +72,29 @@ Alumni-backend/
 
    ```bash
    npm install
+   npx prisma generate
+   npx prisma db pull
    ```
 
-3. **Inicie o servidor de desenvolvimento:**
+3. **Arquivo .env (variáveis de ambiente):**
 
    ```bash
-   node server.js ou node --watch server.js
+   DATABASE_URL= "<link de conexão com o seu banco MongoDB>"
+   JWT_SECRET = "<sequencia de caracteres para segredo do token>"
+   EMAIL_USER= <email de sua cotna gmail (para SMTP Gmail)>
+   EMAIL_PASSWORD= <senha gmail para APPs (não é a senha do Gmail)>
+   EMAIL_HOST= <host do servidor SMTP> (smtp.gmail.com - SMTP Gmail)
+   EMAIL_PORT= <porta para do servidor SMTP>
    ```
 
-4. **Acesse a aplicação:**
+4. **Inicie o servidor de desenvolvimento:**
+
    ```bash
-   No arquivo .env insira as váriaveis de ambiente:
-   -JWT_SECRET (segredo do encriptador de senha)
-   -DATABASE_URL (link de conexão com o seu banco MongoDB)
+   node server.js, node --watch server.js ou npm run dev (nodemon)
+   ```
+
+5. **Acesse a aplicação:**
+   ```bash
    Instale a extensão ThunderClient no seu VSCode
    Crie uma nova requisição HTTP do mesmo tipo da rota
    Digite http://localhost:3000/rota no campo de rota
@@ -228,19 +238,26 @@ Alumni-backend/
    npm install
    ```
 
-3. **Start the development server:**
+3. **.env file (enviroment variables):**
 
    ```bash
-   node server.js or node --watch server.js
+   DATABASE_URL= "<connection link to your MongoDB database>"
+   JWT_SECRET= "<string used as the token secret>"
+   EMAIL_USER= <your Gmail account email (for Gmail SMTP)>
+   EMAIL_PASSWORD= <Gmail app password (not your Gmail login password)>
+   EMAIL_HOST= <SMTP server host> (smtp.gmail.com for Gmail SMTP)
+   EMAIL_PORT= <SMTP server port>
    ```
 
-4. **Access the application:**
+4. **Start the development server:**
 
    ```bash
-   In the .env file, set the environment variables:
-   - JWT_SECRET (secret key for password encryption)
-   - DATABASE_URL (your MongoDB connection string)
+   node server.js, node --watch server.js or npm run dev (nodemon)
+   ```
 
+5. **Access the application:**
+
+   ```bash
    Install the ThunderClient extension in VSCode.
    Create a new HTTP request matching the route method.
    Enter http://localhost:3000/route in the request URL field.
