@@ -1,19 +1,22 @@
-import { PrismaClient } from "../generated/prisma/index.js";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import CustomError from "../utils/CustomError.js";
+import { PrismaClient } from '../generated/prisma/index.js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import CustomError from '../utils/CustomError.js';
+import * as validations from '../utils/validations.js';
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
 
 //Cadastro
-export const registerUser = async (userInfo) => {
+export const registerUser = async userInfo => {
+  validations.validateEmail(userInfo.email);
+
   const isExist = await prisma.user.findUnique({
     where: { email: userInfo.email },
   });
 
   if (isExist) {
-    throw new CustomError("Usuário já cadastrado!", 409);
+    throw new CustomError('Usuário já cadastrado!', 409);
   }
 
   const userType = await prisma.userType.findUnique({
@@ -21,12 +24,10 @@ export const registerUser = async (userInfo) => {
   });
 
   if (!userType) {
-    throw new CustomError("Tipo de usuário inválido!", 422);
+    throw new CustomError('Tipo de usuário inválido!', 422);
   }
 
-  if (userInfo.password == null || userInfo.password == "") {
-    throw new CustomError("Senha inválida", 401);
-  }
+  validations.validatePassword(userInfo.password);
 
   const salt = await bcrypt.genSalt(10);
   const hashPassword = await bcrypt.hash(userInfo.password, salt);
@@ -52,27 +53,31 @@ export const registerUser = async (userInfo) => {
     },
   });
 
-  return { message: "Usuário cadastrado com sucesso!" };
+  return { message: 'Usuário cadastrado com sucesso!' };
 };
 
 //Login
-export const loginUser = async (userInfo) => {
+export const loginUser = async userInfo => {
+  validations.validateEmail(userInfo.email);
+
   const user = await prisma.user.findUnique({
     where: { email: userInfo.email },
     include: { userType: true },
   });
 
   if (!user) {
-    throw new CustomError("Usuário não encontrado!", 404);
+    throw new CustomError('Usuário não encontrado!', 404);
   }
+
+  validations.validatePassword(userInfo.password);
 
   const isMatch = await bcrypt.compare(userInfo.password, user.password);
 
   if (!isMatch) {
-    throw new CustomError("Senha incorreta!", 401);
+    throw new CustomError('Senha incorreta!', 401);
   }
 
-  const isAdmin = user.userType.userType == "Admin";
+  const isAdmin = user.userType.userType == 'Admin';
 
   const token = jwt.sign(
     {
@@ -80,7 +85,7 @@ export const loginUser = async (userInfo) => {
       admin: isAdmin,
     },
     JWT_SECRET,
-    { expiresIn: "5d" }
+    { expiresIn: '5d' },
   );
 
   return token;
