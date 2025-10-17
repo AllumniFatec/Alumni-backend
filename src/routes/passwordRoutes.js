@@ -4,7 +4,11 @@ import auth from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/forgotPassword', passwordController.forgotPassword);
-router.patch('/resetPassword/:token', auth, passwordController.resetPassword);
+router.post('/password/forgotPassword', passwordController.forgotPassword);
+router.patch(
+  '/password/resetPassword/:token',
+  auth,
+  passwordController.resetPassword,
+);
 
 export default router;
