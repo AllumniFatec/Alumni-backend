@@ -46,7 +46,7 @@ export const registerUser = async userInfo => {
     where: { name: userInfo.course },
   });
 
-  const relacoesCursos = await prisma.userCourse.create({
+  await prisma.userCourse.create({
     data: {
       userId: user.id,
       courseId: courseId.id,
@@ -88,7 +88,7 @@ export const loginUser = async userInfo => {
     { expiresIn: '5d' },
   );
 
-  return token;
+  return { token: token };
 };
 
 //Listar
