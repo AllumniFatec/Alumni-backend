@@ -1,14 +1,16 @@
-import * as userService from '../services/userService.js';
-import CustomError from '../utils/CustomError.js';
+import * as userService from "../services/userService.js";
+import CustomError from "../utils/CustomError.js";
 
 export const register = async (req, res) => {
   try {
     const user = await userService.registerUser(req.body);
-    res.status(201).json({ message: 'Usuário cadastrado com sucesso!' });
+    res.status(201).json({ message: "Usuário cadastrado com sucesso!" });
   } catch (err) {
     if (err instanceof CustomError) {
       res.status(err.statusCode).json({ error: err.message });
     }
+    console.log(err);
+    return res.status(500).json({ error: err });
   }
 };
 
