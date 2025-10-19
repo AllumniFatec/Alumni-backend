@@ -1,14 +1,14 @@
-import { PrismaClient } from '../generated/prisma/index.js';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import CustomError from '../utils/CustomError.js';
-import * as validations from '../utils/validations.js';
+import { PrismaClient } from "../generated/prisma/index.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import CustomError from "../utils/CustomError.js";
+import * as validations from "../utils/validations.js";
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
 
 //Cadastro
-export const registerUser = async userInfo => {
+export const registerUser = async (userInfo) => {
   validations.validateEmail(userInfo.email);
 
   const isExist = await prisma.user.findUnique({
@@ -16,15 +16,15 @@ export const registerUser = async userInfo => {
   });
 
   if (isExist) {
-    throw new CustomError('Usuário já cadastrado!', 409);
+    throw new CustomError("Usuário já cadastrado!", 409);
   }
 
   const userType = await prisma.userType.findUnique({
-    where: { userType: userInfo.type },
+    where: { userType: userInfo.userType },
   });
 
   if (!userType) {
-    throw new CustomError('Tipo de usuário inválido!', 422);
+    throw new CustomError("Tipo de usuário inválido!", 422);
   }
 
   validations.validatePassword(userInfo.password);
@@ -37,8 +37,8 @@ export const registerUser = async userInfo => {
       name: userInfo.name,
       email: userInfo.email,
       password: hashPassword,
-      enrollmentYear: parseInt(userInfo.yearJoin),
-      idUserType: userType.id,
+      enrollmentYear: parseInt(userInfo.enrollmentYear),
+      idUserType: userType.id.toString(),
     },
   });
 
@@ -53,11 +53,11 @@ export const registerUser = async userInfo => {
     },
   });
 
-  return { message: 'Usuário cadastrado com sucesso!' };
+  return { message: "Usuário cadastrado com sucesso!" };
 };
 
 //Login
-export const loginUser = async userInfo => {
+export const loginUser = async (userInfo) => {
   validations.validateEmail(userInfo.email);
 
   const user = await prisma.user.findUnique({
@@ -66,7 +66,7 @@ export const loginUser = async userInfo => {
   });
 
   if (!user) {
-    throw new CustomError('Usuário não encontrado!', 404);
+    throw new CustomError("Usuário não encontrado!", 404);
   }
 
   validations.validatePassword(userInfo.password);
@@ -74,10 +74,10 @@ export const loginUser = async userInfo => {
   const isMatch = await bcrypt.compare(userInfo.password, user.password);
 
   if (!isMatch) {
-    throw new CustomError('Senha incorreta!', 401);
+    throw new CustomError("Senha incorreta!", 401);
   }
 
-  const isAdmin = user.userType.userType == 'Admin';
+  const isAdmin = user.userType.userType == "Admin";
 
   const token = jwt.sign(
     {
@@ -85,7 +85,7 @@ export const loginUser = async userInfo => {
       admin: isAdmin,
     },
     JWT_SECRET,
-    { expiresIn: '5d' },
+    { expiresIn: "5d" }
   );
 
   return { token: token };
@@ -95,6 +95,7 @@ export const loginUser = async userInfo => {
 export const listUsers = async () => {
   const users = await prisma.user.findMany({
     select: {
+      id: true,
       name: true,
       email: true,
       enrollmentYear: true,
