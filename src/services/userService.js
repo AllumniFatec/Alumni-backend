@@ -1,14 +1,14 @@
-import { PrismaClient } from "../generated/prisma/index.js";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import CustomError from "../utils/CustomError.js";
-import * as validations from "../utils/validations.js";
+import { PrismaClient } from '../generated/prisma/index.js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import CustomError from '../utils/CustomError.js';
+import * as validations from '../utils/validations.js';
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
 
 //Cadastro
-export const registerUser = async (userInfo) => {
+export const registerUser = async userInfo => {
   validations.validateEmail(userInfo.email);
 
   const isExist = await prisma.user.findUnique({
@@ -16,7 +16,7 @@ export const registerUser = async (userInfo) => {
   });
 
   if (isExist) {
-    throw new CustomError("Usuário já cadastrado!", 409);
+    throw new CustomError('Usuário já cadastrado!', 409);
   }
 
   const userType = await prisma.userType.findUnique({
@@ -24,7 +24,15 @@ export const registerUser = async (userInfo) => {
   });
 
   if (!userType) {
-    throw new CustomError("Tipo de usuário inválido!", 422);
+    throw new CustomError('Tipo de usuário inválido!', 422);
+  }
+
+  const courseId = await prisma.course.findUnique({
+    where: { name: userInfo.course },
+  });
+
+  if (!courseId) {
+    throw new CustomError('Curso informado inválido!', 422);
   }
 
   validations.validatePassword(userInfo.password);
@@ -37,28 +45,24 @@ export const registerUser = async (userInfo) => {
       name: userInfo.name,
       email: userInfo.email,
       password: hashPassword,
-      enrollmentYear: parseInt(userInfo.enrollmentYear),
       idUserType: userType.id.toString(),
       gender: userInfo.gender,
     },
-  });
-
-  const courseId = await prisma.course.findUnique({
-    where: { name: userInfo.course },
   });
 
   await prisma.userCourse.create({
     data: {
       userId: user.id,
       courseId: courseId.id,
+      enrollmentYear: parseInt(userInfo.enrollmentYear),
     },
   });
 
-  return { message: "Usuário cadastrado com sucesso!" };
+  return { message: 'Usuário cadastrado com sucesso!' };
 };
 
 //Login
-export const loginUser = async (userInfo) => {
+export const loginUser = async userInfo => {
   validations.validateEmail(userInfo.email);
 
   const user = await prisma.user.findUnique({
@@ -67,7 +71,7 @@ export const loginUser = async (userInfo) => {
   });
 
   if (!user) {
-    throw new CustomError("Usuário não encontrado!", 404);
+    throw new CustomError('Usuário não encontrado!', 404);
   }
 
   validations.validatePassword(userInfo.password);
@@ -75,10 +79,10 @@ export const loginUser = async (userInfo) => {
   const isMatch = await bcrypt.compare(userInfo.password, user.password);
 
   if (!isMatch) {
-    throw new CustomError("Senha incorreta!", 401);
+    throw new CustomError('Senha incorreta!', 401);
   }
 
-  const isAdmin = user.userType.userType == "Admin";
+  const isAdmin = user.userType.userType == 'Admin';
 
   const token = jwt.sign(
     {
@@ -86,7 +90,7 @@ export const loginUser = async (userInfo) => {
       admin: isAdmin,
     },
     JWT_SECRET,
-    { expiresIn: "5d" }
+    { expiresIn: '5d' },
   );
 
   return { token: token };
@@ -101,13 +105,13 @@ export const listUsers = async () => {
       id: true,
       name: true,
       email: true,
-      enrollmentYear: true,
       gender: true,
       userType: {
         select: { userType: true },
       },
       coursesRelation: {
         select: {
+          enrollmentYear: true,
           course: {
             select: { name: true },
           },
@@ -117,16 +121,16 @@ export const listUsers = async () => {
     },
   });
 
-  users.forEach((user) => {
+  users.forEach(user => {
     listUsers.push({
       id: user.id,
       name: user.name,
       email: user.email,
-      enrollmentYear: user.enrollmentYear,
       gender: user.gender,
       userType: user.userType.userType,
       //courses: user.coursesRelation.map((c) => c.course.name),
       course: user.coursesRelation[0].course.name,
+      enrollmentYear: user.coursesRelation[0].enrollmentYear,
       createDate: user.createDate,
     });
   });
