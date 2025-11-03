@@ -9,7 +9,6 @@ export const register = async (req, res) => {
     if (err instanceof CustomError) {
       res.status(err.statusCode).json({ error: err.message });
     }
-    console.log(err);
     return res.status(500).json({ error: err });
   }
 };
@@ -22,6 +21,7 @@ export const login = async (req, res) => {
     if (err instanceof CustomError) {
       res.status(err.statusCode).json({ error: err.message });
     }
+    return res.status(500).json({ error: err });
   }
 };
 
@@ -33,5 +33,6 @@ export const list = async (req, res) => {
     if (err instanceof CustomError) {
       res.status(err.statusCode).json({ error: err.message });
     }
+    return res.status(500).json({ error: err });
   }
 };
