@@ -39,6 +39,7 @@ export const registerUser = async (userInfo) => {
       password: hashPassword,
       enrollmentYear: parseInt(userInfo.enrollmentYear),
       idUserType: userType.id.toString(),
+      gender: userInfo.gender,
     },
   });
 
@@ -93,12 +94,15 @@ export const loginUser = async (userInfo) => {
 
 //Listar
 export const listUsers = async () => {
+  var listUsers = [];
+
   const users = await prisma.user.findMany({
     select: {
       id: true,
       name: true,
       email: true,
       enrollmentYear: true,
+      gender: true,
       userType: {
         select: { userType: true },
       },
@@ -109,8 +113,23 @@ export const listUsers = async () => {
           },
         },
       },
+      createDate: true,
     },
   });
 
-  return users;
+  users.forEach((user) => {
+    listUsers.push({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      enrollmentYear: user.enrollmentYear,
+      gender: user.gender,
+      userType: user.userType.userType,
+      //courses: user.coursesRelation.map((c) => c.course.name),
+      course: user.coursesRelation[0].course.name,
+      createDate: user.createDate,
+    });
+  });
+
+  return listUsers;
 };

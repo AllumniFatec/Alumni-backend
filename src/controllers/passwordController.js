@@ -3,13 +3,13 @@ import CustomError from "../utils/CustomError.js";
 
 export const forgotPassword = async (req, res) => {
   try {
-    console.log(req);
     const resetToken = await passwordService.sendRecovery(req.body, req);
     res.status(200).send("Email de recuperação enviado com sucesso.");
   } catch (err) {
     if (err instanceof CustomError) {
       res.status(err.statusCode).json({ error: err.message });
     }
+    return res.status(500).json({ error: err });
   }
 };
 
@@ -21,5 +21,6 @@ export const resetPassword = async (req, res) => {
     if (err instanceof CustomError) {
       res.status(err.statusCode).json({ error: err.message });
     }
+    return res.status(500).json({ error: err });
   }
 };
