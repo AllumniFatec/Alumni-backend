@@ -16,7 +16,17 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const token = await authService.loginUser(req.body);
-    res.status(200).json(token);
+
+    res.cookie("access_token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "strict",
+      maxAge: 60 * 60 * 1000,
+    });
+
+    res.status(200).json({
+      message: "Login realizado com sucesso",
+    });
   } catch (err) {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });

@@ -1,8 +1,8 @@
-import { PrismaClient } from '../generated/prisma/index.js';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import sendEmail from '../utils/email.js';
-import * as validations from '../utils/validations.js';
+import { PrismaClient } from "../generated/prisma/index.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import sendEmail from "../utils/email.js";
+import * as validations from "../utils/validations.js";
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -16,12 +16,12 @@ export const sendRecovery = async (userInfo, req) => {
   });
 
   if (!user) {
-    throw new CustomError('Email não cadastrado!', 404);
+    throw new CustomError("Email não cadastrado!", 404);
   }
 
   //gerar o token para resetar senha
   const resetToken = jwt.sign({ id: user.id }, JWT_SECRET, {
-    expiresIn: '10m',
+    expiresIn: "10m",
   });
 
   await prisma.user.update({
@@ -31,7 +31,7 @@ export const sendRecovery = async (userInfo, req) => {
 
   //enviar email
   const urlRecovery = `${req.protocol}://${req.get(
-    'host',
+    "host",
   )}/reset-password/${resetToken}`;
   const message = `<div style="width: 100%; text-align: center; font-family: Arial, sans-serif; background-color: #f6f6f6; padding: 30px 0;">
   <table align="center" cellpadding="0" cellspacing="0" width="100%" style="max-width: 500px; background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
@@ -62,7 +62,7 @@ export const sendRecovery = async (userInfo, req) => {
   try {
     await sendEmail({
       email: user.email,
-      subject: 'Recuperação de Senha Alumni Fatec Sorocaba',
+      subject: "Recuperação de Senha Alumni Fatec Sorocaba",
       message: message,
     });
   } catch (err) {
@@ -71,13 +71,13 @@ export const sendRecovery = async (userInfo, req) => {
       data: { tokenPasswordReset: undefined },
     });
     throw new CustomError(
-      'Algo de errado aconteceu. Por favor, tente novamente mais tarde',
+      "Algo de errado aconteceu. Por favor, tente novamente mais tarde",
       500,
     );
   }
 };
 
-export const resetPassword = async userInfo => {
+export const resetPassword = async (userInfo) => {
   const token = userInfo.params.token;
 
   const user = await prisma.user.findFirst({
@@ -85,7 +85,7 @@ export const resetPassword = async userInfo => {
   });
 
   if (!user) {
-    throw new CustomError('Erro inesperado, tente novamente mais tarde', 500);
+    throw new CustomError("Erro inesperado, tente novamente mais tarde", 500);
   }
 
   validations.validatePassword(userInfo.body.password);
