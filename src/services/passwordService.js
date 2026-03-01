@@ -1,5 +1,5 @@
 import { PrismaClient } from '../generated/prisma/index.js';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import sendEmail from '../utils/email.js';
 import * as validations from '../utils/validations.js';
@@ -30,9 +30,7 @@ export const sendRecovery = async (userInfo, req) => {
   });
 
   //enviar email
-  const urlRecovery = `${req.protocol}://${req.get(
-    'host',
-  )}/reset-password/${resetToken}`;
+  const urlRecovery = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
   const message = `<div style="width: 100%; text-align: center; font-family: Arial, sans-serif; background-color: #f6f6f6; padding: 30px 0;">
   <table align="center" cellpadding="0" cellspacing="0" width="100%" style="max-width: 500px; background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
     <tr>
@@ -70,14 +68,11 @@ export const sendRecovery = async (userInfo, req) => {
       where: { id: user.id },
       data: { tokenPasswordReset: undefined },
     });
-    throw new CustomError(
-      'Algo de errado aconteceu. Por favor, tente novamente mais tarde',
-      500,
-    );
+    throw new CustomError('Algo de errado aconteceu. Por favor, tente novamente mais tarde', 500);
   }
 };
 
-export const resetPassword = async userInfo => {
+export const resetPassword = async (userInfo) => {
   const token = userInfo.params.token;
 
   const user = await prisma.user.findFirst({

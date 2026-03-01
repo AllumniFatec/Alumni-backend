@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const enviarEmail = async user => {
+const enviarEmail = async (user) => {
   //criando o transporter, serviço de envio de emails
   const transport = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,

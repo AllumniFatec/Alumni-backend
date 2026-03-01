@@ -1,5 +1,5 @@
 import { PrismaClient } from '../generated/prisma/index.js';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import CustomError from '../utils/CustomError.js';
 import * as validations from '../utils/validations.js';
@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
 
 //Cadastro
-export const registerUser = async userInfo => {
+export const registerUser = async (userInfo) => {
   validations.validateEmail(userInfo.email);
 
   const isExist = await prisma.user.findUnique({
@@ -62,7 +62,7 @@ export const registerUser = async userInfo => {
 };
 
 //Login
-export const loginUser = async userInfo => {
+export const loginUser = async (userInfo) => {
   validations.validateEmail(userInfo.email);
 
   const user = await prisma.user.findUnique({
@@ -90,10 +90,10 @@ export const loginUser = async userInfo => {
       admin: isAdmin,
     },
     JWT_SECRET,
-    { expiresIn: '5d' },
+    { expiresIn: '5d' }
   );
 
-  return { token: token };
+  return token;
 };
 
 //Listar
@@ -121,7 +121,7 @@ export const listUsers = async () => {
     },
   });
 
-  users.forEach(user => {
+  users.forEach((user) => {
     listUsers.push({
       id: user.id,
       name: user.name,
