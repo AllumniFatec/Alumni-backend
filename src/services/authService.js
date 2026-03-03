@@ -1,4 +1,4 @@
-import { PrismaClient } from '../generated/prisma/index.js';
+import { PrismaClient, UserType } from '../generated/prisma/index.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import CustomError from '../utils/CustomError.js';
@@ -19,19 +19,15 @@ export const registerUser = async (userInfo) => {
     throw new CustomError('Usuário já cadastrado!', 409);
   }
 
-  const userType = await prisma.userType.findUnique({
-    where: { userType: userInfo.userType },
-  });
-
-  if (!userType) {
+  if (!Object.values(UserType).includes(userInfo.userType)) {
     throw new CustomError('Tipo de usuário inválido!', 422);
   }
 
-  const courseId = await prisma.course.findUnique({
+  const course = await prisma.course.findUnique({
     where: { name: userInfo.course },
   });
 
-  if (!courseId) {
+  if (!course) {
     throw new CustomError('Curso informado inválido!', 422);
   }
 
@@ -40,21 +36,24 @@ export const registerUser = async (userInfo) => {
   const salt = await bcrypt.genSalt(10);
   const hashPassword = await bcrypt.hash(userInfo.password, salt);
 
-  const user = await prisma.user.create({
+  await prisma.user.create({
     data: {
       name: userInfo.name,
       email: userInfo.email,
       password: hashPassword,
-      idUserType: userType.id.toString(),
       gender: userInfo.gender,
-    },
-  });
+      userType: userInfo.userType,
 
-  await prisma.userCourse.create({
-    data: {
-      userId: user.id,
-      courseId: courseId.id,
-      enrollmentYear: parseInt(userInfo.enrollmentYear),
+      courses: {
+        set: [
+          {
+            courseId: course.id,
+            courseName: course.name,
+            abbreviation: course.abbreviation,
+            enrollmentYear: Number(userInfo.enrollmentYear),
+          },
+        ],
+      },
     },
   });
 
@@ -67,7 +66,6 @@ export const loginUser = async (userInfo) => {
 
   const user = await prisma.user.findUnique({
     where: { email: userInfo.email },
-    include: { userType: true },
   });
 
   if (!user) {
@@ -82,7 +80,7 @@ export const loginUser = async (userInfo) => {
     throw new CustomError('Senha incorreta!', 401);
   }
 
-  const isAdmin = user.userType.userType == 'Admin';
+  const isAdmin = user.userType == 'Admin';
 
   const token = jwt.sign(
     {
@@ -106,17 +104,8 @@ export const listUsers = async () => {
       name: true,
       email: true,
       gender: true,
-      userType: {
-        select: { userType: true },
-      },
-      coursesRelation: {
-        select: {
-          enrollmentYear: true,
-          course: {
-            select: { name: true },
-          },
-        },
-      },
+      userType: true,
+      courses: true,
       createDate: true,
     },
   });
@@ -127,13 +116,29 @@ export const listUsers = async () => {
       name: user.name,
       email: user.email,
       gender: user.gender,
-      userType: user.userType.userType,
-      //courses: user.coursesRelation.map((c) => c.course.name),
-      course: user.coursesRelation[0].course.name,
-      enrollmentYear: user.coursesRelation[0].enrollmentYear,
+      userType: user.userType,
+      course: user.courses[0].courseName,
+      enrollmentYear: user.courses[0].enrollmentYear,
       createDate: user.createDate,
     });
   });
+
+  /*
+  users.forEach((user) => {
+    listUsers.push({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      gender: user.gender,
+      userType: user.userType,
+      courses: user.courses.map((course) => ({
+        courseName: course.courseName,
+        enrollmentYear: course.enrollmentYear,
+      })),
+      createDate: user.createDate,
+    });
+  });
+  */
 
   return listUsers;
 };
