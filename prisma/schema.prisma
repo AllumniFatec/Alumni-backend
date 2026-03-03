@@ -27,9 +27,9 @@ model User {
 }
 
 enum UserType {
-  Aluno
-  Egresso
-  Professor
+  Student
+  Alumni
+  Teacher
   Admin
 }
 
