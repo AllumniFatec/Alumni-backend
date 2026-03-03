@@ -1,4 +1,5 @@
-import { PrismaClient, UserType } from '../generated/prisma/index.js';
+import { PrismaClient } from '../generated/prisma/index.js';
+import { UserType } from '../generated/prisma/index.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import CustomError from '../utils/CustomError.js';
