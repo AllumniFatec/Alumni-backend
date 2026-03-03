@@ -1,6 +1,7 @@
 import express from 'express';
 import authRoutes from './src/routes/authRoutes.js';
 import passwordRoutes from './src/routes/passwordRoutes.js';
+import couseRoutes from './src/routes/courseRoutes.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 
@@ -19,6 +20,7 @@ if (process.env.NODE_ENV == 'development') {
 
 app.use('/', authRoutes);
 app.use('/', passwordRoutes);
+app.use('/', couseRoutes);
 
 app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}!`);
