@@ -19,7 +19,7 @@ export const login = async (req, res) => {
 
     res.cookie('access_token', token, {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV != 'development',
       sameSite: 'strict',
       maxAge: process.env.MAX_AGE_COOKIES, // 1 hora
     });
