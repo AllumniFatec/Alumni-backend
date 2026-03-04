@@ -24,6 +24,14 @@ model User {
 
   tokenPasswordReset String?
   updatedPassword    DateTime?
+
+  @@index([createDate])
+}
+
+enum UserGender {
+  Masculino
+  Feminino
+  Outros
 }
 
 enum UserType {

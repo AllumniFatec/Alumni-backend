@@ -1,4 +1,4 @@
-import { PrismaClient, UserType } from '../generated/prisma/index.js';
+import { PrismaClient, UserType, UserGender } from '../generated/prisma/index.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import CustomError from '../utils/CustomError.js';
@@ -21,6 +21,10 @@ export const registerUser = async (userInfo) => {
 
   if (!Object.values(UserType).includes(userInfo.userType)) {
     throw new CustomError('Tipo de usuário inválido!', 422);
+  }
+
+  if (!Object.values(UserGender).includes(userInfo.gender)) {
+    throw new CustomError('Gênero de usuário inválido!', 422);
   }
 
   const course = await prisma.course.findUnique({
@@ -95,21 +99,57 @@ export const loginUser = async (userInfo) => {
 };
 
 //Listar
-export const listUsers = async () => {
+export const listUsers = async (page = 1, limit = 20) => {
   var listUsers = [];
 
+  /*
+   
   const users = await prisma.user.findMany({
+    skip: (page - 1) * limit,
+    take: limit,
     select: {
       id: true,
       name: true,
       email: true,
       gender: true,
       userType: true,
-      courses: true,
+      courses: {
+        select: {
+          courseName: true,
+          enrollmentYear: true,
+        },
+      },
       createDate: true,
     },
   });
+  */
 
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      //skip: (page - 1) * limit,
+      take: limit,
+      orderBy: {
+        createDate: 'desc',
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        gender: true,
+        userType: true,
+        courses: {
+          select: {
+            courseName: true,
+            enrollmentYear: true,
+          },
+        },
+        createDate: true,
+      },
+    }),
+    prisma.user.count(),
+  ]);
+
+  /*
   users.forEach((user) => {
     listUsers.push({
       id: user.id,
@@ -117,13 +157,13 @@ export const listUsers = async () => {
       email: user.email,
       gender: user.gender,
       userType: user.userType,
-      course: user.courses[0].courseName,
-      enrollmentYear: user.courses[0].enrollmentYear,
+      course: user.courses?.[0].courseName ?? null,
+      enrollmentYear: user.courses?.[0].enrollmentYear ?? null,
       createDate: user.createDate,
     });
   });
 
-  /*
+  
   users.forEach((user) => {
     listUsers.push({
       id: user.id,
@@ -140,5 +180,22 @@ export const listUsers = async () => {
   });
   */
 
-  return listUsers;
+  listUsers = users.map((user) => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    gender: user.gender,
+    userType: user.userType,
+    course: user.courses?.[0]?.courseName ?? null,
+    enrollmentYear: user.courses?.[0]?.enrollmentYear ?? null,
+    createDate: user.createDate,
+  }));
+
+  return {
+    data: listUsers,
+    page,
+    limit,
+    total,
+    totalPage: Math.ceil(total / limit),
+  };
 };
