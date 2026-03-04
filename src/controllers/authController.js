@@ -46,6 +46,6 @@ export const list = async (req, res) => {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
     }
-    return res.status(501).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
