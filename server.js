@@ -12,11 +12,25 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-if (process.env.NODE_ENV == 'development') {
-  app.use(cors({ origin: '*' }));
+var corsOptions;
+
+if (process.env.NODE_ENV === 'development') {
+  corsOptions = {
+    origin: '*',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  };
 } else {
-  app.use(cors({ origin: '*' })); //colocar a URL do frontend correto
+  corsOptions = {
+    origin: 'http://localhost:5500', // origin of your frontend (no trailing slash)
+    credentials: true, // permite cookies / auth headers
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'], // ajuste conforme necessário
+  };
 }
+
+app.use(cors(corsOptions));
 
 app.use('/', authRoutes);
 app.use('/', passwordRoutes);

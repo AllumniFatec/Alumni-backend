@@ -73,6 +73,10 @@ export const loginUser = async (userInfo) => {
     throw new CustomError('Usuário não encontrado!', 404);
   }
 
+  if (user.user_status == 'InAnalysis') {
+    throw new CustomError('Usuário pendente de aprovação!', 401);
+  }
+
   validations.validatePassword(userInfo.password);
 
   const isMatch = await bcrypt.compare(userInfo.password, user.password);
@@ -100,6 +104,9 @@ export const listUsers = async () => {
   var listUsers = [];
 
   const users = await prisma.user.findMany({
+    orderBy: {
+      create_date: 'desc',
+    },
     select: {
       user_id: true,
       name: true,
