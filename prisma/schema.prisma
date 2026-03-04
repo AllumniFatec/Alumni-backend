@@ -9,21 +9,198 @@ datasource db {
 }
 
 model User {
-  id                 String       @id @default(auto()) @map("_id") @db.ObjectId
-  name               String
-  email              String       @unique
-  password           String
-  gender             String
+  user_id                String @id @default(auto()) @map("_id") @db.ObjectId
+  name                   String
+  email                  String @unique
+  password               String
+  gender                 UserGender
+  biography              String?
+  perfil_photo           String?
+  receive_notifications  Boolean @default(true)
+  user_status            Status @default(InAnalysis)
 
-  userType           UserType
+  user_type              UserType
 
-  courses            UserCourse[]
+  social_media           SocialMedia[]
+  courses                UserCourse[]
+  events                 Event[]
+  jobs                   Job[]
+  posts                  Post[]
+  post_likes             PostLikes[]
+  post_comments          PostComments[]
+  skills                 UserSkill[]
 
-  createDate         DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
+  workplace_id           String? @db.ObjectId
+  workplace              Workplace? @relation(fields: [workplace_id], references: [workplace_id])
 
-  tokenPasswordReset String?
-  updatedPassword    DateTime?
+  create_date            DateTime @default(now())
+  updated_at             DateTime? @updatedAt
+  deleted_at             DateTime?
+
+  token_password_reset   String?
+  updated_password       DateTime?
+
+  @@index([create_date])
+}
+
+model Workplace {
+  workplace_id  String @id @default(auto()) @map("_id") @db.ObjectId
+  company       String @unique
+  users         User[]
+}
+
+model Course {
+  course_id     String @id @default(auto()) @map("_id") @db.ObjectId
+  name          String @unique
+  abbreviation  String @unique
+}
+
+model Event {
+  event_id     String @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  description  String
+  local        String
+  date_start   DateTime
+  date_end     DateTime
+  images       Json[]
+  status       Status @default(Active)
+
+  author_id    String @db.ObjectId
+  author       User @relation(fields: [author_id], references: [user_id])
+
+  create_date  DateTime @default(now())
+  updated_at   DateTime? @updatedAt
+  deleted_date DateTime?
+
+  @@index([author_id, create_date(sort: Desc)])
+  @@index([create_date(sort: Desc)])
+}
+
+model Job {
+  job_id        String @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  description   String
+  company       String
+  images        Json[]
+  status        Status @default(Active)
+
+  author_id     String @db.ObjectId
+  author        User @relation(fields: [author_id], references: [user_id])
+
+  create_date   DateTime @default(now())
+  updated_at    DateTime? @updatedAt
+  deleted_date  DateTime?
+
+  @@index([author_id, create_date(sort: Desc)])
+  @@index([create_date(sort: Desc)])
+}
+
+model Post {
+  post_id        String @id @default(auto()) @map("_id") @db.ObjectId
+  content        String
+  images         Json[]
+  status         Status @default(Active)
+
+  author_id      String @db.ObjectId
+  author         User @relation(fields: [author_id], references: [user_id])
+
+  likes          PostLikes[]
+  likes_count    Int @default(0)
+
+  comments       PostComments[]
+  comments_count Int @default(0)
+
+  create_date    DateTime @default(now())
+  updated_at     DateTime? @updatedAt
+  deleted_date   DateTime?
+
+  @@index([author_id, create_date(sort: Desc)])
+  @@index([create_date(sort: Desc)])
+}
+
+model PostLikes {
+  like_id       String @id @default(auto()) @map("_id") @db.ObjectId
+
+  post_id       String @db.ObjectId
+  post          Post @relation(fields: [post_id], references: [post_id])
+
+  user_id       String @db.ObjectId
+  user          User @relation(fields: [user_id], references: [user_id])
+
+  create_date   DateTime @default(now())
+
+  @@unique([post_id, user_id])
+  @@index([post_id, create_date(sort: Desc)])
+}
+
+model PostComments {
+  comment_id    String @id @default(auto()) @map("_id") @db.ObjectId
+
+  post_id       String @db.ObjectId
+  post          Post @relation(fields: [post_id], references: [post_id])
+
+  user_id       String @db.ObjectId
+  user          User @relation(fields: [user_id], references: [user_id])
+
+  content       String
+
+  create_date   DateTime @default(now())
+  updated_at    DateTime? @updatedAt
+  deleted_date  DateTime?
+
+  @@index([post_id, create_date(sort: Desc)])
+}
+
+model Skill {
+  skill_id    String @id @default(auto()) @map("_id") @db.ObjectId
+  name        String @unique
+  slug        String @unique
+
+  users       UserSkill[]
+}
+
+model UserSkill {
+  user_skill_id  String @id @default(auto()) @map("_id") @db.ObjectId
+
+  user_id        String @db.ObjectId
+  user           User @relation(fields: [user_id], references: [user_id])
+
+  skill_id       String @db.ObjectId
+  skill          Skill @relation(fields: [skill_id], references: [skill_id])
+
+  create_date    DateTime @default(now())
+
+  @@unique([user_id, skill_id])
+  @@index([user_id])
+  @@index([skill_id])
+  @@index([create_date])
+}
+
+type SocialMedia {
+  type   SocialMediaType
+  url    String
+}
+
+type UserCourse {
+  course_id       String
+  course_name     String
+  abbreviation    String
+  enrollmentYear  Int
+}
+
+enum SocialMediaType {
+  Instagram
+  Linkedin
+  Github
+  Facebook
+  X
+  Website
+}
+
+enum UserGender {
+  Male
+  Female
+  Others
 }
 
 enum UserType {
@@ -33,15 +210,10 @@ enum UserType {
   Admin
 }
 
-model Course {
-  id            String       @id @default(auto()) @map("_id") @db.ObjectId
-  name          String       @unique
-  abbreviation  String       @unique
-}
-
-type UserCourse {
-  courseId           String
-  courseName         String
-  abbreviation       String
-  enrollmentYear     Int
+enum Status {
+  Active
+  InAnalysis
+  Suspended
+  Banned
+  Deleted
 }
