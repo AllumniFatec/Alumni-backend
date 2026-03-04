@@ -35,9 +35,9 @@ enum UserGender {
 }
 
 enum UserType {
-  Aluno
-  Egresso
-  Professor
+  Student
+  Alumni
+  Teacher
   Admin
 }
 
