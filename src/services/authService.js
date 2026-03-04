@@ -43,13 +43,13 @@ export const registerUser = async (userInfo) => {
       email: userInfo.email,
       password: hashPassword,
       gender: userInfo.gender,
-      userType: userInfo.userType,
+      user_type: userInfo.userType,
 
       courses: {
         set: [
           {
-            courseId: course.id,
-            courseName: course.name,
+            course_id: course.course_id,
+            course_name: course.name,
             abbreviation: course.abbreviation,
             enrollmentYear: Number(userInfo.enrollmentYear),
           },
@@ -81,7 +81,7 @@ export const loginUser = async (userInfo) => {
     throw new CustomError('Senha incorreta!', 401);
   }
 
-  const isAdmin = user.userType == 'Admin';
+  const isAdmin = user.user_type == 'Admin';
 
   const token = jwt.sign(
     {
@@ -101,26 +101,26 @@ export const listUsers = async () => {
 
   const users = await prisma.user.findMany({
     select: {
-      id: true,
+      user_id: true,
       name: true,
       email: true,
       gender: true,
-      userType: true,
+      user_type: true,
       courses: true,
-      createDate: true,
+      create_date: true,
     },
   });
 
   users.forEach((user) => {
     listUsers.push({
-      id: user.id,
+      id: user.user_id,
       name: user.name,
       email: user.email,
       gender: user.gender,
-      userType: user.userType,
-      course: user.courses[0].courseName,
+      user_type: user.user_type,
+      course: user.courses[0].course_name,
       enrollmentYear: user.courses[0].enrollmentYear,
-      createDate: user.createDate,
+      create_date: user.create_date,
     });
   });
 

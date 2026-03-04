@@ -20,13 +20,13 @@ export const sendRecovery = async (userInfo, req) => {
   }
 
   //gerar o token para resetar senha
-  const resetToken = jwt.sign({ id: user.id }, JWT_SECRET, {
+  const resetToken = jwt.sign({ id: user.user_id }, JWT_SECRET, {
     expiresIn: '10m',
   });
 
   await prisma.user.update({
-    where: { id: user.id },
-    data: { tokenPasswordReset: resetToken },
+    where: { user_id: user.user_id },
+    data: { token_password_reset: resetToken },
   });
 
   //enviar email
@@ -65,8 +65,8 @@ export const sendRecovery = async (userInfo, req) => {
     });
   } catch (err) {
     await prisma.user.update({
-      where: { id: user.id },
-      data: { tokenPasswordReset: undefined },
+      where: { user_id: user.user_id },
+      data: { token_password_reset: undefined },
     });
     throw new CustomError('Algo de errado aconteceu. Por favor, tente novamente mais tarde', 500);
   }
@@ -76,7 +76,7 @@ export const resetPassword = async (userInfo) => {
   const token = userInfo.params.token;
 
   const user = await prisma.user.findFirst({
-    where: { tokenPasswordReset: token },
+    where: { token_password_reset: token },
   });
 
   if (!user) {
@@ -89,11 +89,11 @@ export const resetPassword = async (userInfo) => {
   const hashPassword = await bcrypt.hash(userInfo.body.password, salt);
 
   await prisma.user.update({
-    where: { id: user.id },
+    where: { user_id: user.user_id },
     data: {
       password: hashPassword,
-      tokenPasswordReset: null,
-      updatedPassword: new Date(),
+      token_password_reset: null,
+      updated_password: new Date(),
     },
   });
 };
