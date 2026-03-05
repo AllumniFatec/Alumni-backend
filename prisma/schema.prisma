@@ -17,7 +17,7 @@ model User {
   biography              String?
   perfil_photo           String?
   receive_notifications  Boolean @default(true)
-  user_status            Status @default(InAnalysis)
+  user_status            UserStatus @default(InAnalysis)
 
   user_type              UserType
 
@@ -77,19 +77,23 @@ model Event {
 }
 
 model Job {
-  job_id        String @id @default(auto()) @map("_id") @db.ObjectId
-  title         String
-  description   String
-  company       String
-  images        Json[]
-  status        Status @default(Active)
+  job_id          String @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
+  description     String
+  company         String
+  images          Json[]
+  status          Status @default(Active)
+  localtion       JobLocation
+  employment_type EmploymentType
+  seniority_level SeniorityLevel
+  work_model      WorkModel
 
-  author_id     String @db.ObjectId
-  author        User @relation(fields: [author_id], references: [user_id])
+  author_id       String @db.ObjectId
+  author          User @relation(fields: [author_id], references: [user_id])
 
-  create_date   DateTime @default(now())
-  updated_at    DateTime? @updatedAt
-  deleted_date  DateTime?
+  create_date     DateTime @default(now())
+  updated_at      DateTime? @updatedAt
+  deleted_date    DateTime?
 
   @@index([author_id, create_date(sort: Desc)])
   @@index([create_date(sort: Desc)])
@@ -176,6 +180,12 @@ model UserSkill {
   @@index([create_date])
 }
 
+type JobLocation {
+  city    String
+  state   String
+  country String
+}
+
 type SocialMedia {
   type   SocialMediaType
   url    String
@@ -210,10 +220,42 @@ enum UserType {
   Admin
 }
 
-enum Status {
+enum UserStatus {
   Active
   InAnalysis
   Suspended
   Banned
   Deleted
+}
+
+enum Status {
+  Active
+  Inactive
+  Closed
+  Canceled
+  Deleted
+}
+
+enum EmploymentType {
+  Estágio
+  Trainee
+  JovemAprendiz @map("Jovem Aprendiz")
+  CLT
+  PJ
+  Freelancer
+  Autônomo
+}
+
+enum SeniorityLevel {
+  Estágio
+  Júnior
+  Pleno
+  Sênior
+  Especialista
+}
+
+enum WorkModel {
+  Remoto
+  Presencial
+  Híbrido
 }

@@ -2,6 +2,8 @@ import express from 'express';
 import authRoutes from './src/routes/authRoutes.js';
 import passwordRoutes from './src/routes/passwordRoutes.js';
 import couseRoutes from './src/routes/courseRoutes.js';
+import feedRoutes from './src/routes/feedRoutes.js';
+import postRoutes from './src/routes/postRoutes.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 
@@ -35,6 +37,8 @@ app.use(cors(corsOptions));
 app.use('/', authRoutes);
 app.use('/', passwordRoutes);
 app.use('/', couseRoutes);
+app.use('/', feedRoutes);
+app.use('/', postRoutes);
 
 app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}!`);

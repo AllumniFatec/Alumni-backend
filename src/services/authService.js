@@ -89,7 +89,7 @@ export const loginUser = async (userInfo) => {
 
   const token = jwt.sign(
     {
-      id: user.id,
+      id: user.user_id,
       admin: isAdmin,
     },
     JWT_SECRET,
@@ -97,56 +97,4 @@ export const loginUser = async (userInfo) => {
   );
 
   return token;
-};
-
-//Listar
-export const listUsers = async () => {
-  var listUsers = [];
-
-  const users = await prisma.user.findMany({
-    orderBy: {
-      create_date: 'desc',
-    },
-    select: {
-      user_id: true,
-      name: true,
-      email: true,
-      gender: true,
-      user_type: true,
-      courses: true,
-      create_date: true,
-    },
-  });
-
-  users.forEach((user) => {
-    listUsers.push({
-      id: user.user_id,
-      name: user.name,
-      email: user.email,
-      gender: user.gender,
-      user_type: user.user_type,
-      course: user.courses[0].course_name,
-      enrollmentYear: user.courses[0].enrollmentYear,
-      create_date: user.create_date,
-    });
-  });
-
-  /*
-  users.forEach((user) => {
-    listUsers.push({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      gender: user.gender,
-      userType: user.userType,
-      courses: user.courses.map((course) => ({
-        courseName: course.courseName,
-        enrollmentYear: course.enrollmentYear,
-      })),
-      createDate: user.createDate,
-    });
-  });
-  */
-
-  return listUsers;
 };
