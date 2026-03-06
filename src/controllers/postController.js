@@ -6,7 +6,7 @@ export const createPost = async (req, res) => {
     const user = req.user;
     const data = req.body;
 
-    const post = await postService.create(data, user);
+    const post = await postService.createPost(data, user);
 
     return res.status(201).json({ message: 'Postagem criada com sucesso!' });
   } catch (err) {
@@ -23,9 +23,42 @@ export const updatePost = async (req, res) => {
     const postId = req.params.id;
     const user = req.user;
 
-    const updatedPost = await postService.update(postId, data, user);
+    const updatedPost = await postService.updatePost(postId, data, user);
 
     return res.status(200).json({ message: 'Postagem atualizada com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const deletePost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const user = req.user;
+
+    const updatedPost = await postService.deletePost(postId, user);
+
+    return res.status(200).json({ message: 'Postagem deletada com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const createCommentPost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const user = req.user;
+    const commentData = req.body;
+
+    const updatedPost = await postService.createCommentPost(postId, commentData, user);
+
+    return res.status(200).json({ message: 'Comentário adicionado com sucesso!' });
   } catch (err) {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });

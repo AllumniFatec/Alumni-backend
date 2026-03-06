@@ -12,6 +12,9 @@ export const loadFeed = async (page = 1) => {
     prisma.post.findMany({
       skip,
       take: limit,
+      where: {
+        status: 'Active',
+      },
       orderBy: {
         create_date: 'desc',
       },

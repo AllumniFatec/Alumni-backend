@@ -24,8 +24,6 @@ export const login = async (req, res) => {
       maxAge: parseInt(process.env.MAX_AGE_COOKIES), // 1 hora
     });
 
-    console.log(res.cookie);
-
     res.status(200).json({
       message: 'Login realizado com sucesso',
     });

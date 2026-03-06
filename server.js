@@ -18,7 +18,7 @@ var corsOptions;
 
 if (process.env.NODE_ENV === 'development') {
   corsOptions = {
-    origin: '*',
+    origin: 'http://localhost:5500',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
