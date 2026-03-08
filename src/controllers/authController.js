@@ -10,7 +10,7 @@ export const register = async (req, res) => {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
     }
-    return res.status(500).json({ error: err });
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -22,27 +22,12 @@ export const login = async (req, res) => {
       httpOnly: true,
       secure: !env.isDevelopment,
       sameSite: 'strict',
-      maxAge: env.maxAgeCookies, // 1 hora
+      maxAge: parseInt(env.maxAgeCookies), // 1 hora
     });
 
     res.status(200).json({
       message: 'Login realizado com sucesso',
     });
-  } catch (err) {
-    if (err instanceof CustomError) {
-      return res.status(err.statusCode).json({ error: err.message });
-    }
-    return res.status(500).json({ error: err });
-  }
-};
-
-export const list = async (req, res) => {
-  try {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 5;
-
-    const users = await authService.listUsers(page, limit);
-    return res.status(200).json(users);
   } catch (err) {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });

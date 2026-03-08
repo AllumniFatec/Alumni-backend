@@ -9,7 +9,7 @@ export const forgotPassword = async (req, res) => {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
     }
-    return res.status(500).json({ error: err });
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -21,6 +21,6 @@ export const resetPassword = async (req, res) => {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
     }
-    return res.status(500).json({ error: err });
+    return res.status(500).json({ error: err.message });
   }
 };

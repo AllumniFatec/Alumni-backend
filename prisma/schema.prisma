@@ -17,7 +17,7 @@ model User {
   biography              String?
   perfil_photo           String?
   receive_notifications  Boolean @default(true)
-  user_status            Status @default(InAnalysis)
+  user_status            UserStatus @default(InAnalysis)
 
   user_type              UserType
 
@@ -77,19 +77,23 @@ model Event {
 }
 
 model Job {
-  job_id        String @id @default(auto()) @map("_id") @db.ObjectId
-  title         String
-  description   String
-  company       String
-  images        Json[]
-  status        Status @default(Active)
+  job_id          String @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
+  description     String
+  company         String
+  images          Json[]
+  status          Status @default(Active)
+  localtion       JobLocation
+  employment_type EmploymentType
+  seniority_level SeniorityLevel
+  work_model      WorkModel
 
-  author_id     String @db.ObjectId
-  author        User @relation(fields: [author_id], references: [user_id])
+  author_id       String @db.ObjectId
+  author          User @relation(fields: [author_id], references: [user_id])
 
-  create_date   DateTime @default(now())
-  updated_at    DateTime? @updatedAt
-  deleted_date  DateTime?
+  create_date     DateTime @default(now())
+  updated_at      DateTime? @updatedAt
+  deleted_date    DateTime?
 
   @@index([author_id, create_date(sort: Desc)])
   @@index([create_date(sort: Desc)])
@@ -124,12 +128,14 @@ model PostLikes {
   post_id       String @db.ObjectId
   post          Post @relation(fields: [post_id], references: [post_id])
 
-  user_id       String @db.ObjectId
-  user          User @relation(fields: [user_id], references: [user_id])
+  author_id     String @db.ObjectId
+  author        User @relation(fields: [author_id], references: [user_id])
+
+  status        Status @default(Active)
 
   create_date   DateTime @default(now())
 
-  @@unique([post_id, user_id])
+  @@unique([post_id, author_id])
   @@index([post_id, create_date(sort: Desc)])
 }
 
@@ -143,6 +149,7 @@ model PostComments {
   user          User @relation(fields: [user_id], references: [user_id])
 
   content       String
+  status        Status @default(Active)
 
   create_date   DateTime @default(now())
   updated_at    DateTime? @updatedAt
@@ -174,6 +181,12 @@ model UserSkill {
   @@index([user_id])
   @@index([skill_id])
   @@index([create_date])
+}
+
+type JobLocation {
+  city    String
+  state   String
+  country String
 }
 
 type SocialMedia {
@@ -210,10 +223,42 @@ enum UserType {
   Admin
 }
 
-enum Status {
+enum UserStatus {
   Active
   InAnalysis
   Suspended
   Banned
   Deleted
+}
+
+enum Status {
+  Active
+  Inactive
+  Closed
+  Canceled
+  Deleted
+}
+
+enum EmploymentType {
+  Internship
+  Trainee
+  Apprentice      @map("Jovem Aprendiz")
+  CLT
+  Contractor      @map("PJ")
+  Freelancer
+  SelfEmployed    @map("Autônomo")
+}
+
+enum SeniorityLevel {
+  Internship
+  Junior
+  MidLevel        @map("Pleno")
+  Senior
+  Specialist
+}
+
+enum WorkModel {
+  Remote
+  OnSite          @map("Presencial")
+  Hybrid          @map("Híbrido")
 }
