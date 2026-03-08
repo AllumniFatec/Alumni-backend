@@ -147,6 +147,7 @@ model PostComments {
   user          User @relation(fields: [user_id], references: [user_id])
 
   content       String
+  status        Status @default(Active)
 
   create_date   DateTime @default(now())
   updated_at    DateTime? @updatedAt

@@ -7,6 +7,9 @@ const router = express.Router();
 router.post('/post', auth, postController.createPost);
 router.patch('/post/:id', auth, postController.updatePost);
 router.delete('/post/:id', auth, postController.deletePost);
+
 router.post('/post/comment/:id', auth, postController.createCommentPost);
+router.patch('/post/comment/:id', auth, postController.updateCommentPost);
+router.delete('/post/comment/:id', auth, postController.deleteCommentPost);
 
 export default router;

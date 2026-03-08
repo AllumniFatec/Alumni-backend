@@ -197,3 +197,114 @@ export const createCommentPost = async (postId, commentData, userToken) => {
 
   return { message: 'Comentário adicionado com sucesso!' };
 };
+
+export const updateCommentPost = async (postCommentId, postCommentData, userToken) => {
+  const user_id = userToken.id;
+  const post_comment_content = postCommentData.content;
+  const post_comment_id = postCommentId;
+
+  if (!post_comment_content) {
+    throw new CustomError('O conteúdo do comentário é obrigatório', 400);
+  }
+
+  if (post_comment_content.length > 1000) {
+    throw new CustomError('O conteúdo do comentário não pode exceder 1000 caracteres', 400);
+  }
+
+  const user = await prisma.user.findUnique({
+    where: {
+      user_id: user_id,
+    },
+  });
+
+  if (!user) {
+    throw new CustomError('Usuário não encontrado', 404);
+  }
+
+  if (user.user_status !== 'Active') {
+    throw new CustomError('Usuário não autorizado a atualizar comentários', 403);
+  }
+
+  const postComment = await prisma.postComments.findUnique({
+    where: {
+      comment_id: post_comment_id,
+    },
+  });
+
+  if (!postComment) {
+    throw new CustomError('Comentário não encontrado', 404);
+  }
+
+  if (user.user_type !== 'Admin') {
+    if (postComment.user_id !== user_id) {
+      throw new CustomError('Usuário não autorizado a atualizar este comentário', 403);
+    }
+  }
+
+  await prisma.postComments.update({
+    where: {
+      comment_id: post_comment_id,
+    },
+    data: {
+      content: post_comment_content,
+      updated_at: new Date(),
+    },
+  });
+
+  return { message: 'Comentário atualizado com sucesso!' };
+};
+
+export const deleteCommentPost = async (postCommentId, userToken) => {
+  const user_id = userToken.id;
+  const post_comment_id = postCommentId;
+
+  const user = await prisma.user.findUnique({
+    where: {
+      user_id: user_id,
+    },
+  });
+
+  if (!user) {
+    throw new CustomError('Usuário não encontrado', 404);
+  }
+
+  if (user.user_status !== 'Active') {
+    throw new CustomError('Usuário não autorizado a deletar comentários', 403);
+  }
+
+  const postComment = await prisma.postComments.findUnique({
+    where: {
+      comment_id: post_comment_id,
+    },
+  });
+
+  if (!postComment) {
+    throw new CustomError('Comentário não encontrado', 404);
+  }
+
+  if (user.user_type !== 'Admin') {
+    if (postComment.user_id !== user_id) {
+      throw new CustomError('Usuário não autorizado a deletar este comentário', 403);
+    }
+  }
+
+  await prisma.postComments.update({
+    where: {
+      comment_id: post_comment_id,
+    },
+    data: {
+      status: 'Deleted',
+    },
+  });
+
+  await prisma.post.update({
+    where: {
+      post_id: postComment.post_id,
+    },
+    data: {
+      comments_count: { decrement: 1 },
+    },
+  });
+
+  return { message: 'Comentário deletado com sucesso!' };
+};

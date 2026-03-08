@@ -66,3 +66,36 @@ export const createCommentPost = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
+export const updateCommentPost = async (req, res) => {
+  try {
+    const data = req.body;
+    const postCommentId = req.params.id;
+    const user = req.user;
+
+    const updatedPostComment = await postService.updateCommentPost(postCommentId, data, user);
+
+    return res.status(200).json({ message: 'Comentário atualizado com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const deleteCommentPost = async (req, res) => {
+  try {
+    const postCommentId = req.params.id;
+    const user = req.user;
+
+    const updatedPostComment = await postService.deleteCommentPost(postCommentId, user);
+
+    return res.status(200).json({ message: 'Comentário deletado com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};

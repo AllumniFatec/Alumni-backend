@@ -23,6 +23,9 @@ export const loadFeed = async (page = 1) => {
         content: true,
         create_date: true,
         comments: {
+          where: {
+            status: 'Active',
+          },
           select: {
             comment_id: true,
             content: true,
