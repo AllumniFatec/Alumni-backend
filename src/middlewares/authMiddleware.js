@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET;
+import { env } from '../config/env.js';
 
 const auth = (req, res, next) => {
   const token = req.cookies?.access_token;
@@ -10,7 +9,7 @@ const auth = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, env.jwtSecret);
 
     //req.user = decoded;
 

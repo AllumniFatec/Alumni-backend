@@ -1,5 +1,6 @@
 import * as authService from '../services/authService.js';
 import CustomError from '../utils/CustomError.js';
+import { env } from '../config/env.js';
 
 export const register = async (req, res) => {
   try {
@@ -19,9 +20,9 @@ export const login = async (req, res) => {
 
     res.cookie('access_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV != 'development',
+      secure: !env.isDevelopment,
       sameSite: 'strict',
-      maxAge: process.env.MAX_AGE_COOKIES, // 1 hora
+      maxAge: env.maxAgeCookies, // 1 hora
     });
 
     res.status(200).json({
