@@ -3,9 +3,9 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import sendEmail from '../utils/email.js';
 import * as validations from '../utils/validations.js';
+import { env } from '../config/env.js';
 
 const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET;
 
 export const sendRecovery = async (userInfo, req) => {
   validations.validateEmail(userInfo.email);
@@ -20,7 +20,7 @@ export const sendRecovery = async (userInfo, req) => {
   }
 
   //gerar o token para resetar senha
-  const resetToken = jwt.sign({ id: user.user_id }, JWT_SECRET, {
+  const resetToken = jwt.sign({ id: user.user_id }, env.jwtSecret, {
     expiresIn: '10m',
   });
 
