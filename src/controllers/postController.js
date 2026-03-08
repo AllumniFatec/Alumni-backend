@@ -99,3 +99,35 @@ export const deleteCommentPost = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
+export const createLikePost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const user = req.user;
+
+    const updatedPost = await postService.createLikePost(postId, user);
+
+    return res.status(200).json({ message: 'Postagem curtida com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const deleteLikePost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const user = req.user;
+
+    const updatedPost = await postService.deleteLikePost(postId, user);
+
+    return res.status(200).json({ message: 'Curtida removida com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};

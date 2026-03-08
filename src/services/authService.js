@@ -4,9 +4,9 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import CustomError from '../utils/CustomError.js';
 import * as validations from '../utils/validations.js';
+import { env } from '../config/env.js';
 
 const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET;
 
 //Cadastro
 export const registerUser = async (userInfo) => {
@@ -78,7 +78,6 @@ export const loginUser = async (userInfo) => {
   }
 
   validations.validatePassword(userInfo.password);
-
   const isMatch = await bcrypt.compare(userInfo.password, user.password);
 
   if (!isMatch) {
@@ -92,9 +91,8 @@ export const loginUser = async (userInfo) => {
       id: user.user_id,
       admin: isAdmin,
     },
-    JWT_SECRET,
+    env.jwtSecret,
     { expiresIn: '5d' }
   );
-
   return token;
 };

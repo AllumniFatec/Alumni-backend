@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import authRoutes from './src/routes/authRoutes.js';
 import passwordRoutes from './src/routes/passwordRoutes.js';
@@ -6,8 +7,7 @@ import feedRoutes from './src/routes/feedRoutes.js';
 import postRoutes from './src/routes/postRoutes.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-
-const port = process.env.PORT || 3000;
+import { env } from './src/config/env.js';
 
 const app = express();
 
@@ -16,7 +16,7 @@ app.use(cookieParser());
 
 var corsOptions;
 
-if (process.env.NODE_ENV === 'development') {
+if (env.isDevelopment) {
   corsOptions = {
     origin: 'http://localhost:5500',
     credentials: true,
@@ -40,6 +40,6 @@ app.use('/', couseRoutes);
 app.use('/', feedRoutes);
 app.use('/', postRoutes);
 
-app.listen(port, () => {
-  console.log(`Servidor rodando na porta ${port}!`);
+app.listen(env.port, () => {
+  console.log(`Servidor rodando na porta ${env.port}!`);
 });

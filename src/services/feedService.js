@@ -48,10 +48,13 @@ export const loadFeed = async (page = 1) => {
         },
         comments_count: true,
         likes: {
+          where: {
+            status: 'Active',
+          },
           select: {
             like_id: true,
             create_date: true,
-            user: {
+            author: {
               select: {
                 user_id: true,
                 name: true,
@@ -173,12 +176,12 @@ export const loadFeed = async (page = 1) => {
     likes: post.likes.map((like) => ({
       id: like.like_id,
       create_date: like.create_date,
-      user_id: like.user.user_id,
-      user_name: like.user.name,
-      user_perfil_photo: like.user.perfil_photo,
-      user_status: like.user.user_status,
-      user_course_abbreviation: like.user.courses[0]?.abbreviation,
-      user_course_enrollmentYear: like.user.courses[0]?.enrollmentYear,
+      user_id: like.author.user_id,
+      user_name: like.author.name,
+      user_perfil_photo: like.author.perfil_photo,
+      user_status: like.author.user_status,
+      user_course_abbreviation: like.author.courses[0]?.abbreviation,
+      user_course_enrollmentYear: like.author.courses[0]?.enrollmentYear,
     })),
   }));
 

@@ -12,4 +12,7 @@ router.post('/post/comment/:id', auth, postController.createCommentPost);
 router.patch('/post/comment/:id', auth, postController.updateCommentPost);
 router.delete('/post/comment/:id', auth, postController.deleteCommentPost);
 
+router.post('/post/like/:id', auth, postController.createLikePost);
+router.delete('/post/like/:id', auth, postController.deleteLikePost);
+
 export default router;

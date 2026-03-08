@@ -308,3 +308,133 @@ export const deleteCommentPost = async (postCommentId, userToken) => {
 
   return { message: 'Comentário deletado com sucesso!' };
 };
+
+export const createLikePost = async (postId, userToken) => {
+  const user_id = userToken.id;
+  const post_id = postId;
+
+  const user = await prisma.user.findUnique({
+    where: {
+      user_id: user_id,
+    },
+  });
+
+  if (!user) {
+    throw new CustomError('Usuário não encontrado', 404);
+  }
+
+  if (user.user_status !== 'Active') {
+    throw new CustomError('Usuário não autorizado a curtir postagens', 403);
+  }
+
+  const post = await prisma.post.findUnique({
+    where: {
+      post_id: post_id,
+    },
+  });
+
+  if (!post) {
+    throw new CustomError('Postagem não encontrada', 404);
+  }
+
+  const existingLike = await prisma.postLikes.findFirst({
+    where: {
+      post_id: post_id,
+      author_id: user_id,
+    },
+  });
+
+  if (existingLike.status === 'Active') {
+    throw new CustomError('Usuário já curtiu esta postagem', 400);
+  }
+
+  if (existingLike.status === 'Deleted') {
+    await prisma.postLikes.update({
+      where: {
+        like_id: existingLike.like_id,
+      },
+      data: {
+        status: 'Active',
+        create_date: new Date(),
+      },
+    });
+  } else {
+    await prisma.postLikes.create({
+      data: {
+        post_id: post.post_id,
+        author_id: user.user_id,
+      },
+    });
+  }
+
+  await prisma.post.update({
+    where: {
+      post_id: post_id,
+    },
+    data: {
+      likes_count: { increment: 1 },
+    },
+  });
+
+  return { message: 'Postagem curtida com sucesso!' };
+};
+
+export const deleteLikePost = async (postId, userToken) => {
+  const user_id = userToken.id;
+  const post_id = postId;
+
+  const user = await prisma.user.findUnique({
+    where: {
+      user_id: user_id,
+    },
+  });
+
+  if (!user) {
+    throw new CustomError('Usuário não encontrado', 404);
+  }
+
+  if (user.user_status !== 'Active') {
+    throw new CustomError('Usuário não autorizado a remover curtidas de postagens', 403);
+  }
+
+  const post = await prisma.post.findUnique({
+    where: {
+      post_id: post_id,
+    },
+  });
+
+  if (!post) {
+    throw new CustomError('Postagem não encontrada', 404);
+  }
+
+  const existingLike = await prisma.postLikes.findFirst({
+    where: {
+      post_id: post_id,
+      author_id: user_id,
+    },
+  });
+
+  if (!existingLike || existingLike.status === 'Deleted') {
+    throw new CustomError('Usuário não curtiu esta postagem', 400);
+  }
+
+  await prisma.postLikes.update({
+    where: {
+      like_id: existingLike.like_id,
+    },
+    data: {
+      status: 'Deleted',
+    },
+  });
+
+  await prisma.post.update({
+    where: {
+      post_id: post_id,
+    },
+    data: {
+      likes_count: { decrement: 1 },
+    },
+  });
+
+  return { message: 'Curtida removida com sucesso!' };
+};
