@@ -22,7 +22,7 @@ export const login = async (req, res) => {
       httpOnly: true,
       secure: !env.isDevelopment,
       sameSite: 'strict',
-      maxAge: parseInt(process.env.MAX_AGE_COOKIES), // 1 hora
+      maxAge: parseInt(env.maxAgeCookies), // 1 hora
     });
 
     res.status(200).json({

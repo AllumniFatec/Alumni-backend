@@ -240,25 +240,25 @@ enum Status {
 }
 
 enum EmploymentType {
-  Estágio
+  Internship
   Trainee
-  JovemAprendiz @map("Jovem Aprendiz")
+  Apprentice      @map("Jovem Aprendiz")
   CLT
-  PJ
+  Contractor      @map("PJ")
   Freelancer
-  Autônomo
+  SelfEmployed    @map("Autônomo")
 }
 
 enum SeniorityLevel {
-  Estágio
-  Júnior
-  Pleno
-  Sênior
-  Especialista
+  Internship
+  Junior
+  MidLevel        @map("Pleno")
+  Senior
+  Specialist
 }
 
 enum WorkModel {
-  Remoto
-  Presencial
-  Híbrido
+  Remote
+  OnSite          @map("Presencial")
+  Hybrid          @map("Híbrido")
 }
