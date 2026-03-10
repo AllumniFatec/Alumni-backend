@@ -4,8 +4,9 @@ import CustomError from '../utils/CustomError.js';
 export const feed = async (req, res) => {
   try {
     const page = req.query.page || 1;
+    const user = req.user;
 
-    const data = await feedService.loadFeed(page);
+    const data = await feedService.loadFeed(page, user);
 
     return res.status(200).json(data);
   } catch (err) {
