@@ -4,6 +4,9 @@ const prisma = new PrismaClient();
 
 //Cadastro
 export const loadFeed = async (page = 1) => {
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+
   const limit = 20;
 
   const skip = (page - 1) * limit;
@@ -14,6 +17,9 @@ export const loadFeed = async (page = 1) => {
       take: limit,
       where: {
         status: 'Active',
+        author: {
+          user_status: 'Active',
+        },
       },
       orderBy: {
         create_date: 'desc',
@@ -25,6 +31,9 @@ export const loadFeed = async (page = 1) => {
         comments: {
           where: {
             status: 'Active',
+            author: {
+              user_status: 'Active',
+            },
           },
           select: {
             comment_id: true,
@@ -50,6 +59,9 @@ export const loadFeed = async (page = 1) => {
         likes: {
           where: {
             status: 'Active',
+            author: {
+              user_status: 'Active',
+            },
           },
           select: {
             like_id: true,
@@ -110,8 +122,13 @@ export const loadFeed = async (page = 1) => {
     }),
 
     prisma.event.findMany({
+      where: {
+        date_start: {
+          gte: today,
+        },
+      },
       orderBy: {
-        create_date: 'desc',
+        date_start: 'asc',
       },
       take: 5,
       select: {
