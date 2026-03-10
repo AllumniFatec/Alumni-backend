@@ -2,8 +2,23 @@ import { PrismaClient } from '../generated/prisma/index.js';
 
 const prisma = new PrismaClient();
 
-//Cadastro
-export const loadFeed = async (page = 1) => {
+export const loadFeed = async (page = 1, userToken) => {
+  const user_id = userToken.id;
+
+  const user = await prisma.user.findUnique({
+    where: {
+      user_id: user_id,
+    },
+  });
+
+  if (!user) {
+    throw new CustomError('Usuário não encontrado', 404);
+  }
+
+  if (user.user_status !== 'Active') {
+    throw new CustomError('Usuário não autorizado a acessar o feed', 403);
+  }
+
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
 
@@ -39,7 +54,7 @@ export const loadFeed = async (page = 1) => {
             comment_id: true,
             content: true,
             create_date: true,
-            user: {
+            author: {
               select: {
                 user_id: true,
                 name: true,
@@ -140,6 +155,9 @@ export const loadFeed = async (page = 1) => {
     }),
 
     prisma.job.findMany({
+      where: {
+        status: 'Active',
+      },
       orderBy: {
         create_date: 'desc',
       },
@@ -147,8 +165,12 @@ export const loadFeed = async (page = 1) => {
       select: {
         job_id: true,
         title: true,
-        company: true,
-        localtion: {
+        workplace: {
+          select: {
+            company: true,
+          },
+        },
+        location: {
           select: {
             city: true,
             state: true,
@@ -183,12 +205,12 @@ export const loadFeed = async (page = 1) => {
       id: comment.comment_id,
       content: comment.content,
       create_date: comment.create_date,
-      user_id: comment.user.user_id,
-      user_name: comment.user.name,
-      user_perfil_photo: comment.user.perfil_photo,
-      user_status: comment.user.user_status,
-      user_course_abbreviation: comment.user.courses[0]?.abbreviation,
-      user_course_enrollmentYear: comment.user.courses[0]?.enrollmentYear,
+      user_id: comment.author.user_id,
+      user_name: comment.author.name,
+      user_perfil_photo: comment.author.perfil_photo,
+      user_status: comment.author.user_status,
+      user_course_abbreviation: comment.author.courses[0]?.abbreviation,
+      user_course_enrollmentYear: comment.author.courses[0]?.enrollmentYear,
     })),
     likes: post.likes.map((like) => ({
       id: like.like_id,
@@ -212,9 +234,9 @@ export const loadFeed = async (page = 1) => {
   const formattedJobs = jobs.map((job) => ({
     id: job.job_id,
     title: job.title,
-    company: job.company,
-    city: job.localtion?.city,
-    state: job.localtion?.state,
+    company: job.workplace?.company,
+    city: job.location?.city,
+    state: job.location?.state,
     work_model: job.work_model,
   }));
 

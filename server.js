@@ -5,6 +5,7 @@ import passwordRoutes from './src/routes/passwordRoutes.js';
 import couseRoutes from './src/routes/courseRoutes.js';
 import feedRoutes from './src/routes/feedRoutes.js';
 import postRoutes from './src/routes/postRoutes.js';
+import jobRoutes from './src/routes/jobRoutes.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { env } from './src/config/env.js';
@@ -39,6 +40,7 @@ app.use('/', passwordRoutes);
 app.use('/', couseRoutes);
 app.use('/', feedRoutes);
 app.use('/', postRoutes);
+app.use('/', jobRoutes);
 
 app.listen(env.port, () => {
   console.log(`Servidor rodando na porta ${env.port}!`);

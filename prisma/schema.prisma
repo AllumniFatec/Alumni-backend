@@ -47,6 +47,7 @@ model Workplace {
   workplace_id  String @id @default(auto()) @map("_id") @db.ObjectId
   company       String @unique
   users         User[]
+  jobs          Job[]
 }
 
 model Course {
@@ -69,7 +70,7 @@ model Event {
   author       User @relation(fields: [author_id], references: [user_id])
 
   create_date  DateTime @default(now())
-  updated_at   DateTime? @updatedAt
+  updated_at   DateTime?
   deleted_date DateTime?
 
   @@index([author_id, create_date(sort: Desc)])
@@ -80,19 +81,21 @@ model Job {
   job_id          String @id @default(auto()) @map("_id") @db.ObjectId
   title           String
   description     String
-  company         String
   images          Json[]
   status          Status @default(Active)
-  localtion       JobLocation
+  location        JobLocation
   employment_type EmploymentType
   seniority_level SeniorityLevel
   work_model      WorkModel
+
+  workplace_id    String @db.ObjectId
+  workplace       Workplace @relation(fields: [workplace_id], references: [workplace_id])
 
   author_id       String @db.ObjectId
   author          User @relation(fields: [author_id], references: [user_id])
 
   create_date     DateTime @default(now())
-  updated_at      DateTime? @updatedAt
+  updated_at      DateTime?
   deleted_date    DateTime?
 
   @@index([author_id, create_date(sort: Desc)])
@@ -115,7 +118,7 @@ model Post {
   comments_count Int @default(0)
 
   create_date    DateTime @default(now())
-  updated_at     DateTime? @updatedAt
+  updated_at     DateTime?
   deleted_date   DateTime?
 
   @@index([author_id, create_date(sort: Desc)])
@@ -152,7 +155,7 @@ model PostComments {
   status        Status @default(Active)
 
   create_date   DateTime @default(now())
-  updated_at    DateTime? @updatedAt
+  updated_at    DateTime?
   deleted_date  DateTime?
 
   @@index([post_id, create_date(sort: Desc)])
@@ -240,25 +243,25 @@ enum Status {
 }
 
 enum EmploymentType {
-  Internship
-  Trainee
+  Internship      @map("Estágio")
+  Trainee         @map("Trainee")
   Apprentice      @map("Jovem Aprendiz")
-  CLT
+  CLT             @map("CLT")
   Contractor      @map("PJ")
-  Freelancer
+  Freelancer      @map("Freelancer")
   SelfEmployed    @map("Autônomo")
 }
 
 enum SeniorityLevel {
-  Internship
-  Junior
+  Internship      @map("Estágio")
+  Junior          @map("Júnior")
   MidLevel        @map("Pleno")
-  Senior
-  Specialist
+  Senior          @map("Sênior")
+  Specialist      @map("Especialista")
 }
 
 enum WorkModel {
-  Remote
+  Remote          @map("Remoto")
   OnSite          @map("Presencial")
   Hybrid          @map("Híbrido")
 }
