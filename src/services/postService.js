@@ -1,7 +1,19 @@
 import { PrismaClient } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
+import { authenticateUser } from './userService.js';
 
 const prisma = new PrismaClient();
+
+const actions = {
+  createPost: 'criar postagem',
+  updatePost: 'atualizar postagem',
+  deletePost: 'deletar postagem',
+  createCommentPost: 'criar comentário',
+  updateCommentPost: 'atualizar comentário',
+  deleteCommentPost: 'deletar comentário',
+  createLikePost: 'curtir postagem',
+  deleteLikePost: 'remover curtida',
+};
 
 export const createPost = async (postData, userToken) => {
   const user_id = userToken.id;
@@ -15,28 +27,15 @@ export const createPost = async (postData, userToken) => {
     throw new CustomError('O conteúdo da postagem não pode exceder 2000 caracteres', 400);
   }
 
-  const user = await prisma.user.findUnique({
-    where: {
-      user_id: user_id,
-    },
+  return authenticateUser(user_id, actions.createPost, async (user) => {
+    const post = await prisma.post.create({
+      data: {
+        content: post_content,
+        author_id: user.user_id,
+      },
+    });
+    return post;
   });
-
-  if (!user) {
-    throw new CustomError('Usuário não encontrado', 404);
-  }
-
-  if (user.user_status !== 'Active') {
-    throw new CustomError('Usuário não autorizado a postar', 403);
-  }
-
-  const post = await prisma.post.create({
-    data: {
-      content: post_content,
-      author_id: user_id,
-    },
-  });
-
-  return post;
 };
 
 export const updatePost = async (postId, postData, userToken) => {
@@ -52,93 +51,69 @@ export const updatePost = async (postId, postData, userToken) => {
     throw new CustomError('O conteúdo da postagem não pode exceder 2000 caracteres', 400);
   }
 
-  const user = await prisma.user.findUnique({
-    where: {
-      user_id: user_id,
-    },
-  });
+  return authenticateUser(user_id, actions.updatePost, async (user) => {
+    const post = await prisma.post.findUnique({
+      where: {
+        post_id: post_id,
+      },
+    });
 
-  if (!user) {
-    throw new CustomError('Usuário não encontrado', 404);
-  }
-
-  if (user.user_status !== 'Active') {
-    throw new CustomError('Usuário não autorizado a atualizar postagens', 403);
-  }
-
-  const post = await prisma.post.findUnique({
-    where: {
-      post_id: post_id,
-    },
-  });
-
-  if (!post) {
-    throw new CustomError('Postagem não encontrada', 404);
-  }
-
-  if (user.user_type !== 'Admin') {
-    if (post.author_id !== user_id) {
-      throw new CustomError('Usuário não autorizado a atualizar esta postagem', 403);
+    if (!post) {
+      throw new CustomError('Postagem não encontrada', 404);
     }
-  }
 
-  await prisma.post.update({
-    where: {
-      post_id: post_id,
-    },
-    data: {
-      content: post_content,
-      updated_at: new Date(),
-    },
+    if (user.user_type !== 'Admin') {
+      if (post.author_id !== user_id) {
+        throw new CustomError('Usuário não autorizado a atualizar esta postagem', 403);
+      }
+    }
+
+    await prisma.post.update({
+      where: {
+        post_id: post_id,
+      },
+      data: {
+        content: post_content,
+        updated_at: new Date(),
+      },
+    });
+
+    return { message: 'Postagem atualizada com sucesso!' };
   });
-
-  return { message: 'Postagem atualizada com sucesso!' };
 };
 
 export const deletePost = async (postId, userToken) => {
   const user_id = userToken.id;
   const post_id = postId;
 
-  const user = await prisma.user.findUnique({
-    where: {
-      user_id: user_id,
-    },
-  });
+  return authenticateUser(user_id, actions.deletePost, async (user) => {
+    const post = await prisma.post.findUnique({
+      where: {
+        post_id: post_id,
+      },
+    });
 
-  if (!user) {
-    throw new CustomError('Usuário não encontrado', 404);
-  }
-
-  if (user.user_status !== 'Active') {
-    throw new CustomError('Usuário não autorizado a deletar postagens', 403);
-  }
-
-  const post = await prisma.post.findUnique({
-    where: {
-      post_id: post_id,
-    },
-  });
-
-  if (!post) {
-    throw new CustomError('Postagem não encontrada', 404);
-  }
-
-  if (user.user_type !== 'Admin') {
-    if (post.author_id !== user_id) {
-      throw new CustomError('Usuário não autorizado a deletar esta postagem', 403);
+    if (!post) {
+      throw new CustomError('Postagem não encontrada', 404);
     }
-  }
 
-  await prisma.post.update({
-    where: {
-      post_id: post_id,
-    },
-    data: {
-      status: 'Deleted',
-    },
+    if (user.user_type !== 'Admin') {
+      if (post.author_id !== user_id) {
+        throw new CustomError('Usuário não autorizado a deletar esta postagem', 403);
+      }
+    }
+
+    await prisma.post.update({
+      where: {
+        post_id: post_id,
+      },
+      data: {
+        status: 'Deleted',
+      },
+    });
+
+    return { message: 'Postagem deletada com sucesso!' };
   });
-
-  return { message: 'Postagem deletada com sucesso!' };
 };
 
 export const createCommentPost = async (postId, commentData, userToken) => {
@@ -154,48 +129,36 @@ export const createCommentPost = async (postId, commentData, userToken) => {
     throw new CustomError('O conteúdo do comentário não pode exceder 1000 caracteres', 400);
   }
 
-  const user = await prisma.user.findUnique({
-    where: {
-      user_id: user_id,
-    },
+  return authenticateUser(user_id, actions.createCommentPost, async (user) => {
+    const post = await prisma.post.findUnique({
+      where: {
+        post_id: post_id,
+      },
+    });
+
+    if (!post) {
+      throw new CustomError('Postagem não encontrada', 404);
+    }
+
+    await prisma.postComments.create({
+      data: {
+        content: comment_content,
+        user_id: user.user_id,
+        post_id: post_id,
+      },
+    });
+
+    await prisma.post.update({
+      where: {
+        post_id: post_id,
+      },
+      data: {
+        comments_count: { increment: 1 },
+      },
+    });
+
+    return { message: 'Comentário adicionado com sucesso!' };
   });
-
-  if (!user) {
-    throw new CustomError('Usuário não encontrado', 404);
-  }
-
-  if (user.user_status !== 'Active') {
-    throw new CustomError('Usuário não autorizado a comentar', 403);
-  }
-
-  const post = await prisma.post.findUnique({
-    where: {
-      post_id: post_id,
-    },
-  });
-
-  if (!post) {
-    throw new CustomError('Postagem não encontrada', 404);
-  }
-
-  await prisma.postComments.create({
-    data: {
-      content: comment_content,
-      user_id: user.user_id,
-      post_id: post_id,
-    },
-  });
-
-  await prisma.post.update({
-    where: {
-      post_id: post_id,
-    },
-    data: {
-      comments_count: { increment: 1 },
-    },
-  });
-
-  return { message: 'Comentário adicionado com sucesso!' };
 };
 
 export const updateCommentPost = async (postCommentId, postCommentData, userToken) => {
@@ -211,230 +174,182 @@ export const updateCommentPost = async (postCommentId, postCommentData, userToke
     throw new CustomError('O conteúdo do comentário não pode exceder 1000 caracteres', 400);
   }
 
-  const user = await prisma.user.findUnique({
-    where: {
-      user_id: user_id,
-    },
-  });
+  return authenticateUser(user_id, actions.updateCommentPost, async (user) => {
+    const postComment = await prisma.postComments.findUnique({
+      where: {
+        comment_id: post_comment_id,
+      },
+    });
 
-  if (!user) {
-    throw new CustomError('Usuário não encontrado', 404);
-  }
-
-  if (user.user_status !== 'Active') {
-    throw new CustomError('Usuário não autorizado a atualizar comentários', 403);
-  }
-
-  const postComment = await prisma.postComments.findUnique({
-    where: {
-      comment_id: post_comment_id,
-    },
-  });
-
-  if (!postComment) {
-    throw new CustomError('Comentário não encontrado', 404);
-  }
-
-  if (user.user_type !== 'Admin') {
-    if (postComment.user_id !== user_id) {
-      throw new CustomError('Usuário não autorizado a atualizar este comentário', 403);
+    if (!postComment) {
+      throw new CustomError('Comentário não encontrado', 404);
     }
-  }
 
-  await prisma.postComments.update({
-    where: {
-      comment_id: post_comment_id,
-    },
-    data: {
-      content: post_comment_content,
-      updated_at: new Date(),
-    },
+    if (user.user_type !== 'Admin') {
+      if (postComment.user_id !== user_id) {
+        throw new CustomError('Usuário não autorizado a atualizar este comentário', 403);
+      }
+    }
+
+    await prisma.postComments.update({
+      where: {
+        comment_id: post_comment_id,
+      },
+      data: {
+        content: post_comment_content,
+        updated_at: new Date(),
+      },
+    });
+
+    return { message: 'Comentário atualizado com sucesso!' };
   });
-
-  return { message: 'Comentário atualizado com sucesso!' };
 };
 
 export const deleteCommentPost = async (postCommentId, userToken) => {
   const user_id = userToken.id;
   const post_comment_id = postCommentId;
 
-  const user = await prisma.user.findUnique({
-    where: {
-      user_id: user_id,
-    },
-  });
+  return authenticateUser(user_id, actions.deleteCommentPost, async (user) => {
+    const postComment = await prisma.postComments.findUnique({
+      where: {
+        comment_id: post_comment_id,
+      },
+    });
 
-  if (!user) {
-    throw new CustomError('Usuário não encontrado', 404);
-  }
-
-  if (user.user_status !== 'Active') {
-    throw new CustomError('Usuário não autorizado a deletar comentários', 403);
-  }
-
-  const postComment = await prisma.postComments.findUnique({
-    where: {
-      comment_id: post_comment_id,
-    },
-  });
-
-  if (!postComment) {
-    throw new CustomError('Comentário não encontrado', 404);
-  }
-
-  if (user.user_type !== 'Admin') {
-    if (postComment.user_id !== user_id) {
-      throw new CustomError('Usuário não autorizado a deletar este comentário', 403);
+    if (!postComment) {
+      throw new CustomError('Comentário não encontrado', 404);
     }
-  }
 
-  await prisma.postComments.update({
-    where: {
-      comment_id: post_comment_id,
-    },
-    data: {
-      status: 'Deleted',
-    },
+    if (user.user_type !== 'Admin') {
+      if (postComment.user_id !== user_id) {
+        throw new CustomError('Usuário não autorizado a deletar este comentário', 403);
+      }
+    }
+
+    await prisma.postComments.update({
+      where: {
+        comment_id: post_comment_id,
+      },
+      data: {
+        status: 'Deleted',
+      },
+    });
+
+    await prisma.post.update({
+      where: {
+        post_id: postComment.post_id,
+      },
+      data: {
+        comments_count: { decrement: 1 },
+      },
+    });
+
+    return { message: 'Comentário deletado com sucesso!' };
   });
-
-  await prisma.post.update({
-    where: {
-      post_id: postComment.post_id,
-    },
-    data: {
-      comments_count: { decrement: 1 },
-    },
-  });
-
-  return { message: 'Comentário deletado com sucesso!' };
 };
 
 export const createLikePost = async (postId, userToken) => {
   const user_id = userToken.id;
   const post_id = postId;
 
-  const user = await prisma.user.findUnique({
-    where: {
-      user_id: user_id,
-    },
-  });
-
-  if (!user) {
-    throw new CustomError('Usuário não encontrado', 404);
-  }
-
-  if (user.user_status !== 'Active') {
-    throw new CustomError('Usuário não autorizado a curtir postagens', 403);
-  }
-
-  const post = await prisma.post.findUnique({
-    where: {
-      post_id: post_id,
-    },
-  });
-
-  if (!post) {
-    throw new CustomError('Postagem não encontrada', 404);
-  }
-
-  const existingLike = await prisma.postLikes.findFirst({
-    where: {
-      post_id: post_id,
-      author_id: user_id,
-    },
-  });
-
-  if (existingLike.status === 'Active') {
-    throw new CustomError('Usuário já curtiu esta postagem', 400);
-  }
-
-  if (existingLike.status === 'Deleted') {
-    await prisma.postLikes.update({
+  return authenticateUser(user_id, actions.createLikePost, async (user) => {
+    const post = await prisma.post.findUnique({
       where: {
-        like_id: existingLike.like_id,
-      },
-      data: {
-        status: 'Active',
-        create_date: new Date(),
+        post_id: post_id,
       },
     });
-  } else {
-    await prisma.postLikes.create({
-      data: {
-        post_id: post.post_id,
-        author_id: user.user_id,
-      },
-    });
-  }
 
-  await prisma.post.update({
-    where: {
-      post_id: post_id,
-    },
-    data: {
-      likes_count: { increment: 1 },
-    },
+    if (!post) {
+      throw new CustomError('Postagem não encontrada', 404);
+    }
+
+    const existingLike = await prisma.postLikes.findFirst({
+      where: {
+        post_id: post_id,
+        author_id: user_id,
+      },
+    });
+
+    if (existingLike.status === 'Active') {
+      throw new CustomError('Usuário já curtiu esta postagem', 400);
+    }
+
+    if (existingLike.status === 'Deleted') {
+      await prisma.postLikes.update({
+        where: {
+          like_id: existingLike.like_id,
+        },
+        data: {
+          status: 'Active',
+          create_date: new Date(),
+        },
+      });
+    } else {
+      await prisma.postLikes.create({
+        data: {
+          post_id: post.post_id,
+          author_id: user.user_id,
+        },
+      });
+    }
+
+    await prisma.post.update({
+      where: {
+        post_id: post_id,
+      },
+      data: {
+        likes_count: { increment: 1 },
+      },
+    });
+
+    return { message: 'Postagem curtida com sucesso!' };
   });
-
-  return { message: 'Postagem curtida com sucesso!' };
 };
 
 export const deleteLikePost = async (postId, userToken) => {
   const user_id = userToken.id;
   const post_id = postId;
 
-  const user = await prisma.user.findUnique({
-    where: {
-      user_id: user_id,
-    },
+  return authenticateUser(user_id, actions.deleteLikePost, async (user) => {
+    const post = await prisma.post.findUnique({
+      where: {
+        post_id: post_id,
+      },
+    });
+
+    if (!post) {
+      throw new CustomError('Postagem não encontrada', 404);
+    }
+
+    const existingLike = await prisma.postLikes.findFirst({
+      where: {
+        post_id: post_id,
+        author_id: user_id,
+      },
+    });
+
+    if (!existingLike || existingLike.status === 'Deleted') {
+      throw new CustomError('Usuário não curtiu esta postagem', 400);
+    }
+
+    await prisma.postLikes.update({
+      where: {
+        like_id: existingLike.like_id,
+      },
+      data: {
+        status: 'Deleted',
+      },
+    });
+
+    await prisma.post.update({
+      where: {
+        post_id: post_id,
+      },
+      data: {
+        likes_count: { decrement: 1 },
+      },
+    });
+
+    return { message: 'Curtida removida com sucesso!' };
   });
-
-  if (!user) {
-    throw new CustomError('Usuário não encontrado', 404);
-  }
-
-  if (user.user_status !== 'Active') {
-    throw new CustomError('Usuário não autorizado a remover curtidas de postagens', 403);
-  }
-
-  const post = await prisma.post.findUnique({
-    where: {
-      post_id: post_id,
-    },
-  });
-
-  if (!post) {
-    throw new CustomError('Postagem não encontrada', 404);
-  }
-
-  const existingLike = await prisma.postLikes.findFirst({
-    where: {
-      post_id: post_id,
-      author_id: user_id,
-    },
-  });
-
-  if (!existingLike || existingLike.status === 'Deleted') {
-    throw new CustomError('Usuário não curtiu esta postagem', 400);
-  }
-
-  await prisma.postLikes.update({
-    where: {
-      like_id: existingLike.like_id,
-    },
-    data: {
-      status: 'Deleted',
-    },
-  });
-
-  await prisma.post.update({
-    where: {
-      post_id: post_id,
-    },
-    data: {
-      likes_count: { decrement: 1 },
-    },
-  });
-
-  return { message: 'Curtida removida com sucesso!' };
 };
