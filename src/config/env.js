@@ -1,6 +1,7 @@
 // ===== CENTRAL ENVIRONMENT CONFIGURATION =====
 // Single access point for all backend environment variables.
 // Every part of the application must import from here — never read process.env directly.
+import 'dotenv/config';
 
 const REQUIRED_VARS = ['JWT_SECRET', 'DATABASE_URL'];
 
@@ -26,6 +27,13 @@ export const env = {
     port: Number(process.env.EMAIL_PORT) || 587,
     user: process.env.EMAIL_USER,
     password: process.env.EMAIL_PASSWORD,
+  },
+
+  // Cloudinary
+  cloudinary: {
+    name: process.env.CLOUDINARY_NAME,
+    apiKey: process.env.CLOUDINARY_KEY,
+    apiSecret: process.env.CLOUDINARY_SECRET,
   },
 };
 
