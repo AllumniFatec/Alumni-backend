@@ -1,7 +1,6 @@
 // ===== CENTRAL ENVIRONMENT CONFIGURATION =====
 // Single access point for all backend environment variables.
 // Every part of the application must import from here — never read process.env directly.
-import 'dotenv/config';
 
 const REQUIRED_VARS = ['JWT_SECRET', 'DATABASE_URL'];
 
