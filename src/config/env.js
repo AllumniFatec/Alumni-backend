@@ -3,7 +3,13 @@
 // Every part of the application must import from here — never read process.env directly.
 import 'dotenv/config';
 
-const REQUIRED_VARS = ['JWT_SECRET', 'DATABASE_URL'];
+const REQUIRED_VARS = [
+  'JWT_SECRET',
+  'DATABASE_URL',
+  'CLOUDINARY_NAME',
+  'CLOUDINARY_KEY',
+  'CLOUDINARY_SECRET',
+];
 
 for (const key of REQUIRED_VARS) {
   if (!process.env[key]) {
