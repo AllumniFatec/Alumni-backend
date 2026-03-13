@@ -11,7 +11,11 @@ export const uploadImage = async (req, res) => {
       images.map((file) => imageService.uploadImage(file.buffer, user))
     );
 
-    const url = uploads.map((upload) => upload.secure_url);
+    const url = uploads.map((upload) => ({
+      url: upload.secure_url,
+      public_id: upload.public_id,
+      asset_id: upload.asset_id,
+    }));
 
     return res.status(201).json(url);
   } catch (err) {

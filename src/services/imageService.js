@@ -17,6 +17,7 @@ export const uploadImage = async (file, userToken) => {
     return new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
+          public_id: `${user.user_id}_${Date.now()}`,
           folder: 'images',
           resource_type: 'image',
         },

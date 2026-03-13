@@ -5,6 +5,13 @@ import upload from '../config/multer.js';
 
 const router = express.Router();
 
-router.post('/image-test', auth, upload.array('images', 10), imageController.uploadImage);
+const MAX_FILES_COUNT = 10; // Maximum number of images allowed per upload
+
+router.post(
+  '/image-test',
+  auth,
+  upload.array('images', MAX_FILES_COUNT),
+  imageController.uploadImage
+);
 
 export default router;

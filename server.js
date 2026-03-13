@@ -20,7 +20,7 @@ var corsOptions;
 
 if (env.isDevelopment) {
   corsOptions = {
-    origin: 'http://localhost:5500',
+    origin: 'http://localhost:3000',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
