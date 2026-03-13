@@ -5,6 +5,7 @@ import passwordRoutes from './src/routes/passwordRoutes.js';
 import couseRoutes from './src/routes/courseRoutes.js';
 import feedRoutes from './src/routes/feedRoutes.js';
 import postRoutes from './src/routes/postRoutes.js';
+import imageRoutes from './src/routes/imageRoutes.js';
 import jobRoutes from './src/routes/jobRoutes.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -19,7 +20,7 @@ var corsOptions;
 
 if (env.isDevelopment) {
   corsOptions = {
-    origin: 'http://localhost:5500',
+    origin: 'http://localhost:3000',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -41,6 +42,7 @@ app.use('/', couseRoutes);
 app.use('/', feedRoutes);
 app.use('/', postRoutes);
 app.use('/', jobRoutes);
+app.use('/', imageRoutes);
 
 app.listen(env.port, () => {
   console.log(`Servidor rodando na porta ${env.port}!`);
