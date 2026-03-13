@@ -1,7 +1,38 @@
 import { PrismaClient } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
+import levenshtein from 'fast-levenshtein';
 
 const prisma = new PrismaClient();
+
+const actions = {
+  createUser: 'criar usuário',
+  updateUser: 'atualizar usuário',
+  deleteUser: 'deletar usuário',
+  getUsers: 'listar usuários',
+  getProfile: 'carregar perfil',
+};
+
+function capitalizeWords(text) {
+  return text
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
+function parseBRDate(dateString) {
+  if (dateString == undefined) return;
+  if (!dateString) return;
+
+  const [day, month, year] = dateString.split('/').map(Number);
+
+  const date = new Date(year, month - 1, day);
+
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    throw new CustomError('Data inválida', 400);
+  }
+
+  return date;
+}
 
 export const authenticateUser = async (userId, action, func) => {
   const user_id = userId;
@@ -25,4 +56,387 @@ export const authenticateUser = async (userId, action, func) => {
   }
 
   return user;
+};
+
+export const getUsers = async (userToken) => {
+  const user_id = userToken.id;
+
+  return authenticateUser(user_id, actions.getUsers, async (user) => {
+    const users = await prisma.user.findMany({
+      where: {
+        user_status: 'Active',
+      },
+      orderBy: {
+        name: 'asc',
+      },
+      select: {
+        user_id: true,
+        name: true,
+        courses: {
+          select: {
+            course_name: true,
+            enrollmentYear: true,
+          },
+        },
+        perfil_photo: true,
+        user_type: true,
+        workplace_history: {
+          orderBy: {
+            end_date: 'asc',
+          },
+          select: {
+            workplace_user_id: true,
+            position: true,
+            function: true,
+            workplace: {
+              select: {
+                company: true,
+              },
+            },
+            start_date: true,
+            end_date: true,
+          },
+        },
+      },
+    });
+
+    return users;
+  });
+};
+
+export const getUserById = async (userToken, userId) => {
+  const user_id = userToken.id;
+
+  return authenticateUser(user_id, actions.getUsers, async (user) => {
+    const userData = await prisma.user.findUnique({
+      where: {
+        user_id: userId,
+      },
+      select: {
+        user_id: true,
+        perfil_photo: true,
+        name: true,
+        biography: true,
+        user_type: true,
+        courses: {
+          select: {
+            course_name: true,
+            enrollmentYear: true,
+          },
+        },
+        workplace_history: {
+          orderBy: {
+            end_date: 'asc',
+          },
+          select: {
+            workplace_user_id: true,
+            position: true,
+            function: true,
+            workplace: {
+              select: {
+                company: true,
+              },
+            },
+            start_date: true,
+            end_date: true,
+          },
+        },
+        social_media: {
+          select: {
+            type: true,
+            url: true,
+          },
+        },
+        skills: {
+          select: {
+            skill: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        events: {
+          select: {
+            title: true,
+            event_id: true,
+            status: true,
+          },
+        },
+        jobs: {
+          select: {
+            job_id: true,
+            title: true,
+            status: true,
+          },
+        },
+        posts: {
+          select: {
+            post_id: true,
+            content: true,
+            create_date: true,
+            images: true,
+            comments_count: true,
+            comments: {
+              where: {
+                status: 'Active',
+                author: {
+                  user_status: 'Active',
+                },
+              },
+              select: {
+                content: true,
+                comment_id: true,
+                create_date: true,
+                author: {
+                  select: {
+                    user_id: true,
+                    name: true,
+                    perfil_photo: true,
+                    user_status: true,
+                    courses: {
+                      select: {
+                        abbreviation: true,
+                        enrollmentYear: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            likes_count: true,
+            likes: {
+              where: {
+                status: 'Active',
+                author: {
+                  user_status: 'Active',
+                },
+              },
+              select: {
+                like_id: true,
+                create_date: true,
+                author: {
+                  select: {
+                    user_id: true,
+                    name: true,
+                    perfil_photo: true,
+                    user_status: true,
+                    courses: {
+                      select: {
+                        abbreviation: true,
+                        enrollmentYear: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        gender: true,
+      },
+    });
+
+    return userData;
+  });
+};
+
+export const getMyProfile = async (userToken) => {
+  const user_id = userToken.id;
+
+  return authenticateUser(user_id, actions.getMyProfile, async (user) => {
+    const userData = await prisma.user.findUnique({
+      where: {
+        user_id: user.user_id,
+      },
+      select: {
+        user_id: true,
+        perfil_photo: true,
+        name: true,
+        biography: true,
+        user_type: true,
+        courses: {
+          select: {
+            course_name: true,
+            enrollmentYear: true,
+          },
+        },
+        workplace_history: {
+          orderBy: {
+            end_date: 'asc',
+          },
+          select: {
+            workplace_user_id: true,
+            position: true,
+            function: true,
+            workplace: {
+              select: {
+                company: true,
+              },
+            },
+            start_date: true,
+            end_date: true,
+          },
+        },
+        social_media: {
+          select: {
+            type: true,
+            url: true,
+          },
+        },
+        skills: {
+          select: {
+            skill: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        events: {
+          select: {
+            title: true,
+            event_id: true,
+            status: true,
+          },
+        },
+        jobs: {
+          select: {
+            job_id: true,
+            title: true,
+            status: true,
+          },
+        },
+        posts: {
+          select: {
+            post_id: true,
+            content: true,
+            create_date: true,
+            images: true,
+            comments_count: true,
+            comments: {
+              where: {
+                status: 'Active',
+                author: {
+                  user_status: 'Active',
+                },
+              },
+              select: {
+                content: true,
+                comment_id: true,
+                create_date: true,
+                author: {
+                  select: {
+                    user_id: true,
+                    name: true,
+                    perfil_photo: true,
+                    user_status: true,
+                    courses: {
+                      select: {
+                        abbreviation: true,
+                        enrollmentYear: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            likes_count: true,
+            likes: {
+              where: {
+                status: 'Active',
+                author: {
+                  user_status: 'Active',
+                },
+              },
+              select: {
+                like_id: true,
+                create_date: true,
+                author: {
+                  select: {
+                    user_id: true,
+                    name: true,
+                    perfil_photo: true,
+                    user_status: true,
+                    courses: {
+                      select: {
+                        abbreviation: true,
+                        enrollmentYear: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        gender: true,
+        email: true,
+        receive_notifications: true,
+      },
+    });
+
+    return userData;
+  });
+};
+
+export const insertJob = async (userToken, data) => {
+  const user_id = userToken.id;
+  const { company_name, position, functions, start_date, end_date } = data;
+  let companyData;
+  let work_id;
+
+  return authenticateUser(user_id, actions.getProfile, async (user) => {
+    const company = capitalizeWords(company_name.trim());
+
+    const company_id = await prisma.workplace.findFirst({
+      where: {
+        company: {
+          contains: company,
+          mode: 'insensitive',
+        },
+      },
+      select: {
+        workplace_id: true,
+      },
+    });
+
+    if (company_id) {
+      work_id = company_id.workplace_id;
+    }
+
+    if (!company_id) {
+      const companies = await prisma.workplace.findMany();
+
+      companyData = companies.find((c) => {
+        return levenshtein.get(c.company.toLowerCase(), company.toLowerCase()) <= 2;
+      });
+
+      if (!companyData) {
+        const newJob = await prisma.workplace.create({
+          data: {
+            company: company,
+          },
+        });
+
+        work_id = newJob.workplace_id;
+      }
+    }
+
+    const new_start_date = parseBRDate(start_date);
+    const new_end_date = parseBRDate(end_date);
+
+    await prisma.workplaceUser.create({
+      data: {
+        function: functions,
+        position: position,
+        start_date: new_start_date,
+        end_date: new_end_date,
+        user_id: user.user_id,
+        workplace_id: work_id,
+      },
+    });
+
+    return { message: 'Trabalho inserido com sucesso!' };
+  });
 };

@@ -1,0 +1,64 @@
+import * as userService from '../services/userService.js';
+import CustomError from '../utils/CustomError.js';
+
+export const getUsers = async (req, res) => {
+  try {
+    const user = req.user;
+
+    const users = await userService.getUsers(user);
+
+    return res.status(200).json(users);
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const getUserById = async (req, res) => {
+  try {
+    const user = req.user;
+    const userId = req.params.id;
+
+    const userData = await userService.getUserById(user, userId);
+
+    return res.status(200).json(userData);
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const getMyProfile = async (req, res) => {
+  try {
+    const user = req.user;
+
+    const userData = await userService.getMyProfile(user);
+
+    return res.status(200).json(userData);
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const insertJob = async (req, res) => {
+  try {
+    const user = req.user;
+    const data = req.body;
+
+    const userJob = await userService.insertJob(user, data);
+
+    return res.status(201).json({ message: 'Trabalho inserido com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
