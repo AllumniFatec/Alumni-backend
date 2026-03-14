@@ -36,7 +36,7 @@ export const login = async (req, res) => {
   }
 };
 
-export const logout = async (req, res) => {
+export const logout = (req, res) => {
   res.clearCookie('access_token', {
     httpOnly: true,
     secure: !env.isDevelopment,
