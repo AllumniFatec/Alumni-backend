@@ -74,7 +74,7 @@ export const loginUser = async (userInfo) => {
   }
 
   if (user.user_status == 'InAnalysis') {
-    throw new CustomError('Usuário pendente de aprovação!', 401);
+    throw new CustomError('Usuário pendente de aprovação!', 403);
   }
 
   validations.validatePassword(userInfo.password);
