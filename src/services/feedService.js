@@ -3,6 +3,13 @@ import { authenticateUser } from './userService.js';
 
 const prisma = new PrismaClient();
 
+const normalizePhoto = (photo) => {
+  if (!photo) return undefined;
+  if (typeof photo === 'string') return photo;
+  if (typeof photo === 'object') return photo.secure_url || photo.url || undefined;
+  return undefined;
+};
+
 const actions = {
   loadFeed: 'carregar feed',
 };
@@ -176,7 +183,7 @@ export const loadFeed = async (page = 1, userToken) => {
     const formattedUsers = users.map((user) => ({
       id: user.user_id,
       name: user.name,
-      perfil_photo: user.perfil_photo,
+      perfil_photo: normalizePhoto(user.perfil_photo),
       course_name: user.courses[0].course_name,
       enrollmentYear: user.courses[0].enrollmentYear,
     }));
@@ -187,7 +194,7 @@ export const loadFeed = async (page = 1, userToken) => {
       create_date: post.create_date,
       user_id: post.author.user_id,
       user_name: post.author.name,
-      user_perfil_photo: post.author.perfil_photo,
+      user_perfil_photo: normalizePhoto(post.author.perfil_photo),
       user_status: post.author.user_status,
       user_course_abbreviation: post.author.courses[0]?.abbreviation,
       user_course_enrollmentYear: post.author.courses[0]?.enrollmentYear,
@@ -199,7 +206,7 @@ export const loadFeed = async (page = 1, userToken) => {
         create_date: comment.create_date,
         user_id: comment.author.user_id,
         user_name: comment.author.name,
-        user_perfil_photo: comment.author.perfil_photo,
+        user_perfil_photo: normalizePhoto(comment.author.perfil_photo),
         user_status: comment.author.user_status,
         user_course_abbreviation: comment.author.courses[0]?.abbreviation,
         user_course_enrollmentYear: comment.author.courses[0]?.enrollmentYear,
@@ -209,7 +216,7 @@ export const loadFeed = async (page = 1, userToken) => {
         create_date: like.create_date,
         user_id: like.author.user_id,
         user_name: like.author.name,
-        user_perfil_photo: like.author.perfil_photo,
+        user_perfil_photo: normalizePhoto(like.author.perfil_photo),
         user_status: like.author.user_status,
         user_course_abbreviation: like.author.courses[0]?.abbreviation,
         user_course_enrollmentYear: like.author.courses[0]?.enrollmentYear,
