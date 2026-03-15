@@ -62,3 +62,35 @@ export const insertJob = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
+export const updateProfilePhoto = async (req, res) => {
+  try {
+    const user = req.user;
+    const image = req.file.buffer;
+
+    const upload = await userService.updateProfilePhoto(user, image);
+
+    return res.status(201).json({ message: 'Foto de perfil atualizada com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const updateMyProfile = async (req, res) => {
+  try {
+    const user = req.user;
+    const data = req.body;
+
+    const updatedProfile = userService.updateMyProfile(user, data);
+
+    return res.status(201).json({ message: 'Perfil atualizado com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};

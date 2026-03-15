@@ -15,7 +15,7 @@ model User {
   password               String
   gender                 UserGender
   biography              String?
-  perfil_photo           String?
+  perfil_photo           Json?
   receive_notifications  Boolean @default(true)
   user_status            UserStatus @default(InAnalysis)
 

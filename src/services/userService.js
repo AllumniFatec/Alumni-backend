@@ -1,15 +1,16 @@
 import { PrismaClient } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
 import levenshtein from 'fast-levenshtein';
+import cloudinary from '../config/cloudinary.js';
 
 const prisma = new PrismaClient();
 
 const actions = {
-  createUser: 'criar usuário',
-  updateUser: 'atualizar usuário',
+  updateProfile: 'atualizar usuário',
   deleteUser: 'deletar usuário',
   getUsers: 'listar usuários',
   getProfile: 'carregar perfil',
+  updateProfilePhoto: 'atualizar foto de perfil',
 };
 
 function capitalizeWords(text) {
@@ -438,5 +439,67 @@ export const insertJob = async (userToken, data) => {
     });
 
     return { message: 'Trabalho inserido com sucesso!' };
+  });
+};
+
+export const updateProfilePhoto = async (userToken, image) => {
+  const user_id = userToken.id;
+
+  return authenticateUser(user_id, actions.updateProfilePhoto, async (user) => {
+    if (!image) {
+      throw new CustomError('Nenhum foto enviada', 400);
+    }
+
+    const urlPhoto = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          public_id: `${user.user_id}_${Date.now()}`,
+          folder: 'images',
+          resource_type: 'image',
+        },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        }
+      );
+
+      stream.end(image);
+    });
+
+    const result = await cloudinary.uploader.destroy(user.perfil_photo.public_id);
+
+    await prisma.user.update({
+      where: {
+        user_id: user.user_id,
+      },
+      data: {
+        perfil_photo: { url: urlPhoto.secure_url, public_id: urlPhoto.public_id },
+      },
+    });
+  });
+};
+
+export const updatedMyProfile = async (userToken, data) => {
+  const user_id = userToken.id;
+  const { name, gender, biography, receive_notifications } = data;
+
+  return authenticateUser(user_id, actions.updateProfile, async (user) => {
+    if (!name) {
+      throw new CustomError('Campo de nome é obrigatório', 400);
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        user_id: user.user_id,
+      },
+      data: {
+        name: name,
+        gender: gender,
+        biography: biography,
+        receive_notifications: receive_notifications,
+      },
+    });
+
+    return { message: 'Perfil Atualizado com sucesso!' };
   });
 };
