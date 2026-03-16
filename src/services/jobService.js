@@ -17,6 +17,22 @@ const actions = {
 
 const prisma = new PrismaClient();
 
+export const findOrCreateWorkplace = async (companyName) => {
+  const name = companyName.trim();
+
+  let workplace = await prisma.workplace.findUnique({
+    where: { company: name },
+  });
+
+  if (!workplace) {
+    workplace = await prisma.workplace.create({
+      data: { company: name },
+    });
+  }
+
+  return workplace;
+};
+
 export const createJob = async (data, userToken) => {
   const user_id = userToken.id;
   const {
@@ -52,15 +68,7 @@ export const createJob = async (data, userToken) => {
   }
 
   return authenticateUser(user_id, actions.createJob, async (user) => {
-    const workplace = await prisma.workplace.findUnique({
-      where: {
-        company: workplace_name.trim(),
-      },
-    });
-
-    if (!workplace) {
-      throw new CustomError('Workplace não encontrado', 404);
-    }
+    const workplace = await findOrCreateWorkplace(workplace_name);
 
     await prisma.job.create({
       data: {
@@ -93,12 +101,16 @@ export const getJobs = async (userToken, page = 1) => {
     const jobs = await prisma.job.findMany({
       take: limit,
       skip: skip,
+      where: {
+        status: { not: 'Deleted' },
+      },
       orderBy: {
         create_date: 'desc',
       },
       select: {
         job_id: true,
         title: true,
+        author_id: true,
         workplace: {
           select: {
             company: true,
@@ -120,6 +132,7 @@ export const getJobs = async (userToken, page = 1) => {
     const formattedJobs = jobs.map((job) => ({
       id: job.job_id,
       title: job.title,
+      author_id: job.author_id,
       workplace: job.workplace.company,
       city: job.location.city,
       state: job.location.state,
@@ -138,7 +151,10 @@ export const getJobById = async (userToken, jobId) => {
   const job_id = jobId;
 
   return authenticateUser(user_id, actions.getJobById, async (user) => {
-    const job = await prisma.job.findMany({
+    const job = await prisma.job.findUnique({
+      where: {
+        job_id: job_id,
+      },
       select: {
         job_id: true,
         title: true,
@@ -180,7 +196,11 @@ export const getJobById = async (userToken, jobId) => {
       },
     });
 
-    const formattedJob = job.map((job) => ({
+    if (!job) {
+      throw new CustomError('Vaga não encontrada', 404);
+    }
+
+    const formattedJob = {
       id: job.job_id,
       title: job.title,
       description: job.description,
@@ -198,7 +218,7 @@ export const getJobById = async (userToken, jobId) => {
       work_model: job.work_model,
       status: job.status,
       create_date: job.create_date,
-    }));
+    };
 
     return formattedJob;
   });
@@ -256,15 +276,7 @@ export const updateJob = async (jobId, data, userToken) => {
       }
     }
 
-    const workplace = await prisma.workplace.findUnique({
-      where: {
-        company: workplace_name.trim(),
-      },
-    });
-
-    if (!workplace) {
-      throw new CustomError('Workplace não encontrado', 404);
-    }
+    const workplace = await findOrCreateWorkplace(workplace_name);
 
     await prisma.job.update({
       where: {
@@ -293,7 +305,7 @@ export const updateJob = async (jobId, data, userToken) => {
 export const deleteJob = async (jobId, userToken) => {
   const user_id = userToken.id;
   const job_id = jobId;
-
+  console.warn('bati aqui');
   return authenticateUser(user_id, actions.deleteJob, async (user) => {
     const job = await prisma.job.findUnique({
       where: {

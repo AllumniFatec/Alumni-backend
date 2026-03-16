@@ -62,6 +62,32 @@ export const registerUser = async (userInfo) => {
 };
 
 //Login
+export const getMe = async (userId) => {
+  const user = await prisma.user.findUnique({
+    where: { user_id: userId },
+    select: {
+      user_id: true,
+      name: true,
+      email: true,
+      user_type: true,
+      perfil_photo: true,
+    },
+  });
+
+  if (!user) {
+    throw new CustomError('Usuário não encontrado', 404);
+  }
+
+  return {
+    id: user.user_id,
+    name: user.name,
+    email: user.email,
+    admin: user.user_type === 'Admin',
+    perfil_photo: user.perfil_photo ?? null,
+  };
+};
+
+//Login
 export const loginUser = async (userInfo) => {
   validations.validateEmail(userInfo.email);
 
