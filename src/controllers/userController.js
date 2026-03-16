@@ -94,3 +94,18 @@ export const updateMyProfile = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
+export const deleteMyProfile = async (req, res) => {
+  try {
+    const user = req.user;
+
+    const deletedProfile = userService.deleteMyProfile(user);
+
+    return res.status(201).json({ message: 'Perfil suspendido com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};

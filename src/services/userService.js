@@ -1,4 +1,4 @@
-import { PrismaClient } from '../generated/prisma/index.js';
+import { PrismaClient, UserGender } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
 import levenshtein from 'fast-levenshtein';
 import cloudinary from '../config/cloudinary.js';
@@ -6,8 +6,8 @@ import cloudinary from '../config/cloudinary.js';
 const prisma = new PrismaClient();
 
 const actions = {
-  updateProfile: 'atualizar usuário',
-  deleteUser: 'deletar usuário',
+  updateProfile: 'atualizar perfil',
+  deleteProfile: 'deletar perfil',
   getUsers: 'listar usuários',
   getProfile: 'carregar perfil',
   updateProfilePhoto: 'atualizar foto de perfil',
@@ -488,6 +488,10 @@ export const updatedMyProfile = async (userToken, data) => {
       throw new CustomError('Campo de nome é obrigatório', 400);
     }
 
+    if (!Object.values(UserGender).includes(gender)) {
+      throw new CustomError('Gênero de usuário inválido!', 422);
+    }
+
     const updatedUser = await prisma.user.update({
       where: {
         user_id: user.user_id,
@@ -500,6 +504,23 @@ export const updatedMyProfile = async (userToken, data) => {
       },
     });
 
-    return { message: 'Perfil Atualizado com sucesso!' };
+    return { message: 'Perfil atualizado com sucesso!' };
+  });
+};
+
+export const deleteMyProfile = async (userToken) => {
+  const user_id = userToken.id;
+
+  return authenticateUser(user_id, actions.deleteProfile, async (user) => {
+    const deletedUser = await prisma.user.update({
+      where: {
+        user_id: user.user_id,
+      },
+      data: {
+        user_status: 'Suspended',
+      },
+    });
+
+    return { message: 'Conta suspendida com sucesso!' };
   });
 };
