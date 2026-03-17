@@ -9,6 +9,7 @@ const MAX_FILES_COUNT = 1;
 
 router.get('/user', auth, userController.getUsers);
 router.get('/user/:id', auth, userController.getUserById);
+
 router.get('/myProfile', auth, userController.getMyProfile);
 router.patch(
   '/myProfile/profilePhoto',
@@ -17,7 +18,9 @@ router.patch(
   userController.updateProfilePhoto
 );
 router.put('/myProfile', auth, userController.updateMyProfile);
+router.delete('/myProfile', auth, userController.deleteMyProfile);
 
 router.post('/myProfile/insertJob', auth, userController.insertJob);
+router.put('/myProfile/editJob', auth, userController.updateJob);
 
 export default router;

@@ -11,6 +11,8 @@ const actions = {
   getUsers: 'listar usuários',
   getProfile: 'carregar perfil',
   updateProfilePhoto: 'atualizar foto de perfil',
+  editJob: 'editar local de trabalho',
+  insertJob: 'inserir local de trabalho',
 };
 
 function capitalizeWords(text) {
@@ -381,67 +383,6 @@ export const getMyProfile = async (userToken) => {
   });
 };
 
-export const insertJob = async (userToken, data) => {
-  const user_id = userToken.id;
-  const { company_name, position, functions, start_date, end_date } = data;
-  let companyData;
-  let work_id;
-
-  return authenticateUser(user_id, actions.getProfile, async (user) => {
-    const company = capitalizeWords(company_name.trim());
-
-    const company_id = await prisma.workplace.findFirst({
-      where: {
-        company: {
-          contains: company,
-          mode: 'insensitive',
-        },
-      },
-      select: {
-        workplace_id: true,
-      },
-    });
-
-    if (company_id) {
-      work_id = company_id.workplace_id;
-    }
-
-    if (!company_id) {
-      const companies = await prisma.workplace.findMany();
-
-      companyData = companies.find((c) => {
-        return levenshtein.get(c.company.toLowerCase(), company.toLowerCase()) <= 2;
-      });
-
-      if (!companyData) {
-        const newJob = await prisma.workplace.create({
-          data: {
-            company: company,
-          },
-        });
-
-        work_id = newJob.workplace_id;
-      }
-    }
-
-    const new_start_date = parseBRDate(start_date);
-    const new_end_date = parseBRDate(end_date);
-
-    await prisma.workplaceUser.create({
-      data: {
-        function: functions,
-        position: position,
-        start_date: new_start_date,
-        end_date: new_end_date,
-        user_id: user.user_id,
-        workplace_id: work_id,
-      },
-    });
-
-    return { message: 'Trabalho inserido com sucesso!' };
-  });
-};
-
 export const updateProfilePhoto = async (userToken, image) => {
   const user_id = userToken.id;
 
@@ -501,6 +442,7 @@ export const updatedMyProfile = async (userToken, data) => {
         gender: gender,
         biography: biography,
         receive_notifications: receive_notifications,
+        updated_at: new Date(),
       },
     });
 
@@ -522,5 +464,146 @@ export const deleteMyProfile = async (userToken) => {
     });
 
     return { message: 'Conta suspendida com sucesso!' };
+  });
+};
+
+export const insertJob = async (userToken, data) => {
+  const user_id = userToken.id;
+  const { company_name, position, functions, start_date, end_date } = data;
+  let companyData;
+  let work_id;
+
+  if (Object.entries(data).some(([key, value]) => key !== 'end_date' && !value)) {
+    throw new CustomError('Todos os campos são obrigatórios!', 400);
+  }
+
+  return authenticateUser(user_id, actions.insertJob, async (user) => {
+    const company = capitalizeWords(company_name.trim());
+
+    const company_id = await prisma.workplace.findFirst({
+      where: {
+        company: {
+          contains: company,
+          mode: 'insensitive',
+        },
+      },
+      select: {
+        workplace_id: true,
+      },
+    });
+
+    if (company_id) {
+      work_id = company_id.workplace_id;
+    }
+
+    if (!company_id) {
+      const companies = await prisma.workplace.findMany();
+
+      companyData = companies.find((c) => {
+        return levenshtein.get(c.company.toLowerCase(), company.toLowerCase()) <= 2;
+      });
+
+      if (!companyData) {
+        const newJob = await prisma.workplace.create({
+          data: {
+            company: company,
+          },
+        });
+
+        work_id = newJob.workplace_id;
+      }
+    }
+
+    const new_start_date = parseBRDate(start_date);
+    const new_end_date = parseBRDate(end_date);
+
+    await prisma.workplaceUser.create({
+      data: {
+        function: functions,
+        position: position,
+        start_date: new_start_date,
+        end_date: new_end_date,
+        user_id: user.user_id,
+        workplace_id: work_id,
+      },
+    });
+
+    return { message: 'Trabalho inserido com sucesso!' };
+  });
+};
+
+export const editJob = async (userToken, jobData, jobId) => {
+  const user_id = userToken.id;
+  const { workplace_user_id, company_name, position, functions, start_date, end_date } = jobData;
+  let companyData;
+  let work_id;
+
+  if (Object.entries(jobData).some(([key, value]) => key !== 'end_date' && !value)) {
+    throw new CustomError('Todos os campos são obrigatórios!', 400);
+  }
+
+  return authenticateUser(user_id, actions.editJob, async (user) => {
+    const updatedCompany = await prisma.workplaceUser.findUnique({
+      where: {
+        workplace_user_id: workplace_user_id,
+      },
+    });
+
+    if (user.user_id !== updatedCompany.user_id) {
+      throw new CustomError('Usuário não autorizado a editar este trabalho', 404);
+    }
+
+    const company = capitalizeWords(company_name.trim());
+
+    const company_id = await prisma.workplace.findFirst({
+      where: {
+        company: {
+          contains: company,
+          mode: 'insensitive',
+        },
+      },
+      select: {
+        workplace_id: true,
+      },
+    });
+
+    if (company_id) {
+      work_id = company_id.workplace_id;
+    }
+
+    if (!company_id) {
+      const companies = await prisma.workplace.findMany();
+
+      companyData = companies.find((c) => {
+        return levenshtein.get(c.company.toLowerCase(), company.toLowerCase()) <= 2;
+      });
+
+      if (!companyData) {
+        const newJob = await prisma.workplace.create({
+          data: {
+            company: company,
+          },
+        });
+
+        work_id = newJob.workplace_id;
+      }
+    }
+
+    const new_start_date = parseBRDate(start_date);
+    const new_end_date = parseBRDate(end_date);
+
+    await prisma.workplaceUser.update({
+      where: {
+        workplace_user_id: workplace_user_id,
+      },
+      data: {
+        position: position,
+        function: functions,
+        workplace_id: work_id,
+        start_date: new_start_date,
+        end_date: new_end_date,
+        updated_at: new Date(),
+      },
+    });
   });
 };

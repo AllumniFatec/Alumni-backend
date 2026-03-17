@@ -48,6 +48,10 @@ model Workplace {
   
   users_history WorkplaceUser[]
   jobs          Job[]
+
+  create_date   DateTime @default(now())
+  updated_at    DateTime?
+  deleted_date  DateTime?
 }
 
 model WorkplaceUser {
@@ -65,6 +69,8 @@ model WorkplaceUser {
   user                User @relation(fields: [user_id], references: [user_id])
 
   create_date         DateTime @default(now())
+  updated_at          DateTime?
+  deleted_date        DateTime?
 }
 
 model Course {

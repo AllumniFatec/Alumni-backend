@@ -109,3 +109,19 @@ export const deleteMyProfile = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
+export const updateJob = async (req, res) => {
+  try {
+    const user = req.user;
+    const data = req.body;
+
+    const userJob = await userService.editJob(user, data);
+
+    return res.status(201).json({ message: 'Trabalho atualizado com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
