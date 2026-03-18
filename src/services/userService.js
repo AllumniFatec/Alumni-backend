@@ -437,7 +437,7 @@ export const updateProfilePhoto = async (userToken, image) => {
   });
 };
 
-export const updatedMyProfile = async (userToken, data) => {
+export const updateMyProfile = async (userToken, data) => {
   const user_id = userToken.id;
   const { name, gender, biography, receive_notifications } = data;
 
@@ -570,6 +570,7 @@ export const editJob = async (userToken, jobData) => {
     });
 
     if (!updatedCompany) {
+      throw new CustomError('Local de trabalho não encontrado!', 404);
     }
 
     if (user.user_id !== updatedCompany.user_id) {

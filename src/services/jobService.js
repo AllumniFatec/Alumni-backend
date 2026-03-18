@@ -183,9 +183,13 @@ export const getJobById = async (userToken, jobId) => {
             user_id: true,
             name: true,
             perfil_photo: true,
-            workplace: {
+            workplace_history: {
               select: {
-                company: true,
+                workplace: {
+                  select: {
+                    company: true,
+                  },
+                },
               },
             },
             courses: {
@@ -207,17 +211,17 @@ export const getJobById = async (userToken, jobId) => {
       throw new CustomError('Vaga não encontrada', 404);
     }
 
-    const formattedJob = job.map((job) => ({
+    const formattedJob = {
       id: job.job_id,
       title: job.title,
       description: job.description,
       author_id: job.author.user_id,
       author_name: job.author.name,
       author_perfil_photo: job.author.perfil_photo,
-      author_workplace: job.author.workplace?.company,
+      author_workplace: job.author.workplace_history[0]?.workplace,
       author_course_abbreviation: job.author.courses[0]?.abbreviation,
       author_course_enrollmentYear: job.author.courses[0]?.enrollmentYear,
-      workplace: job.workplace.company,
+      workplace: job.workplace?.company,
       city: job.location.city,
       state: job.location.state,
       country: job.location.country,
@@ -225,7 +229,7 @@ export const getJobById = async (userToken, jobId) => {
       work_model: job.work_model,
       status: job.status,
       create_date: job.create_date,
-    }));
+    };
 
     return formattedJob;
   });

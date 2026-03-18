@@ -129,7 +129,7 @@ export const updateJob = async (req, res) => {
 export const deleteJob = async (req, res) => {
   try {
     const user = req.user;
-    const jobId = req.body;
+    const jobId = req.body.jobId;
 
     const deletedJob = await userService.deleteJob(user, jobId);
 
