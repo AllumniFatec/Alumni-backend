@@ -36,6 +36,18 @@ export const login = async (req, res) => {
   }
 };
 
+export const getMe = async (req, res) => {
+  try {
+    const me = await authService.getMe(req.user.id);
+    return res.status(200).json(me);
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+
 export const logout = (req, res) => {
   res.clearCookie('access_token', {
     httpOnly: true,
