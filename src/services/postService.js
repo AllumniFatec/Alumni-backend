@@ -143,7 +143,7 @@ export const createCommentPost = async (postId, commentData, userToken) => {
     await prisma.postComments.create({
       data: {
         content: comment_content,
-        user_id: user.user_id,
+        author_id: user.user_id,
         post_id: post_id,
       },
     });
@@ -185,8 +185,11 @@ export const updateCommentPost = async (postCommentId, postCommentData, userToke
       throw new CustomError('Comentário não encontrado', 404);
     }
 
+    console.log(postComment.author_id);
+    console.log(user_id);
+
     if (user.user_type !== 'Admin') {
-      if (postComment.user_id !== user_id) {
+      if (postComment.author_id !== user_id) {
         throw new CustomError('Usuário não autorizado a atualizar este comentário', 403);
       }
     }
@@ -221,7 +224,7 @@ export const deleteCommentPost = async (postCommentId, userToken) => {
     }
 
     if (user.user_type !== 'Admin') {
-      if (postComment.user_id !== user_id) {
+      if (postComment.author_id !== user_id) {
         throw new CustomError('Usuário não autorizado a deletar este comentário', 403);
       }
     }
@@ -265,10 +268,21 @@ export const createLikePost = async (postId, userToken) => {
 
     const existingLike = await prisma.postLikes.findFirst({
       where: {
-        post_id: post_id,
-        author_id: user_id,
+        post_id: post.post_id,
+        author_id: user.user_id,
       },
     });
+
+    console.log(existingLike);
+
+    if (existingLike === null) {
+      await prisma.postLikes.create({
+        data: {
+          post_id: post.post_id,
+          author_id: user.user_id,
+        },
+      });
+    }
 
     if (existingLike.status === 'Active') {
       throw new CustomError('Usuário já curtiu esta postagem', 400);
@@ -282,13 +296,6 @@ export const createLikePost = async (postId, userToken) => {
         data: {
           status: 'Active',
           create_date: new Date(),
-        },
-      });
-    } else {
-      await prisma.postLikes.create({
-        data: {
-          post_id: post.post_id,
-          author_id: user.user_id,
         },
       });
     }
