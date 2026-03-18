@@ -39,7 +39,6 @@ export const login = async (req, res) => {
 export const getMe = async (req, res) => {
   try {
     const me = await authService.getMe(req.user.id);
-    console.warn('Authenticated user data:', me);
     return res.status(200).json(me);
   } catch (err) {
     if (err instanceof CustomError) {
