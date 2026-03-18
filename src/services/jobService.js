@@ -93,6 +93,11 @@ export const getJobs = async (userToken, page = 1) => {
     const jobs = await prisma.job.findMany({
       take: limit,
       skip: skip,
+      where: {
+        status: {
+          not: 'Deleted',
+        },
+      },
       orderBy: {
         create_date: 'desc',
       },
@@ -102,6 +107,11 @@ export const getJobs = async (userToken, page = 1) => {
         workplace: {
           select: {
             company: true,
+          },
+        },
+        author: {
+          select: {
+            user_id: true,
           },
         },
         location: {
@@ -179,6 +189,10 @@ export const getJobById = async (userToken, jobId) => {
         create_date: true,
       },
     });
+
+    if (!job) {
+      throw new CustomError('Vaga não encontrada', 404);
+    }
 
     const formattedJob = job.map((job) => ({
       id: job.job_id,
@@ -301,7 +315,7 @@ export const deleteJob = async (jobId, userToken) => {
       },
     });
 
-    if (user.user_status !== 'Admin') {
+    if (user.user_type !== 'Admin') {
       if (job.author_id !== user.user_id) {
         throw new CustomError('Usuário não autorizado a excluir esta vaga', 403);
       }

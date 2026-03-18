@@ -7,12 +7,13 @@ const prisma = new PrismaClient();
 
 const actions = {
   updateProfile: 'atualizar perfil',
-  deleteProfile: 'deletar perfil',
+  deleteProfile: 'excluir perfil',
   getUsers: 'listar usuários',
   getProfile: 'carregar perfil',
   updateProfilePhoto: 'atualizar foto de perfil',
   editJob: 'editar local de trabalho',
   insertJob: 'inserir local de trabalho',
+  deleteJob: 'excluir local de trabalho',
 };
 
 function capitalizeWords(text) {
@@ -102,6 +103,10 @@ export const getUsers = async (userToken) => {
         },
       },
     });
+
+    if (!users) {
+      throw new CustomError('Nenhum usuário cadastrado', 404);
+    }
 
     return users;
   });
@@ -239,6 +244,10 @@ export const getUserById = async (userToken, userId) => {
         gender: true,
       },
     });
+
+    if (!userData) {
+      throw new CustomError('Usuário não econtrado!', 404);
+    }
 
     return userData;
   });
@@ -379,6 +388,10 @@ export const getMyProfile = async (userToken) => {
       },
     });
 
+    if (!userData) {
+      throw new CustomError('Usuário não econtrado!', 404);
+    }
+
     return userData;
   });
 };
@@ -389,6 +402,10 @@ export const updateProfilePhoto = async (userToken, image) => {
   return authenticateUser(user_id, actions.updateProfilePhoto, async (user) => {
     if (!image) {
       throw new CustomError('Nenhum foto enviada', 400);
+    }
+
+    if (user.user_id !== user_id) {
+      throw new CustomError('Usuário não autorizado a editar a foto deste perfil!', 403);
     }
 
     const urlPhoto = await new Promise((resolve, reject) => {
@@ -425,6 +442,9 @@ export const updatedMyProfile = async (userToken, data) => {
   const { name, gender, biography, receive_notifications } = data;
 
   return authenticateUser(user_id, actions.updateProfile, async (user) => {
+    if (user.user_id !== user_id) {
+      throw new CustomError('Usuário não autorizado a editar este perfil!', 403);
+    }
     if (!name) {
       throw new CustomError('Campo de nome é obrigatório', 400);
     }
@@ -532,7 +552,7 @@ export const insertJob = async (userToken, data) => {
   });
 };
 
-export const editJob = async (userToken, jobData, jobId) => {
+export const editJob = async (userToken, jobData) => {
   const user_id = userToken.id;
   const { workplace_user_id, company_name, position, functions, start_date, end_date } = jobData;
   let companyData;
@@ -549,8 +569,11 @@ export const editJob = async (userToken, jobData, jobId) => {
       },
     });
 
+    if (!updatedCompany) {
+    }
+
     if (user.user_id !== updatedCompany.user_id) {
-      throw new CustomError('Usuário não autorizado a editar este trabalho', 404);
+      throw new CustomError('Usuário não autorizado a editar este trabalho', 403);
     }
 
     const company = capitalizeWords(company_name.trim());
@@ -605,5 +628,34 @@ export const editJob = async (userToken, jobData, jobId) => {
         updated_at: new Date(),
       },
     });
+  });
+};
+
+export const deleteJob = async (userToken, jobId) => {
+  const user_id = userToken.id;
+  const job_id = jobId;
+
+  return authenticateUser(user_id, actions.deleteJob, async (user) => {
+    const job = await prisma.workplaceUser.findUnique({
+      where: {
+        workplace_user_id: job_id,
+      },
+    });
+
+    if (job.user_id !== user.user_id) {
+      throw new CustomError('Usuário não autorizado a excluir este trabalho', 403);
+    }
+
+    if (!job) {
+      throw new CustomError('Local de trabalho não encontrado!', 404);
+    }
+
+    await prisma.workplaceUser.delete({
+      where: {
+        workplace_user_id: job.workplace_user_id,
+      },
+    });
+
+    return { message: 'Local de trabalho excluído com sucesso!' };
   });
 };

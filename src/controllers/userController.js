@@ -70,7 +70,7 @@ export const updateProfilePhoto = async (req, res) => {
 
     const upload = await userService.updateProfilePhoto(user, image);
 
-    return res.status(201).json({ message: 'Foto de perfil atualizada com sucesso!' });
+    return res.status(200).json({ message: 'Foto de perfil atualizada com sucesso!' });
   } catch (err) {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
@@ -86,7 +86,7 @@ export const updateMyProfile = async (req, res) => {
 
     const updatedProfile = userService.updateMyProfile(user, data);
 
-    return res.status(201).json({ message: 'Perfil atualizado com sucesso!' });
+    return res.status(200).json({ message: 'Perfil atualizado com sucesso!' });
   } catch (err) {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
@@ -101,7 +101,7 @@ export const deleteMyProfile = async (req, res) => {
 
     const deletedProfile = userService.deleteMyProfile(user);
 
-    return res.status(201).json({ message: 'Perfil suspendido com sucesso!' });
+    return res.status(200).json({ message: 'Perfil suspendido com sucesso!' });
   } catch (err) {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
@@ -117,7 +117,23 @@ export const updateJob = async (req, res) => {
 
     const userJob = await userService.editJob(user, data);
 
-    return res.status(201).json({ message: 'Trabalho atualizado com sucesso!' });
+    return res.status(200).json({ message: 'Trabalho atualizado com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const deleteJob = async (req, res) => {
+  try {
+    const user = req.user;
+    const jobId = req.body;
+
+    const deletedJob = await userService.deleteJob(user, jobId);
+
+    return res.status(200).json({ message: 'Emprego excluído com sucesso!' });
   } catch (err) {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });

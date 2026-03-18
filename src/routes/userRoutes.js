@@ -22,5 +22,6 @@ router.delete('/myProfile', auth, userController.deleteMyProfile);
 
 router.post('/myProfile/insertJob', auth, userController.insertJob);
 router.put('/myProfile/editJob', auth, userController.updateJob);
+router.delete('/myProfile/deleteJob', auth, userController.deleteJob);
 
 export default router;
