@@ -305,7 +305,6 @@ export const updateJob = async (jobId, data, userToken) => {
 export const deleteJob = async (jobId, userToken) => {
   const user_id = userToken.id;
   const job_id = jobId;
-  console.warn('bati aqui');
   return authenticateUser(user_id, actions.deleteJob, async (user) => {
     const job = await prisma.job.findUnique({
       where: {
