@@ -142,3 +142,83 @@ export const deleteJob = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
+export const insertSkill = async (req, res) => {
+  try {
+    const user = req.user;
+    const skill = req.body;
+
+    const insertSkill = await userService.insertUserSkill(user, skill);
+
+    return res.status(201).json({ message: 'Habilidade inserida com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const deleteSkill = async (req, res) => {
+  try {
+    const user = req.user;
+    const skill = req.body;
+
+    const deletedSkill = await userService.deleteUserSkill(user, skill);
+
+    return res.status(200).json({ message: 'Habilidade excluida com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const insertSocialMedia = async (req, res) => {
+  try {
+    const user = req.user;
+    const socialMedia = req.body;
+
+    const insertedSocialMedia = await userService.insertSocialMedia(user, socialMedia);
+
+    return res.status(201).json({ message: 'Rede social inserida com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const updatedSocialMedia = async (req, res) => {
+  try {
+    const user = req.user;
+    const socialMedia = req.body;
+
+    const updatedSocialMedia = await userService.updatedSocialMedia(user, socialMedia);
+
+    return res.status(201).json({ message: 'Rede social alterada com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const deleteSocialMedia = async (req, res) => {
+  try {
+    const user = req.user;
+    const socialMedia = req.body;
+
+    const deletedSocialMedia = await userService.deleteSocialMedia(user, socialMedia);
+
+    return res.status(201).json({ message: 'Rede social excluída com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};

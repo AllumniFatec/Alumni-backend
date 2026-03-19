@@ -1,7 +1,9 @@
-import { PrismaClient, UserGender } from '../generated/prisma/index.js';
+import { PrismaClient, UserGender, SocialMediaType } from '../generated/prisma/index.js';
+import { findOrCreateWorkplace } from './jobService.js';
 import CustomError from '../utils/CustomError.js';
 import levenshtein from 'fast-levenshtein';
 import cloudinary from '../config/cloudinary.js';
+import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -14,7 +16,66 @@ const actions = {
   editJob: 'editar local de trabalho',
   insertJob: 'inserir local de trabalho',
   deleteJob: 'excluir local de trabalho',
+  insertUserSkill: 'inserir habilidade',
+  deleteUserSkill: 'excluir habilidade',
+  insertSocialMedia: 'inserir rede social',
+  updatedSocialMedia: 'editar rede social',
+  deleteSocialMedia: 'excluir rede social',
 };
+
+async function findOrCreateSkill(skillName, slugName) {
+  let skillData;
+  let skill_id;
+
+  const skill = await prisma.skill.findFirst({
+    where: {
+      name: {
+        contains: skillName,
+        mode: 'insensitive',
+      },
+    },
+    select: {
+      skill_id: true,
+    },
+  });
+
+  if (skill) {
+    skill_id = skill.skill_id;
+  }
+
+  if (!skill) {
+    const skills = await prisma.skill.findMany();
+
+    skillData = skills.find((s) => {
+      return levenshtein.get(s.name.toLowerCase(), skillName.toLowerCase()) <= 3;
+    });
+
+    if (!skillData) {
+      const newSkill = await prisma.skill.create({
+        data: {
+          name: skillName,
+          slug: slugName,
+        },
+      });
+
+      skill_id = newSkill.skill_id;
+    } else {
+      skill_id = skillData.skill_id;
+    }
+  }
+
+  return skill_id;
+}
+
+function isValidHttpUrl(url) {
+  const parsed = new URL(url);
+
+  if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+    return;
+  } else {
+    throw new CustomError('URL informada inválida', 404);
+  }
+}
 
 function capitalizeWords(text) {
   return text
@@ -291,6 +352,7 @@ export const getMyProfile = async (userToken) => {
         },
         social_media: {
           select: {
+            id: true,
             type: true,
             url: true,
           },
@@ -489,8 +551,6 @@ export const deleteMyProfile = async (userToken) => {
 export const insertJob = async (userToken, data) => {
   const user_id = userToken.id;
   const { company_name, position, functions, start_date, end_date } = data;
-  let companyData;
-  let work_id;
 
   if (Object.entries(data).some(([key, value]) => key !== 'end_date' && !value)) {
     throw new CustomError('Todos os campos são obrigatórios!', 400);
@@ -499,39 +559,7 @@ export const insertJob = async (userToken, data) => {
   return authenticateUser(user_id, actions.insertJob, async (user) => {
     const company = capitalizeWords(company_name.trim());
 
-    const company_id = await prisma.workplace.findFirst({
-      where: {
-        company: {
-          contains: company,
-          mode: 'insensitive',
-        },
-      },
-      select: {
-        workplace_id: true,
-      },
-    });
-
-    if (company_id) {
-      work_id = company_id.workplace_id;
-    }
-
-    if (!company_id) {
-      const companies = await prisma.workplace.findMany();
-
-      companyData = companies.find((c) => {
-        return levenshtein.get(c.company.toLowerCase(), company.toLowerCase()) <= 2;
-      });
-
-      if (!companyData) {
-        const newJob = await prisma.workplace.create({
-          data: {
-            company: company,
-          },
-        });
-
-        work_id = newJob.workplace_id;
-      }
-    }
+    const work_id = await findOrCreateWorkplace(company);
 
     const new_start_date = parseBRDate(start_date);
     const new_end_date = parseBRDate(end_date);
@@ -578,39 +606,7 @@ export const editJob = async (userToken, jobData) => {
 
     const company = capitalizeWords(company_name.trim());
 
-    const company_id = await prisma.workplace.findFirst({
-      where: {
-        company: {
-          contains: company,
-          mode: 'insensitive',
-        },
-      },
-      select: {
-        workplace_id: true,
-      },
-    });
-
-    if (company_id) {
-      work_id = company_id.workplace_id;
-    }
-
-    if (!company_id) {
-      const companies = await prisma.workplace.findMany();
-
-      companyData = companies.find((c) => {
-        return levenshtein.get(c.company.toLowerCase(), company.toLowerCase()) <= 2;
-      });
-
-      if (!companyData) {
-        const newJob = await prisma.workplace.create({
-          data: {
-            company: company,
-          },
-        });
-
-        work_id = newJob.workplace_id;
-      }
-    }
+    const work_id = await findOrCreateWorkplace(company);
 
     const new_start_date = parseBRDate(start_date);
     const new_end_date = parseBRDate(end_date);
@@ -657,5 +653,191 @@ export const deleteJob = async (userToken, jobId) => {
     });
 
     return { message: 'Local de trabalho excluído com sucesso!' };
+  });
+};
+
+export const insertUserSkill = async (userToken, skillData) => {
+  const user_id = userToken.id;
+  const skill_name = skillData.skill;
+
+  return authenticateUser(user_id, actions.insertUserSkill, async (user) => {
+    const skill = capitalizeWords(skill_name.trim());
+    const slug = skill.toLowerCase().replace(' ', '-');
+
+    const skill_id = await findOrCreateSkill(skill, slug);
+
+    await prisma.userSkill.create({
+      data: {
+        skill_id: skill_id,
+        user_id: user.user_id,
+      },
+    });
+
+    return { message: 'Habilidade inserida com sucesso!' };
+  });
+};
+
+export const deleteUserSkill = async (userToken, skillData) => {
+  const user_id = userToken.id;
+  const skill_id = skillData.user_skill_id;
+
+  return authenticateUser(user_id, actions.deleteUserSkill, async (user) => {
+    const skill = await prisma.userSkill.findUnique({
+      where: {
+        user_skill_id: skill_id,
+      },
+      select: {
+        user_id: true,
+        skill_id: true,
+        user_skill_id: true,
+      },
+    });
+
+    if (skill.user_id !== user.user_id) {
+      throw new CustomError('Usuário não autorizado a excluir esta habilidade', 404);
+    }
+
+    await prisma.userSkill.delete({
+      where: {
+        user_skill_id: skill.user_skill_id,
+      },
+    });
+
+    return { message: 'Habilidade excluída com sucesso!' };
+  });
+};
+
+export const insertSocialMedia = async (userToken, socialData) => {
+  const user_id = userToken.id;
+  const { media, url } = socialData;
+
+  if (Object.values(socialData).some((value) => !value)) {
+    throw new CustomError('Todos os campos são obrigatórios', 400);
+  }
+
+  return authenticateUser(user_id, actions.insertSocialMedia, async (user) => {
+    if (!Object.values(SocialMediaType).includes(media)) {
+      throw new CustomError('Rede social inválida', 400);
+    }
+
+    isValidHttpUrl(url);
+
+    await prisma.user.update({
+      where: {
+        user_id: user.user_id,
+      },
+      data: {
+        social_media: {
+          push: {
+            id: crypto.randomUUID(),
+            type: media,
+            url: url,
+          },
+        },
+      },
+    });
+
+    return { message: 'Rede social inserida com sucesso!' };
+  });
+};
+
+export const updatedSocialMedia = async (userToken, socialData) => {
+  const user_id = userToken.id;
+  const { media, url, socialMediaId } = socialData;
+
+  if (Object.values(socialData).some((value) => !value)) {
+    throw new CustomError('Todos os campos são obrigatórios', 400);
+  }
+
+  return authenticateUser(user_id, actions.updatedSocialMedia, async (user) => {
+    if (!Object.values(SocialMediaType).includes(media)) {
+      throw new CustomError('Rede social inválida', 400);
+    }
+
+    isValidHttpUrl(url);
+
+    const updatedUser = await prisma.user.findUnique({
+      where: {
+        user_id: user.user_id,
+      },
+      select: {
+        social_media: {
+          select: {
+            id: true,
+            url: true,
+            type: true,
+          },
+        },
+      },
+    });
+
+    const socialMedia = updatedUser.social_media.filter((sm) => sm.id === socialMediaId);
+
+    if (socialMedia.length === 0) {
+      throw new CustomError('Nenhuma rede social encontrada!', 404);
+    }
+
+    const updatedSocialMedia = updatedUser.social_media.map((sm) => {
+      if (sm.id === socialMediaId) {
+        return {
+          ...sm,
+          url: url,
+        };
+      }
+
+      return sm;
+    });
+
+    await prisma.user.update({
+      where: {
+        user_id: user.user_id,
+      },
+      data: {
+        social_media: updatedSocialMedia,
+      },
+    });
+
+    return { message: 'Rede social alterada com sucesso!' };
+  });
+};
+
+export const deleteSocialMedia = async (userToken, socialData) => {
+  const user_id = userToken.id;
+  const { socialMediaId } = socialData;
+
+  return authenticateUser(user_id, actions.deleteSocialMedia, async (user) => {
+    const updatedUser = await prisma.user.findUnique({
+      where: {
+        user_id: user.user_id,
+      },
+      select: {
+        social_media: {
+          select: {
+            id: true,
+            url: true,
+            type: true,
+          },
+        },
+      },
+    });
+
+    const socialMedia = updatedUser.social_media.filter((sm) => sm.id === socialMediaId);
+
+    if (socialMedia.length === 0) {
+      throw new CustomError('Nenhuma rede social encontrada!', 404);
+    }
+
+    const updatedSocialMedia = updatedUser.social_media.filter((sm) => sm.id !== socialMediaId);
+
+    await prisma.user.update({
+      where: {
+        user_id: user.user_id,
+      },
+      data: {
+        social_media: updatedSocialMedia,
+      },
+    });
+
+    return { message: 'Rede social excluída com sucesso!' };
   });
 };

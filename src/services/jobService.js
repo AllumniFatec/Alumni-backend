@@ -25,7 +25,7 @@ function capitalizeWords(text) {
     .join(' ');
 }
 
-async function findOrCreateWorkplace(company) {
+export const findOrCreateWorkplace = async (company) => {
   let companyData;
   let work_id;
 
@@ -64,11 +64,13 @@ async function findOrCreateWorkplace(company) {
       });
 
       work_id = newJob.workplace_id;
+    } else {
+      work_id = companyData.workplace_id;
     }
   }
 
   return work_id;
-}
+};
 
 export const createJob = async (data, userToken) => {
   const user_id = userToken.id;

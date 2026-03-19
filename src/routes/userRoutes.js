@@ -20,8 +20,15 @@ router.patch(
 router.put('/myProfile', auth, userController.updateMyProfile);
 router.delete('/myProfile', auth, userController.deleteMyProfile);
 
-router.post('/myProfile/insertJob', auth, userController.insertJob);
-router.put('/myProfile/editJob', auth, userController.updateJob);
-router.delete('/myProfile/deleteJob', auth, userController.deleteJob);
+router.post('/myProfile/job', auth, userController.insertJob);
+router.put('/myProfile/job', auth, userController.updateJob);
+router.delete('/myProfile/job', auth, userController.deleteJob);
+
+router.post('/myProfile/skill', auth, userController.insertSkill);
+router.delete('/myProfile/skill', auth, userController.deleteSkill);
+
+router.post('/myProfile/socialMedia', auth, userController.insertSocialMedia);
+router.patch('/myProfile/socialMedia', auth, userController.updatedSocialMedia);
+router.delete('/myProfile/socialMedia', auth, userController.deleteSocialMedia);
 
 export default router;

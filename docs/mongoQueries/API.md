@@ -619,7 +619,7 @@ Cookie: access_token=JWT_TOKEN
 
 # ❤️ Likes
 
-## POST /post/like/:postId
+## POST /post/like/:postId 🆕
 
 Adiciona ou remove um like em uma postagem.
 
@@ -659,7 +659,7 @@ OR
 
 # 📢 Jobs
 
-## POST /job
+## POST /job 🆕
 
 Cria uma nova vaga de emprego.
 
@@ -709,7 +709,7 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## GET /job
+## GET /job 🆕
 
 Retorna uma lista com 20 vagas de emprego de acordo com a páginação via query params.
 
@@ -782,7 +782,7 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## GET /job/:jobId
+## GET /job/:jobId 🆕
 
 Retorna todos os campos de uma vaga de acordo com o ID.
 
@@ -835,7 +835,7 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## PATCH /job/:jobId
+## PATCH /job/:jobId 🆕
 
 Edita o conteúdo de uma vaga (somente Admin ou Criador da vaga)
 
@@ -891,7 +891,7 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## DELETE /job/:jobId
+## DELETE /job/:jobId 🆕
 
 Exclui uma vaga de trabalho postada (somente Admin ou Criador da vaga)
 
@@ -927,7 +927,7 @@ Cookie: access_token=JWT_TOKEN
 
 # 👤 Users
 
-## GET /user
+## GET /user 🆕
 
 Retorna uma lista com 40 usuários de acordo com a páginação via query params.
 
@@ -1049,7 +1049,7 @@ Cookie: access_token=JWT_TOKEN
 ]
 ```
 
-## GET /user/:userId
+## GET /user/:userId 🆕
 
 Retorna os dados de apenas 1 usuário pelo ID.
 
@@ -1255,7 +1255,7 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## GET /myProfile
+## GET /myProfile 🆕
 
 Retorna o perfil do usuário logado
 
@@ -1296,27 +1296,29 @@ Cookie: access_token=JWT_TOKEN
     },
     {
       "workplace_user_id": "69b45168826012b4d65a4e23",
-      "position": "Desenvolvedor Full-Stack JavaScript",
-      "function": "Quase todas possíveis",
-      "workplace": {
-        "company": "Google"
-      },
-      "start_date": "2026-01-01T00:00:00.000Z",
-      "end_date": null
-    },
-    {
-      "workplace_user_id": "69bb0097c7b407a5f1bad4e8",
       "position": "Engenheiro de Software",
       "function": "Desenvolver novidades para o software IOS",
       "workplace": {
-        "company": "Apple"
+        "company": "Valid"
       },
       "start_date": "2022-03-01T03:00:00.000Z",
-      "end_date": "2022-12-31T03:00:00.000Z"
+      "end_date": "2023-12-31T03:00:00.000Z"
     }
   ],
-  "social_media": [],
-  "skills": [],
+  "social_media": [
+    {
+      "id": "f138dd72-d838-4fbe-b897-bdb8d058f890",
+      "type": "Github",
+      "url": "https://github.com/NicolasAFerro"
+    }
+  ],
+  "skills": [
+    {
+      "skill": {
+        "name": "Node Js"
+      }
+    }
+  ],
   "events": [
     {
       "title": "Workshop de Inteligência Artificial na Prática",
@@ -1444,14 +1446,14 @@ Cookie: access_token=JWT_TOKEN
     }
   ],
   "gender": "Male",
-  "email": "leo@email.com",
+  "email": "leo_bs97@hotmail.com.br",
   "receive_notifications": true
 }
 ```
 
 ---
 
-## PUT /myProfile
+## PUT /myProfile 🆕
 
 Edita uma parte dos dados de perfil do usuário
 
@@ -1491,7 +1493,7 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## PATCH /myProfile/profilePhoto
+## PATCH /myProfile/profilePhoto 🆕
 
 Atualiza a foto de perfil do usuário logado.
 
@@ -1522,7 +1524,7 @@ Value: image.jpg
 
 ---
 
-## DELETE /myProfile
+## DELETE /myProfile 🆕
 
 Excluí (soft delete) o perfil do usuário logado.
 
@@ -1542,7 +1544,7 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## POST /myProfile/insertJob
+## POST /myProfile/job 🆕
 
 Insere um novo emprego ao histórico de trabalho do usuário logado.
 
@@ -1584,7 +1586,7 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## PUT /myProfile/editJob
+## PUT /myProfile/job 🆕
 
 Edita um emprego ja inserido no histórico de trabalho do usuário logado.
 
@@ -1628,7 +1630,7 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## DELETE /myProfile/deleteJob
+## DELETE /myProfile/job 🆕
 
 Excluí um emprego ja inserido no histórico de trabalho do usuário logado.
 
@@ -1657,6 +1659,182 @@ Cookie: access_token=JWT_TOKEN
 ```json
 {
   "message": "Trabalho excluído com sucesso!"
+}
+```
+
+---
+
+## POST /myProfile/skill 🆕
+
+Insere uma habilidade no perfil do usuário logado.
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Request Body
+
+```json
+{
+  "skill": " NodeJS"
+}
+```
+
+### Parâmetros
+
+| Parâmetro | Tipo   | Descrição          |
+| --------- | ------ | ------------------ |
+| skill     | string | Nome da habilidade |
+
+### Response (201)
+
+```json
+{
+  "message": "Habilidade inserida com sucesso!"
+}
+```
+
+---
+
+## DELETE /myProfile/skill 🆕
+
+Excluí uma habilidade do perfil do usuário.
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Request Body
+
+```json
+{
+  "user_skill_id": "69bc36b06772c409f30a43c0"
+}
+```
+
+### Parâmetros
+
+| Parâmetro     | Tipo   | Descrição        |
+| ------------- | ------ | ---------------- |
+| user_skill_id | string | ID da habilidade |
+
+### Response (200)
+
+```json
+{
+  "message": "Habilidade excluída com sucesso!"
+}
+```
+
+---
+
+## POST /myProfile/socialMedia 🆕
+
+Insere uma rede social no perfil do usuário logado
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Request Body
+
+```json
+{
+  "media": "Github",
+  "url": "https://github.com/leeo-s"
+}
+```
+
+### Parâmetros
+
+| Parâmetro | Tipo   | Descrição           |
+| --------- | ------ | ------------------- |
+| media     | string | Tipo da rede social |
+| url       | string | Link da rede social |
+
+### Response (201)
+
+```json
+{
+  "message": "Rede social inserida com sucesso!"
+}
+```
+
+---
+
+## PATCH /myProfile/socialMedia 🆕
+
+Editar o link de uma rede social no perfil do usuário logado.
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Request Body
+
+```json
+{
+  "media": "Github",
+  "url": "https://github.com/NicolasAFerro",
+  "socialMediaId": "5be3e4cf-ea03-47bf-b4b8-477edd869a2b"
+}
+```
+
+### Parâmetros
+
+| Parâmetro     | Tipo   | Descrição           |
+| ------------- | ------ | ------------------- |
+| socialMediaId | string | ID da rede social   |
+| media         | string | Tipo da rede social |
+| url           | string | Link da rede social |
+
+### Response (200)
+
+```json
+{
+  "message": "Rede social alterada com sucesso!"
+}
+```
+
+---
+
+## DELETE /myProfile/socialMedia 🆕
+
+Excluí uma rede social do perfil do usuário logado.
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Request Body
+
+```json
+{
+  "socialMediaId": "5be3e4cf-ea03-47bf-b4b8-477edd869a2b"
+}
+```
+
+### Parâmetros
+
+| Parâmetro     | Tipo   | Descrição         |
+| ------------- | ------ | ----------------- |
+| socialMediaId | string | ID da rede social |
+
+### Response (200)
+
+```json
+{
+  "message": "Rede social excluída com sucesso!"
 }
 ```
 
@@ -1692,7 +1870,7 @@ Envia o email para redefinição de senha do usuário informado.
 
 ---
 
-## PATCH /password/reset-password/:token
+## PATCH /password/reset-password/:token 🔄
 
 Atualiza a senha alterada do usuário no banco de dados
 

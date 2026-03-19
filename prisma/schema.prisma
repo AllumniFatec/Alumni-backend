@@ -216,6 +216,7 @@ type JobLocation {
 }
 
 type SocialMedia {
+  id     String
   type   SocialMediaType
   url    String
 }

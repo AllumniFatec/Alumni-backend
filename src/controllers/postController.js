@@ -107,7 +107,7 @@ export const createLikePost = async (req, res) => {
 
     const updatedPost = await postService.createLikePost(postId, user);
 
-    return res.status(200).json({ message: 'Postagem curtida com sucesso!' });
+    return res.status(200).json(updatedPost);
   } catch (err) {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
