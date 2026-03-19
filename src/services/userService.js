@@ -62,11 +62,16 @@ export const authenticateUser = async (userId, action, func) => {
   return user;
 };
 
-export const getUsers = async (userToken) => {
+export const getUsers = async (userToken, page = 1) => {
   const user_id = userToken.id;
+
+  const limit = 40;
+  const skip = (page - 1) * limit;
 
   return authenticateUser(user_id, actions.getUsers, async (user) => {
     const users = await prisma.user.findMany({
+      take: limit,
+      skip: skip,
       where: {
         user_status: 'Active',
       },
@@ -548,7 +553,7 @@ export const insertJob = async (userToken, data) => {
 
 export const editJob = async (userToken, jobData) => {
   const user_id = userToken.id;
-  const { workplace_user_id, company_name, position, functions, start_date, end_date } = jobData;
+  const { jobUserId, company_name, position, functions, start_date, end_date } = jobData;
   let companyData;
   let work_id;
 
@@ -559,7 +564,7 @@ export const editJob = async (userToken, jobData) => {
   return authenticateUser(user_id, actions.editJob, async (user) => {
     const updatedCompany = await prisma.workplaceUser.findUnique({
       where: {
-        workplace_user_id: workplace_user_id,
+        workplace_user_id: jobUserId,
       },
     });
 
@@ -612,7 +617,7 @@ export const editJob = async (userToken, jobData) => {
 
     await prisma.workplaceUser.update({
       where: {
-        workplace_user_id: workplace_user_id,
+        workplace_user_id: jobUserId,
       },
       data: {
         position: position,

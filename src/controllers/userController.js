@@ -4,8 +4,9 @@ import CustomError from '../utils/CustomError.js';
 export const getUsers = async (req, res) => {
   try {
     const user = req.user;
+    const page = req.query.page || 1;
 
-    const users = await userService.getUsers(user);
+    const users = await userService.getUsers(user, page);
 
     return res.status(200).json(users);
   } catch (err) {
@@ -101,7 +102,7 @@ export const deleteMyProfile = async (req, res) => {
 
     const deletedProfile = userService.deleteMyProfile(user);
 
-    return res.status(200).json({ message: 'Perfil suspendido com sucesso!' });
+    return res.status(200).json({ message: 'Perfil excluído com sucesso!' });
   } catch (err) {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
@@ -129,11 +130,11 @@ export const updateJob = async (req, res) => {
 export const deleteJob = async (req, res) => {
   try {
     const user = req.user;
-    const jobId = req.body.jobId;
+    const jobId = req.body.jobUserId;
 
     const deletedJob = await userService.deleteJob(user, jobId);
 
-    return res.status(200).json({ message: 'Emprego excluído com sucesso!' });
+    return res.status(200).json({ message: 'Trabalho excluído com sucesso!' });
   } catch (err) {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
