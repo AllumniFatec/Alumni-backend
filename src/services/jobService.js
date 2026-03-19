@@ -6,6 +6,7 @@ import {
 } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
+import levenshtein from 'fast-levenshtein';
 
 const actions = {
   createJob: 'criar vaga',
@@ -17,21 +18,57 @@ const actions = {
 
 const prisma = new PrismaClient();
 
-export const findOrCreateWorkplace = async (companyName) => {
-  const name = companyName.trim();
+function capitalizeWords(text) {
+  return text
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
 
-  let workplace = await prisma.workplace.findUnique({
-    where: { company: name },
+async function findOrCreateWorkplace(company) {
+  let companyData;
+  let work_id;
+
+  const company_id = await prisma.workplace.findFirst({
+    where: {
+      company: {
+        contains: company,
+        mode: 'insensitive',
+      },
+    },
+    select: {
+      workplace_id: true,
+    },
   });
 
-  if (!workplace) {
-    workplace = await prisma.workplace.create({
-      data: { company: name },
-    });
+  if (company_id) {
+    work_id = company_id.workplace_id;
   }
 
-  return workplace;
-};
+  if (!company_id) {
+    const companies = await prisma.workplace.findMany({
+      omit: {
+        create_date: true,
+      },
+    });
+
+    companyData = companies.find((c) => {
+      return levenshtein.get(c.company.toLowerCase(), company.toLowerCase()) <= 2;
+    });
+
+    if (!companyData) {
+      const newJob = await prisma.workplace.create({
+        data: {
+          company: company,
+        },
+      });
+
+      work_id = newJob.workplace_id;
+    }
+  }
+
+  return work_id;
+}
 
 export const createJob = async (data, userToken) => {
   const user_id = userToken.id;
@@ -68,7 +105,9 @@ export const createJob = async (data, userToken) => {
   }
 
   return authenticateUser(user_id, actions.createJob, async (user) => {
-    const workplace = await findOrCreateWorkplace(workplace_name);
+    const company = capitalizeWords(workplace_name.trim());
+
+    const company_id = await findOrCreateWorkplace(company);
 
     await prisma.job.create({
       data: {
@@ -82,7 +121,7 @@ export const createJob = async (data, userToken) => {
         employment_type: employment_type,
         seniority_level: seniority_level,
         work_model: work_model,
-        workplace_id: workplace.workplace_id,
+        workplace_id: company_id,
         author_id: user.user_id,
       },
     });

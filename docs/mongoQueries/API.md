@@ -128,6 +128,46 @@ access_token=JWT_TOKEN
 
 ---
 
+## POST /auth/logout
+
+Realiza o login do usuário.
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Response (200)
+
+```json
+{
+  "message": "Logout realizado com sucesso!"
+}
+```
+
+---
+
+## GET /auth/me
+
+Retorna os dados do usuário logado.
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Response (200)
+
+```json
+{
+  "message": "Logout realizado com sucesso!"
+}
+```
+
+---
+
 # 🎓 Courses
 
 ## POST /course

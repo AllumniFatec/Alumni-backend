@@ -85,9 +85,7 @@ export const getUsers = async (userToken) => {
         perfil_photo: true,
         user_type: true,
         workplace_history: {
-          orderBy: {
-            end_date: 'asc',
-          },
+          orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
           select: {
             workplace_user_id: true,
             position: true,
@@ -133,9 +131,7 @@ export const getUserById = async (userToken, userId) => {
           },
         },
         workplace_history: {
-          orderBy: {
-            end_date: 'asc',
-          },
+          orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
           select: {
             workplace_user_id: true,
             position: true,
@@ -274,9 +270,7 @@ export const getMyProfile = async (userToken) => {
           },
         },
         workplace_history: {
-          orderBy: {
-            end_date: 'asc',
-          },
+          orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
           select: {
             workplace_user_id: true,
             position: true,
