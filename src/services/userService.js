@@ -21,6 +21,7 @@ const actions = {
   insertSocialMedia: 'inserir rede social',
   updatedSocialMedia: 'editar rede social',
   deleteSocialMedia: 'excluir rede social',
+  searchUser: 'pesquisar usuários',
 };
 
 async function findOrCreateSkill(skillName, slugName) {
@@ -67,6 +68,52 @@ async function findOrCreateSkill(skillName, slugName) {
   return skill_id;
 }
 
+function tokenize(text) {
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .split(/\s+/);
+}
+
+function fuzzyMatch(a, b, tolerance = 2) {
+  return levenshtein.get(a, b) <= tolerance;
+}
+
+function scoreUser(user, tokens) {
+  let score = 0;
+
+  const name = user.name.toLowerCase();
+  const workplace = user.workplace_history?.workplace?.company.toLowerCase() || '';
+
+  console.log(user);
+  /*
+  const course = user.course?.name?.toLowerCase() || '';
+  const skills = user.skills?.map((s) => s.name.toLowerCase()) || [];
+
+  tokens.forEach((token) => {
+    // nome (peso maior)
+    if (name.includes(token)) score += 10;
+    else if (fuzzyMatch(name, token)) score += 6;
+
+    // empresa
+    if (workplace.includes(token)) score += 7;
+    else if (fuzzyMatch(workplace, token)) score += 4;
+
+    // curso
+    if (course.includes(token)) score += 5;
+    else if (fuzzyMatch(course, token)) score += 3;
+
+    // skills
+    skills.forEach((skill) => {
+      if (skill.includes(token)) score += 4;
+      else if (fuzzyMatch(skill, token)) score += 2;
+    });
+  });
+*/
+  return score;
+}
+
 function isValidHttpUrl(url) {
   const parsed = new URL(url);
 
@@ -105,6 +152,14 @@ export const authenticateUser = async (userId, action, func) => {
   const user = await prisma.user.findUnique({
     where: {
       user_id: user_id,
+    },
+    omit: {
+      password: true,
+    },
+    include: {
+      workplace_history: true,
+      posts: true,
+      skills: true,
     },
   });
 
@@ -839,5 +894,16 @@ export const deleteSocialMedia = async (userToken, socialData) => {
     });
 
     return { message: 'Rede social excluída com sucesso!' };
+  });
+};
+
+export const searchUsers = async (userToken, search) => {
+  const user_id = userToken.id;
+  const search_text = search.replace('%', ' ');
+
+  return authenticateUser(user_id, actions.searchUser, async (user) => {
+    const tokens = tokenize(search_text);
+
+    scoreUser(user, tokens);
   });
 };

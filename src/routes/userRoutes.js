@@ -7,6 +7,7 @@ const router = express.Router();
 
 const MAX_FILES_COUNT = 1;
 
+router.get('/user/search', auth, userController.searchUser);
 router.get('/user', auth, userController.getUsers);
 router.get('/user/:id', auth, userController.getUserById);
 
