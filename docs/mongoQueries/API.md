@@ -1446,7 +1446,7 @@ Cookie: access_token=JWT_TOKEN
     }
   ],
   "gender": "Male",
-  "email": "leo_bs97@hotmail.com.br",
+  "email": "leo@email.com",
   "receive_notifications": true
 }
 ```
