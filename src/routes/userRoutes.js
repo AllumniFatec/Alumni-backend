@@ -29,7 +29,7 @@ router.post('/myProfile/skill', auth, userController.insertSkill);
 router.delete('/myProfile/skill', auth, userController.deleteSkill);
 
 router.post('/myProfile/socialMedia', auth, userController.insertSocialMedia);
-router.patch('/myProfile/socialMedia', auth, userController.updatedSocialMedia);
+router.patch('/myProfile/socialMedia', auth, userController.updateSocialMedia);
 router.delete('/myProfile/socialMedia', auth, userController.deleteSocialMedia);
 
 export default router;

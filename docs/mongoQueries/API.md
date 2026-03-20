@@ -1632,7 +1632,7 @@ Cookie: access_token=JWT_TOKEN
 
 ## DELETE /myProfile/job 🆕
 
-Excluí um emprego ja inserido no histórico de trabalho do usuário logado.
+Exclui um emprego já inserido no histórico de trabalho do usuário logado.
 
 ### Headers
 

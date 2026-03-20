@@ -1,6 +1,6 @@
 import { PrismaClient, UserGender, SocialMediaType } from '../generated/prisma/index.js';
 import { findOrCreateWorkplace } from './jobService.js';
-import { normalizeText } from '../utils/validations.js';
+import { normalizeText, capitalizeWords } from '../utils/validations.js';
 import CustomError from '../utils/CustomError.js';
 import levenshtein from 'fast-levenshtein';
 import cloudinary from '../config/cloudinary.js';
@@ -177,15 +177,7 @@ function isValidHttpUrl(url) {
   }
 }
 
-function capitalizeWords(text) {
-  return text
-    .split(' ')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
-}
-
 function parseBRDate(dateString) {
-  if (dateString == undefined) return;
   if (!dateString) return;
 
   const [day, month, year] = dateString.split('/').map(Number);
@@ -682,11 +674,9 @@ export const insertJob = async (userToken, data) => {
   });
 };
 
-export const editJob = async (userToken, jobData) => {
+export const updateJob = async (userToken, jobData) => {
   const user_id = userToken.id;
   const { jobUserId, company_name, position, functions, start_date, end_date } = jobData;
-  let companyData;
-  let work_id;
 
   if (Object.entries(jobData).some(([key, value]) => key !== 'end_date' && !value)) {
     throw new CustomError('Todos os campos são obrigatórios!', 400);
@@ -730,14 +720,14 @@ export const editJob = async (userToken, jobData) => {
   });
 };
 
-export const deleteJob = async (userToken, jobId) => {
+export const deleteJob = async (userToken, userJobId) => {
   const user_id = userToken.id;
-  const job_id = jobId;
+  const user_job_id = userJobId;
 
   return authenticateUser(user_id, actions.deleteJob, async (user) => {
     const job = await prisma.workplaceUser.findUnique({
       where: {
-        workplace_user_id: job_id,
+        workplace_user_id: user_job_id,
       },
     });
 
@@ -844,7 +834,7 @@ export const insertSocialMedia = async (userToken, socialData) => {
   });
 };
 
-export const updatedSocialMedia = async (userToken, socialData) => {
+export const updateSocialMedia = async (userToken, socialData) => {
   const user_id = userToken.id;
   const { media, url, socialMediaId } = socialData;
 

@@ -6,6 +6,7 @@ import {
 } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
+import { capitalizeWords } from '../utils/validations.js';
 import levenshtein from 'fast-levenshtein';
 
 const actions = {
@@ -17,13 +18,6 @@ const actions = {
 };
 
 const prisma = new PrismaClient();
-
-function capitalizeWords(text) {
-  return text
-    .split(' ')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
-}
 
 export const findOrCreateWorkplace = async (company) => {
   let companyData;

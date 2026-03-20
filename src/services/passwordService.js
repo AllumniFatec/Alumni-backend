@@ -91,7 +91,7 @@ export const resetPassword = async (userInfo) => {
   validations.validatePassword(confirmPassword);
 
   if (password !== confirmPassword) {
-    throw new CustomError('Senhas não conferem!', 404);
+    throw new CustomError('Senhas não conferem!', 422);
   }
 
   const salt = await bcrypt.genSalt(10);

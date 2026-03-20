@@ -116,7 +116,7 @@ export const updateJob = async (req, res) => {
     const user = req.user;
     const data = req.body;
 
-    const userJob = await userService.editJob(user, data);
+    const userJob = await userService.updateJob(user, data);
 
     return res.status(200).json({ message: 'Trabalho atualizado com sucesso!' });
   } catch (err) {
@@ -130,9 +130,9 @@ export const updateJob = async (req, res) => {
 export const deleteJob = async (req, res) => {
   try {
     const user = req.user;
-    const jobId = req.body.jobUserId;
+    const userJobId = req.body.jobUserId;
 
-    const deletedJob = await userService.deleteJob(user, jobId);
+    const deletedJob = await userService.deleteJob(user, userJobId);
 
     return res.status(200).json({ message: 'Trabalho excluído com sucesso!' });
   } catch (err) {
@@ -191,12 +191,12 @@ export const insertSocialMedia = async (req, res) => {
   }
 };
 
-export const updatedSocialMedia = async (req, res) => {
+export const updateSocialMedia = async (req, res) => {
   try {
     const user = req.user;
     const socialMedia = req.body;
 
-    const updatedSocialMedia = await userService.updatedSocialMedia(user, socialMedia);
+    const updatedSocialMedia = await userService.updateSocialMedia(user, socialMedia);
 
     return res.status(200).json({ message: 'Rede social alterada com sucesso!' });
   } catch (err) {
