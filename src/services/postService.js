@@ -185,9 +185,6 @@ export const updateCommentPost = async (postCommentId, postCommentData, userToke
       throw new CustomError('Comentário não encontrado', 404);
     }
 
-    console.log(postComment.author_id);
-    console.log(user_id);
-
     if (user.user_type !== 'Admin') {
       if (postComment.author_id !== user_id) {
         throw new CustomError('Usuário não autorizado a atualizar este comentário', 403);

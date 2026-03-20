@@ -14,12 +14,12 @@ export const createCourse = async (courseInfo) => {
     throw new CustomError('Curso já cadastrado!', 409);
   }
 
-  const normlize_name = normalizeText(courseInfo.courseName);
+  const normalize_name = normalizeText(courseInfo.courseName);
 
   await prisma.course.create({
     data: {
       name: courseInfo.courseName,
-      normalize_name: normlize_name,
+      normalize_name: normalize_name,
       abbreviation: courseInfo.courseAbbreviation,
     },
   });

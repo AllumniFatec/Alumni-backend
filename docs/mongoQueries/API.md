@@ -1526,7 +1526,7 @@ Value: image.jpg
 
 ## DELETE /myProfile 🆕
 
-Excluí (soft delete) o perfil do usuário logado.
+Exclui (soft delete) o perfil do usuário logado.
 
 ### Headers
 
@@ -1588,7 +1588,7 @@ Cookie: access_token=JWT_TOKEN
 
 ## PUT /myProfile/job 🆕
 
-Edita um emprego ja inserido no histórico de trabalho do usuário logado.
+Edita um emprego já inserido no histórico de trabalho do usuário logado.
 
 ### Headers
 
@@ -1678,7 +1678,7 @@ Cookie: access_token=JWT_TOKEN
 
 ```json
 {
-  "skill": " NodeJS"
+  "skill": "NodeJS"
 }
 ```
 
@@ -1840,7 +1840,7 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## GET /user/search
+## GET /user/search 🆕
 
 Realiza a pesquisa de usuários pelos campos: nome, curso, habilidades ou trabalhos.
 
@@ -1863,9 +1863,7 @@ Cookie: access_token=JWT_TOKEN
 ### Request Query
 
 ```Query params
-{
-  search = {busca}
-}
+?search={termo_de_busca}
 ```
 
 ### Response (200)

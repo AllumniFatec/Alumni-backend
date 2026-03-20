@@ -610,7 +610,9 @@ export const updateProfilePhoto = async (userToken, image) => {
       stream.end(image);
     });
 
-    const result = await cloudinary.uploader.destroy(user.perfil_photo.public_id);
+    if (user.perfil_photo?.public_id) {
+      await cloudinary.uploader.destroy(user.perfil_photo.public_id);
+    }
 
     await prisma.user.update({
       where: {
@@ -820,7 +822,7 @@ export const deleteUserSkill = async (userToken, skillData) => {
     });
 
     if (skill.user_id !== user.user_id) {
-      throw new CustomError('Usuário não autorizado a excluir esta habilidade', 404);
+      throw new CustomError('Usuário não autorizado a excluir esta habilidade', 403);
     }
 
     await prisma.userSkill.delete({
@@ -1112,7 +1114,7 @@ export const searchUsers = async (userToken, search) => {
       .map((r) => r.user);
 
     if (rankedUsers.length === 0) {
-      return { message: 'Nenhum usuário encontrado!' };
+      return [];
     }
 
     return rankedUsers;

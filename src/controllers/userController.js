@@ -85,7 +85,7 @@ export const updateMyProfile = async (req, res) => {
     const user = req.user;
     const data = req.body;
 
-    const updatedProfile = userService.updateMyProfile(user, data);
+    const updatedProfile = await userService.updateMyProfile(user, data);
 
     return res.status(200).json({ message: 'Perfil atualizado com sucesso!' });
   } catch (err) {
@@ -100,7 +100,7 @@ export const deleteMyProfile = async (req, res) => {
   try {
     const user = req.user;
 
-    const deletedProfile = userService.deleteMyProfile(user);
+    const deletedProfile = await userService.deleteMyProfile(user);
 
     return res.status(200).json({ message: 'Perfil excluído com sucesso!' });
   } catch (err) {
@@ -166,7 +166,7 @@ export const deleteSkill = async (req, res) => {
 
     const deletedSkill = await userService.deleteUserSkill(user, skill);
 
-    return res.status(200).json({ message: 'Habilidade excluida com sucesso!' });
+    return res.status(200).json({ message: 'Habilidade excluída com sucesso!' });
   } catch (err) {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
