@@ -219,6 +219,7 @@ export const getJobById = async (userToken, jobId) => {
             name: true,
             perfil_photo: true,
             workplace_history: {
+              orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
               select: {
                 workplace: {
                   select: {
