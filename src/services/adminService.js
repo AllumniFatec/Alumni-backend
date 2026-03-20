@@ -1,0 +1,149 @@
+import { PrismaClient } from '../generated/prisma/index.js';
+import CustomError from '../utils/CustomError.js';
+import { authenticateUser } from './userService.js';
+import sendEmail from '../utils/email.js';
+import { env } from '../config/env.js';
+
+const prisma = new PrismaClient();
+
+const actions = {
+  getDashboard: 'acessar painel administrador',
+  approveUser: 'aprovar usuário',
+  refuseUser: 'recusar usuário',
+};
+
+function verifyAdminUser(user, action) {
+  if (user.user_type !== 'Admin') {
+    throw new CustomError(`Usuário não autorizado a ${action}`, 401);
+  }
+}
+
+export const getDashboard = async (userToken) => {
+  const user_id = userToken.id;
+
+  return authenticateUser(user_id, actions.getDashboard, async (user) => {
+    verifyAdminUser(user, actions.getDashboard);
+
+    const usersInAnalysis = await prisma.user.findMany({
+      where: {
+        user_status: 'InAnalysis',
+      },
+      orderBy: {
+        create_date: 'asc',
+      },
+      select: {
+        user_id: true,
+        name: true,
+        email: true,
+        courses: {
+          select: {
+            course_name: true,
+            enrollmentYear: true,
+          },
+        },
+        gender: true,
+        user_type: true,
+      },
+      take: 10,
+    });
+
+    const users = await prisma.user.findMany({
+      where: {
+        user_status: 'Active',
+      },
+    });
+
+    const jobs = await prisma.job.findMany({
+      where: {
+        status: 'Active',
+      },
+    });
+
+    const countUsersInAnalysis = usersInAnalysis.length;
+    const countUsersActive = users.length;
+    const countJobsActive = jobs.length;
+
+    return usersInAnalysis;
+  });
+};
+
+export const approveUser = async (userToken, userData, protocol, host) => {
+  const user_id = userToken.id;
+  const alumni_id = userData.user_id;
+
+  return authenticateUser(user_id, actions.approveUser, async (user) => {
+    verifyAdminUser(user, actions.approveUser);
+
+    const targetUser = await prisma.user.findUnique({
+      where: {
+        user_id: alumni_id,
+        user_status: 'InAnalysis',
+      },
+    });
+
+    if (!targetUser) {
+      throw new CustomError('Usuário já processado!', 404);
+    }
+
+    if (targetUser.user_status !== 'InAnalysis') {
+      throw new CustomError('Usuário já está ativo!', 401);
+    }
+
+    try {
+      await prisma.user.update({
+        where: {
+          user_id: alumni_id,
+          user_status: 'InAnalysis',
+        },
+      });
+
+      //envio do email
+
+      const urlPlatform = `${protocol}://${host}`;
+      const message = `<div style="width: 100%; text-align: center; font-family: Arial, sans-serif; background-color: #f6f6f6; padding: 30px 0;">
+  <table align="center" cellpadding="0" cellspacing="0" width="100%" style="max-width: 500px; background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <tr>
+      <td align="center" style="color: #333333; font-size: 18px;">
+        <h3 style="margin-top: 0;">Bem-vindo(a), ${targetUser.name}!</h3>
+
+        <p style="margin: 10px 0 20px 0;">
+          Seu perfil no <strong>Sistema Alumni Fatec Sorocaba</strong> foi aprovado!
+        </p>
+
+        <p style="margin: 10px 0 20px 0;">
+          Agora você pode se conectar com outros ex-alunos, compartilhar experiências,
+          acompanhar novidades e expandir sua rede profissional.
+        </p>
+
+        <a href="${urlPlatform}" 
+           style="background-color: #AE0C0D;
+                  color: white;
+                  padding: 12px 30px;
+                  text-decoration: none;
+                  border-radius: 8px;
+                  display: inline-block;
+                  font-weight: bold;
+                  margin: 20px 0;">
+          ACESSAR PLATAFORMA
+        </a>
+
+        <p style="margin-top: 20px; color: #555555;">
+          Complete seu perfil para aproveitar ao máximo todos os recursos disponíveis.
+        </p>
+
+        <p style="margin-top: 10px; color: #777777; font-size: 14px;">
+          Se você tiver qualquer dúvida, nossa equipe estará pronta para ajudar.
+        </p>
+
+        <p style="margin-top: 25px; color: #999999; font-size: 13px;">
+          © ${new Date().getFullYear()} Alumni — Conectando histórias e oportunidades.
+        </p>
+      </td>
+    </tr>
+  </table>
+</div>`;
+    } catch (err) {
+      throw new CustomError('Usuário já processado!', 404);
+    }
+  });
+};
