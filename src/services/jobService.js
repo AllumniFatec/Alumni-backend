@@ -6,6 +6,8 @@ import {
 } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
+import { capitalizeWords } from '../utils/validations.js';
+import levenshtein from 'fast-levenshtein';
 
 const actions = {
   createJob: 'criar vaga',
@@ -17,20 +19,51 @@ const actions = {
 
 const prisma = new PrismaClient();
 
-export const findOrCreateWorkplace = async (companyName) => {
-  const name = companyName.trim();
+export const findOrCreateWorkplace = async (company) => {
+  let companyData;
+  let work_id;
 
-  let workplace = await prisma.workplace.findUnique({
-    where: { company: name },
+  const company_id = await prisma.workplace.findFirst({
+    where: {
+      company: {
+        contains: company,
+        mode: 'insensitive',
+      },
+    },
+    select: {
+      workplace_id: true,
+    },
   });
 
-  if (!workplace) {
-    workplace = await prisma.workplace.create({
-      data: { company: name },
-    });
+  if (company_id) {
+    work_id = company_id.workplace_id;
   }
 
-  return workplace;
+  if (!company_id) {
+    const companies = await prisma.workplace.findMany({
+      omit: {
+        create_date: true,
+      },
+    });
+
+    companyData = companies.find((c) => {
+      return levenshtein.get(c.company.toLowerCase(), company.toLowerCase()) <= 2;
+    });
+
+    if (!companyData) {
+      const newJob = await prisma.workplace.create({
+        data: {
+          company: company,
+        },
+      });
+
+      work_id = newJob.workplace_id;
+    } else {
+      work_id = companyData.workplace_id;
+    }
+  }
+
+  return work_id;
 };
 
 export const createJob = async (data, userToken) => {
@@ -68,7 +101,9 @@ export const createJob = async (data, userToken) => {
   }
 
   return authenticateUser(user_id, actions.createJob, async (user) => {
-    const workplace = await findOrCreateWorkplace(workplace_name);
+    const company = capitalizeWords(workplace_name.trim());
+
+    const company_id = await findOrCreateWorkplace(company);
 
     await prisma.job.create({
       data: {
@@ -82,7 +117,7 @@ export const createJob = async (data, userToken) => {
         employment_type: employment_type,
         seniority_level: seniority_level,
         work_model: work_model,
-        workplace_id: workplace.workplace_id,
+        workplace_id: company_id,
         author_id: user.user_id,
       },
     });
@@ -102,7 +137,9 @@ export const getJobs = async (userToken, page = 1) => {
       take: limit,
       skip: skip,
       where: {
-        status: { not: 'Deleted' },
+        status: {
+          not: 'Deleted',
+        },
       },
       orderBy: {
         create_date: 'desc',
@@ -114,6 +151,11 @@ export const getJobs = async (userToken, page = 1) => {
         workplace: {
           select: {
             company: true,
+          },
+        },
+        author: {
+          select: {
+            user_id: true,
           },
         },
         location: {
@@ -176,9 +218,14 @@ export const getJobById = async (userToken, jobId) => {
             user_id: true,
             name: true,
             perfil_photo: true,
-            workplace: {
+            workplace_history: {
+              orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
               select: {
-                company: true,
+                workplace: {
+                  select: {
+                    company: true,
+                  },
+                },
               },
             },
             courses: {
@@ -207,10 +254,10 @@ export const getJobById = async (userToken, jobId) => {
       author_id: job.author.user_id,
       author_name: job.author.name,
       author_perfil_photo: job.author.perfil_photo,
-      author_workplace: job.author.workplace?.company,
+      author_workplace: job.author.workplace_history[0]?.workplace?.company,
       author_course_abbreviation: job.author.courses[0]?.abbreviation,
       author_course_enrollmentYear: job.author.courses[0]?.enrollmentYear,
-      workplace: job.workplace.company,
+      workplace: job.workplace?.company,
       city: job.location.city,
       state: job.location.state,
       country: job.location.country,
@@ -312,7 +359,7 @@ export const deleteJob = async (jobId, userToken) => {
       },
     });
 
-    if (user.user_status !== 'Admin') {
+    if (user.user_type !== 'Admin') {
       if (job.author_id !== user.user_id) {
         throw new CustomError('Usuário não autorizado a excluir esta vaga', 403);
       }

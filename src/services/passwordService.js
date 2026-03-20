@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import sendEmail from '../utils/email.js';
 import * as validations from '../utils/validations.js';
 import { env } from '../config/env.js';
+import CustomError from '../utils/CustomError.js';
 
 const prisma = new PrismaClient();
 
@@ -75,6 +76,9 @@ export const sendRecovery = async (userInfo, req) => {
 export const resetPassword = async (userInfo) => {
   const token = userInfo.params.token;
 
+  const password = userInfo.body.password;
+  const confirmPassword = userInfo.body.confirmPassword;
+
   const user = await prisma.user.findFirst({
     where: { token_password_reset: token },
   });
@@ -83,10 +87,15 @@ export const resetPassword = async (userInfo) => {
     throw new CustomError('Erro inesperado, tente novamente mais tarde', 500);
   }
 
-  validations.validatePassword(userInfo.body.password);
+  validations.validatePassword(password);
+  validations.validatePassword(confirmPassword);
+
+  if (password !== confirmPassword) {
+    throw new CustomError('Senhas não conferem!', 422);
+  }
 
   const salt = await bcrypt.genSalt(10);
-  const hashPassword = await bcrypt.hash(userInfo.body.password, salt);
+  const hashPassword = await bcrypt.hash(password, salt);
 
   await prisma.user.update({
     where: { user_id: user.user_id },

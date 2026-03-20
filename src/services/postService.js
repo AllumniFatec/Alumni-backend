@@ -143,7 +143,7 @@ export const createCommentPost = async (postId, commentData, userToken) => {
     await prisma.postComments.create({
       data: {
         content: comment_content,
-        user_id: user.user_id,
+        author_id: user.user_id,
         post_id: post_id,
       },
     });
@@ -186,7 +186,7 @@ export const updateCommentPost = async (postCommentId, postCommentData, userToke
     }
 
     if (user.user_type !== 'Admin') {
-      if (postComment.user_id !== user_id) {
+      if (postComment.author_id !== user_id) {
         throw new CustomError('Usuário não autorizado a atualizar este comentário', 403);
       }
     }
@@ -221,7 +221,7 @@ export const deleteCommentPost = async (postCommentId, userToken) => {
     }
 
     if (user.user_type !== 'Admin') {
-      if (postComment.user_id !== user_id) {
+      if (postComment.author_id !== user_id) {
         throw new CustomError('Usuário não autorizado a deletar este comentário', 403);
       }
     }
@@ -265,16 +265,55 @@ export const createLikePost = async (postId, userToken) => {
 
     const existingLike = await prisma.postLikes.findFirst({
       where: {
-        post_id: post_id,
-        author_id: user_id,
+        post_id: post.post_id,
+        author_id: user.user_id,
       },
     });
 
-    if (existingLike.status === 'Active') {
-      throw new CustomError('Usuário já curtiu esta postagem', 400);
+    if (existingLike === null) {
+      await prisma.postLikes.create({
+        data: {
+          post_id: post.post_id,
+          author_id: user.user_id,
+        },
+      });
+
+      await prisma.post.update({
+        where: {
+          post_id: post_id,
+        },
+        data: {
+          likes_count: { increment: 1 },
+        },
+      });
+
+      return { message: 'Postagem curtida com sucesso!' };
     }
 
-    if (existingLike.status === 'Deleted') {
+    if (existingLike.status === 'Active') {
+      await prisma.postLikes.update({
+        where: {
+          like_id: existingLike.like_id,
+        },
+        data: {
+          status: 'Inactive',
+          create_date: new Date(),
+        },
+      });
+
+      await prisma.post.update({
+        where: {
+          post_id: post_id,
+        },
+        data: {
+          likes_count: { decrement: 1 },
+        },
+      });
+
+      return { message: 'Curtida removida com sucesso!' };
+    }
+
+    if (existingLike.status === 'Inactive') {
       await prisma.postLikes.update({
         where: {
           like_id: existingLike.like_id,
@@ -284,23 +323,16 @@ export const createLikePost = async (postId, userToken) => {
           create_date: new Date(),
         },
       });
-    } else {
-      await prisma.postLikes.create({
+
+      await prisma.post.update({
+        where: {
+          post_id: post_id,
+        },
         data: {
-          post_id: post.post_id,
-          author_id: user.user_id,
+          likes_count: { increment: 1 },
         },
       });
     }
-
-    await prisma.post.update({
-      where: {
-        post_id: post_id,
-      },
-      data: {
-        likes_count: { increment: 1 },
-      },
-    });
 
     return { message: 'Postagem curtida com sucesso!' };
   });

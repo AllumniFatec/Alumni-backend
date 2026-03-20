@@ -21,3 +21,20 @@ export function validateEmail(email) {
   }
   return true;
 }
+
+export function normalizeText(text) {
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // remove acentos
+    .toLowerCase()
+    .replace(/[^\w\s]/g, '') // remove símbolos
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export function capitalizeWords(text) {
+  return text
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}

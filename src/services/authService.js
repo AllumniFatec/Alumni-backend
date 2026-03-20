@@ -1,5 +1,4 @@
-import { PrismaClient } from '../generated/prisma/index.js';
-import { UserType } from '../generated/prisma/index.js';
+import { PrismaClient, UserType, UserGender } from '../generated/prisma/index.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import CustomError from '../utils/CustomError.js';
@@ -22,6 +21,10 @@ export const registerUser = async (userInfo) => {
 
   if (!Object.values(UserType).includes(userInfo.userType)) {
     throw new CustomError('Tipo de usuário inválido!', 422);
+  }
+
+  if (!Object.values(UserGender).includes(userInfo.gender)) {
+    throw new CustomError('Gênero de usuário inválido!', 422);
   }
 
   const course = await prisma.course.findUnique({
@@ -50,6 +53,7 @@ export const registerUser = async (userInfo) => {
           {
             course_id: course.course_id,
             course_name: course.name,
+            course_search: course.normalize_name,
             abbreviation: course.abbreviation,
             enrollmentYear: Number(userInfo.enrollmentYear),
           },

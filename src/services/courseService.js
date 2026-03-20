@@ -1,5 +1,6 @@
 import { PrismaClient } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
+import { normalizeText } from '../utils/validations.js';
 
 const prisma = new PrismaClient();
 
@@ -13,9 +14,12 @@ export const createCourse = async (courseInfo) => {
     throw new CustomError('Curso já cadastrado!', 409);
   }
 
+  const normalize_name = normalizeText(courseInfo.courseName);
+
   await prisma.course.create({
     data: {
       name: courseInfo.courseName,
+      normalize_name: normalize_name,
       abbreviation: courseInfo.courseAbbreviation,
     },
   });
