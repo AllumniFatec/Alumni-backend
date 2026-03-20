@@ -1,5 +1,6 @@
 import { PrismaClient, UserGender, SocialMediaType } from '../generated/prisma/index.js';
 import { findOrCreateWorkplace } from './jobService.js';
+import { normalizeText } from '../utils/validations.js';
 import CustomError from '../utils/CustomError.js';
 import levenshtein from 'fast-levenshtein';
 import cloudinary from '../config/cloudinary.js';
@@ -23,6 +24,8 @@ const actions = {
   deleteSocialMedia: 'excluir rede social',
   searchUser: 'pesquisar usuários',
 };
+
+const STOPWORDS = new Set(['e', 'de', 'da', 'do', 'das', 'dos', 'a', 'o', 'em', 'para', 'com']);
 
 async function findOrCreateSkill(skillName, slugName) {
   let skillData;
@@ -68,49 +71,99 @@ async function findOrCreateSkill(skillName, slugName) {
   return skill_id;
 }
 
-function tokenize(text) {
-  return text
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .split(/\s+/);
+export function tokenize(text) {
+  return normalizeText(text)
+    .split(' ')
+    .filter((word) => word && !STOPWORDS.has(word));
 }
 
-function fuzzyMatch(a, b, tolerance = 2) {
-  return levenshtein.get(a, b) <= tolerance;
-}
+const fuzzyMatch = (search, target, tolerance = 2) => {
+  const normalizedSearch = normalizeText(search);
+  const normalizedTarget = normalizeText(target);
 
-function scoreUser(user, tokens) {
+  if (
+    levenshtein.get(normalizedSearch.replace(/\s/g, ''), normalizedTarget.replace(/\s/g, '')) <=
+    tolerance
+  ) {
+    return true;
+  }
+
+  const searchTokens = tokenize(normalizedSearch);
+  const targetTokens = tokenize(normalizedTarget);
+
+  return searchTokens.every((searchWord) =>
+    targetTokens.some((targetWord) => {
+      if (searchWord.length < 4) return targetWord.includes(searchWord);
+
+      if (Math.abs(searchWord.length - targetWord.length) > tolerance) return false;
+
+      return levenshtein.get(searchWord, targetWord) <= tolerance;
+    })
+  );
+};
+
+function scoreUser(user, tokens, fullSearch) {
   let score = 0;
 
-  const name = user.name.toLowerCase();
-  const workplace = user.workplace_history?.workplace?.company.toLowerCase() || '';
+  const name = normalizeText(user.name);
 
-  console.log(user);
-  /*
-  const course = user.course?.name?.toLowerCase() || '';
-  const skills = user.skills?.map((s) => s.name.toLowerCase()) || [];
+  const courses = user.courses.map((c) => normalizeText(c.course_search || c.course_name));
+
+  const workplaces =
+    user.workplace_history?.map((wh) => normalizeText(wh.workplace?.company || '')) || [];
+
+  const skills = user.skills.map((s) => normalizeText(s.skill.name));
+
+  // =========================
+  // ⭐ MATCH COMPLETO (BOOST)
+  // =========================
+
+  if (name.includes(fullSearch)) score += 50;
+  else if (fuzzyMatch(fullSearch, name)) score += 35;
+
+  courses.forEach((course) => {
+    if (course.includes(fullSearch)) score += 45;
+    else if (fuzzyMatch(fullSearch, course)) score += 30;
+  });
+
+  workplaces.forEach((work) => {
+    if (work.includes(fullSearch)) score += 35;
+    else if (fuzzyMatch(fullSearch, work)) score += 20;
+  });
+
+  skills.forEach((skill) => {
+    if (skill.includes(fullSearch)) score += 25;
+    else if (fuzzyMatch(fullSearch, skill)) score += 15;
+  });
+
+  // =========================
+  // 🔎 MATCH POR TOKEN
+  // =========================
 
   tokens.forEach((token) => {
-    // nome (peso maior)
-    if (name.includes(token)) score += 10;
-    else if (fuzzyMatch(name, token)) score += 6;
+    // ---- NAME ----
+    if (name.includes(token)) score += 15;
+    else if (fuzzyMatch(token, name)) score += 8;
 
-    // empresa
-    if (workplace.includes(token)) score += 7;
-    else if (fuzzyMatch(workplace, token)) score += 4;
+    // ---- COURSES ----
+    courses.forEach((course) => {
+      if (course.includes(token)) score += 10;
+      else if (fuzzyMatch(token, course)) score += 6;
+    });
 
-    // curso
-    if (course.includes(token)) score += 5;
-    else if (fuzzyMatch(course, token)) score += 3;
+    // ---- WORKPLACE ----
+    workplaces.forEach((work) => {
+      if (work.includes(token)) score += 8;
+      else if (fuzzyMatch(token, work)) score += 5;
+    });
 
-    // skills
+    // ---- SKILLS ----
     skills.forEach((skill) => {
-      if (skill.includes(token)) score += 4;
-      else if (fuzzyMatch(skill, token)) score += 2;
+      if (skill.includes(token)) score += 6;
+      else if (fuzzyMatch(token, skill)) score += 3;
     });
   });
-*/
+
   return score;
 }
 
@@ -153,13 +206,30 @@ export const authenticateUser = async (userId, action, func) => {
     where: {
       user_id: user_id,
     },
-    omit: {
-      password: true,
-    },
     include: {
-      workplace_history: true,
+      events: true,
+      jobs: true,
+      post_comments: true,
+      post_likes: true,
       posts: true,
-      skills: true,
+      skills: {
+        include: {
+          skill: true,
+        },
+      },
+      workplace_history: {
+        orderBy: [
+          {
+            start_date: 'desc',
+          },
+          { end_date: 'desc' },
+        ],
+        include: {
+          workplace: {
+            omit: { create_date: true },
+          },
+        },
+      },
     },
   });
 
@@ -899,11 +969,151 @@ export const deleteSocialMedia = async (userToken, socialData) => {
 
 export const searchUsers = async (userToken, search) => {
   const user_id = userToken.id;
-  const search_text = search.replace('%', ' ');
 
-  return authenticateUser(user_id, actions.searchUser, async (user) => {
-    const tokens = tokenize(search_text);
+  return authenticateUser(user_id, actions.searchUser, async () => {
+    const normalizedSearch = normalizeText(search.replace('%', ' '));
+    const tokens = tokenize(normalizedSearch);
 
-    scoreUser(user, tokens);
+    const users = await prisma.user.findMany({
+      where: {
+        AND: [
+          // ✅ apenas usuários ativos
+          {
+            user_status: 'Active',
+          },
+
+          // ✅ excluir admins
+          {
+            user_type: {
+              not: 'Admin',
+            },
+          },
+
+          // ✅ lógica de busca
+          {
+            OR: [
+              {
+                name: {
+                  contains: normalizedSearch,
+                  mode: 'insensitive',
+                },
+              },
+
+              {
+                courses: {
+                  some: {
+                    course_search: {
+                      contains: normalizedSearch,
+                    },
+                  },
+                },
+              },
+
+              ...tokens.flatMap((token) => [
+                {
+                  name: {
+                    contains: token,
+                    mode: 'insensitive',
+                  },
+                },
+                {
+                  workplace_history: {
+                    some: {
+                      workplace: {
+                        company: {
+                          contains: token,
+                          mode: 'insensitive',
+                        },
+                      },
+                    },
+                  },
+                },
+                {
+                  courses: {
+                    some: {
+                      course_search: {
+                        contains: token,
+                      },
+                    },
+                  },
+                },
+                {
+                  skills: {
+                    some: {
+                      skill: {
+                        name: {
+                          contains: token,
+                          mode: 'insensitive',
+                        },
+                      },
+                    },
+                  },
+                },
+              ]),
+            ],
+          },
+        ],
+      },
+
+      select: {
+        user_id: true,
+        name: true,
+        courses: {
+          select: {
+            course_name: true,
+            enrollmentYear: true,
+            abbreviation: true,
+          },
+        },
+        social_media: {
+          select: {
+            type: true,
+            url: true,
+          },
+        },
+        gender: true,
+        perfil_photo: true,
+        user_type: true,
+        workplace_history: {
+          select: {
+            position: true,
+            function: true,
+            workplace: {
+              select: {
+                company: true,
+              },
+            },
+            start_date: true,
+            end_date: true,
+          },
+        },
+        skills: {
+          select: {
+            skill: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+
+      take: 30,
+    });
+
+    const rankedUsers = users
+      .map((user) => ({
+        user,
+        score: scoreUser(user, tokens, normalizedSearch),
+      }))
+      .filter((r) => r.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map((r) => r.user);
+
+    if (rankedUsers.length === 0) {
+      return { message: 'Nenhum usuário encontrado!' };
+    }
+
+    return rankedUsers;
   });
 };

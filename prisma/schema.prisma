@@ -74,9 +74,10 @@ model WorkplaceUser {
 }
 
 model Course {
-  course_id     String @id @default(auto()) @map("_id") @db.ObjectId
-  name          String @unique
-  abbreviation  String @unique
+  course_id       String @id @default(auto()) @map("_id") @db.ObjectId
+  name            String @unique
+  normalize_name  String @unique
+  abbreviation    String @unique
 }
 
 model Event {
@@ -224,6 +225,7 @@ type SocialMedia {
 type UserCourse {
   course_id       String
   course_name     String
+  course_search   String
   abbreviation    String
   enrollmentYear  Int
 }

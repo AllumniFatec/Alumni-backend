@@ -53,6 +53,7 @@ export const registerUser = async (userInfo) => {
           {
             course_id: course.course_id,
             course_name: course.name,
+            course_search: course.normalize_name,
             abbreviation: course.abbreviation,
             enrollmentYear: Number(userInfo.enrollmentYear),
           },
