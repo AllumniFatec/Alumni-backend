@@ -666,6 +666,7 @@ export const deleteMyProfile = async (userToken) => {
       },
       data: {
         user_status: 'Suspended',
+        deleted_at: new Date(),
       },
     });
 
