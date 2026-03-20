@@ -206,31 +206,6 @@ export const authenticateUser = async (userId, action, func) => {
     where: {
       user_id: user_id,
     },
-    include: {
-      events: true,
-      jobs: true,
-      post_comments: true,
-      post_likes: true,
-      posts: true,
-      skills: {
-        include: {
-          skill: true,
-        },
-      },
-      workplace_history: {
-        orderBy: [
-          {
-            start_date: 'desc',
-          },
-          { end_date: 'desc' },
-        ],
-        include: {
-          workplace: {
-            omit: { create_date: true },
-          },
-        },
-      },
-    },
   });
 
   if (!user) {

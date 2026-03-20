@@ -259,7 +259,7 @@ export const getJobById = async (userToken, jobId) => {
       author_id: job.author.user_id,
       author_name: job.author.name,
       author_perfil_photo: job.author.perfil_photo,
-      author_workplace: job.author.workplace_history[0]?.workplace,
+      author_workplace: job.author.workplace_history[0]?.workplace?.company,
       author_course_abbreviation: job.author.courses[0]?.abbreviation,
       author_course_enrollmentYear: job.author.courses[0]?.enrollmentYear,
       workplace: job.workplace?.company,

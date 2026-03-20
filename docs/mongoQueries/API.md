@@ -1700,7 +1700,7 @@ Cookie: access_token=JWT_TOKEN
 
 ## DELETE /myProfile/skill 🆕
 
-Excluí uma habilidade do perfil do usuário.
+Exclui uma habilidade do perfil do usuário.
 
 ### Headers
 
@@ -1808,7 +1808,7 @@ Cookie: access_token=JWT_TOKEN
 
 ## DELETE /myProfile/socialMedia 🆕
 
-Excluí uma rede social do perfil do usuário logado.
+Exclui uma rede social do perfil do usuário logado.
 
 ### Headers
 
