@@ -1840,6 +1840,105 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
+## GET /user/search
+
+Realiza a pesquisa de usuários pelos campos: nome, curso, habilidades ou trabalhos.
+
+### Example
+
+```
+GET /user/search?search=Análise%e%Desenvolvimento%de%Sistemas
+
+ou
+
+GET /user/search?search=Análise e Desenvolvimento de Sistemas
+```
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Request Query
+
+```Query params
+{
+  search = {busca}
+}
+```
+
+### Response (200)
+
+```json
+[
+  {
+    "user_id": "69a864f5e704caa8ff079520",
+    "name": "Leonardo Barbosa da Silva",
+    "courses": [
+      {
+        "course_name": "Análise e Desenvolvimento de Sistemas",
+        "enrollmentYear": 2025,
+        "abbreviation": "ADS"
+      }
+    ],
+    "social_media": [],
+    "gender": "Male",
+    "perfil_photo": {
+      "url": "https://res.cloudinary.com/alumni-fatecso/image/upload/v1773520519/images/69a864f5e704caa8ff079520_1773520517438.jpg",
+      "public_id": "images/69a864f5e704caa8ff079520_1773520517438"
+    },
+    "user_type": "Student",
+    "workplace_history": [
+      {
+        "position": "Engenheiro de Software",
+        "function": "Desenvolver novidades para o software IOS",
+        "workplace": {
+          "company": "Valid"
+        },
+        "start_date": "2022-03-01T03:00:00.000Z",
+        "end_date": "2023-12-31T03:00:00.000Z"
+      },
+      {
+        "position": "Gerente de Banco de Dados",
+        "function": "Quase todas possíveis",
+        "workplace": {
+          "company": "Google"
+        },
+        "start_date": "2026-01-29T03:00:00.000Z",
+        "end_date": "2026-02-28T03:00:00.000Z"
+      }
+    ],
+    "skills": [
+      {
+        "skill": {
+          "name": "Node Js"
+        }
+      }
+    ]
+  },
+  {
+    "user_id": "69ac9668196f7b43bf460352",
+    "name": "nicolas",
+    "courses": [
+      {
+        "course_name": "Análise e Desenvolvimento de Sistemas",
+        "enrollmentYear": 2023,
+        "abbreviation": "ADS"
+      }
+    ],
+    "social_media": [],
+    "gender": "Male",
+    "perfil_photo": null,
+    "user_type": "Student",
+    "workplace_history": [],
+    "skills": []
+  }
+]
+```
+
+---
+
 # 🔑 Password
 
 ## POST /password/forgot-password
