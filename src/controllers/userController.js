@@ -198,7 +198,7 @@ export const updatedSocialMedia = async (req, res) => {
 
     const updatedSocialMedia = await userService.updatedSocialMedia(user, socialMedia);
 
-    return res.status(201).json({ message: 'Rede social alterada com sucesso!' });
+    return res.status(200).json({ message: 'Rede social alterada com sucesso!' });
   } catch (err) {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
@@ -214,7 +214,7 @@ export const deleteSocialMedia = async (req, res) => {
 
     const deletedSocialMedia = await userService.deleteSocialMedia(user, socialMedia);
 
-    return res.status(201).json({ message: 'Rede social excluída com sucesso!' });
+    return res.status(200).json({ message: 'Rede social excluída com sucesso!' });
   } catch (err) {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
