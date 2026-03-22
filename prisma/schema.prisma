@@ -30,8 +30,7 @@ model User {
   post_comments          PostComments[]
   skills                 UserSkill[]
 
-  workplace_id           String? @db.ObjectId
-  workplace              Workplace? @relation(fields: [workplace_id], references: [workplace_id])
+  workplace_history      WorkplaceUser[]
 
   create_date            DateTime @default(now())
   updated_at             DateTime? @updatedAt
@@ -46,14 +45,39 @@ model User {
 model Workplace {
   workplace_id  String @id @default(auto()) @map("_id") @db.ObjectId
   company       String @unique
-  users         User[]
+  
+  users_history WorkplaceUser[]
   jobs          Job[]
+
+  create_date   DateTime @default(now())
+  updated_at    DateTime?
+  deleted_date  DateTime?
+}
+
+model WorkplaceUser {
+  workplace_user_id   String @id @default(auto()) @map("_id") @db.ObjectId
+
+  position            String
+  function            String
+  start_date          DateTime
+  end_date            DateTime?
+  
+  workplace_id        String @db.ObjectId
+  workplace           Workplace @relation(fields: [workplace_id], references: [workplace_id])
+
+  user_id             String @db.ObjectId
+  user                User @relation(fields: [user_id], references: [user_id])
+
+  create_date         DateTime @default(now())
+  updated_at          DateTime?
+  deleted_date        DateTime?
 }
 
 model Course {
-  course_id     String @id @default(auto()) @map("_id") @db.ObjectId
-  name          String @unique
-  abbreviation  String @unique
+  course_id       String @id @default(auto()) @map("_id") @db.ObjectId
+  name            String @unique
+  normalize_name  String @unique
+  abbreviation    String @unique
 }
 
 model Event {
@@ -193,6 +217,7 @@ type JobLocation {
 }
 
 type SocialMedia {
+  id     String
   type   SocialMediaType
   url    String
 }
@@ -200,6 +225,7 @@ type SocialMedia {
 type UserCourse {
   course_id       String
   course_name     String
+  course_search   String
   abbreviation    String
   enrollmentYear  Int
 }

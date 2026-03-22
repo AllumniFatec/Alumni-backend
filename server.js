@@ -7,6 +7,7 @@ import feedRoutes from './src/routes/feedRoutes.js';
 import postRoutes from './src/routes/postRoutes.js';
 import imageRoutes from './src/routes/imageRoutes.js';
 import jobRoutes from './src/routes/jobRoutes.js';
+import userRoutes from './src/routes/userRoutes.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { env } from './src/config/env.js';
@@ -43,6 +44,7 @@ app.use('/', feedRoutes);
 app.use('/', postRoutes);
 app.use('/', jobRoutes);
 app.use('/', imageRoutes);
+app.use('/', userRoutes);
 
 app.listen(env.port, () => {
   console.log(`Servidor rodando na porta ${env.port}!`);
