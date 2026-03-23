@@ -1,7 +1,7 @@
 import { PrismaClient } from '../generated/prisma/index.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import sendEmail from '../utils/email.js';
+import { enqueueEmail } from '../utils/emailQueue.js';
 import * as validations from '../utils/validations.js';
 import { env } from '../config/env.js';
 import CustomError from '../utils/CustomError.js';
@@ -58,19 +58,13 @@ export const sendRecovery = async (userInfo, req) => {
   </table>
 </div>`;
 
-  try {
-    await sendEmail({
-      email: user.email,
-      subject: 'Recuperação de Senha Alumni Fatec Sorocaba',
-      message: message,
-    });
-  } catch (err) {
-    await prisma.user.update({
-      where: { user_id: user.user_id },
-      data: { token_password_reset: undefined },
-    });
-    throw new CustomError('Algo de errado aconteceu. Por favor, tente novamente mais tarde', 500);
-  }
+  // Mesmo padrão do admin: enfileira e não bloqueia o fluxo da rota.
+  enqueueEmail({
+    email: user.email,
+    subject: 'Recuperação de Senha Alumni Fatec Sorocaba',
+    message: message,
+    jobKey: `password-recovery:${user.user_id}:${resetToken}`,
+  });
 };
 
 export const resetPassword = async (userInfo) => {
