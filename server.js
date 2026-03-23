@@ -12,6 +12,7 @@ import adminRoutes from './src/routes/adminRoutes.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { env } from './src/config/env.js';
+import './src/queues/emailWorker.js';
 
 const app = express();
 

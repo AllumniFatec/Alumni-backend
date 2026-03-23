@@ -40,6 +40,13 @@ export const env = {
     apiKey: process.env.CLOUDINARY_KEY,
     apiSecret: process.env.CLOUDINARY_SECRET,
   },
+
+  // Redis (para filas BullMQ)
+  redis: {
+    host: process.env.REDIS_HOST || '127.0.0.1',
+    port: Number(process.env.REDIS_PORT) || 6379,
+    password: process.env.REDIS_PASSWORD || undefined,
+  },
 };
 
 export default env;

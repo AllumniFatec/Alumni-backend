@@ -196,6 +196,7 @@ export const approveUser = async (userToken, userData, protocol, host) => {
         email: targetUser.email,
         subject: 'Aprovação de Cadastro Alumni Fatec Sorocaba',
         message: message,
+        jobKey: `approve:${alumni_id}`,
       });
     } catch (err) {
       throw new CustomError('Algo de errado aconteceu. Por favor, tente novamente mais tarde', 500);
@@ -292,6 +293,7 @@ export const refuseUser = async (userToken, userData, protocol, host) => {
         email: targetUser.email,
         subject: 'Recusa de Cadastro Alumni Fatec Sorocaba',
         message: message,
+        jobKey: `refuse:${alumni_id}`,
       });
     } catch (err) {
       throw new CustomError('Algo de errado aconteceu. Por favor, tente novamente mais tarde', 500);
