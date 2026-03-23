@@ -1,7 +1,7 @@
 import { PrismaClient } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
-import sendEmail from '../utils/email.js';
+import { enqueueEmail } from '../utils/emailQueue.js';
 
 const prisma = new PrismaClient();
 
@@ -132,7 +132,7 @@ export const approveUser = async (userToken, userData, protocol, host) => {
       throw new CustomError('Usuário já processado!', 404);
     }
 
-    if (targetUser.user_status !== 'Active') {
+    if (targetUser.user_status === 'Active') {
       throw new CustomError('Usuário já está ativo!', 401);
     }
 
@@ -146,8 +146,6 @@ export const approveUser = async (userToken, userData, protocol, host) => {
           user_status: 'Active',
         },
       });
-
-      //envio do email
 
       const urlPlatform = `${protocol}://${host}/sign-in`;
       const message = `<div style="width: 100%; text-align: center; font-family: Arial, sans-serif; background-color: #f6f6f6; padding: 30px 0;">
@@ -193,18 +191,12 @@ export const approveUser = async (userToken, userData, protocol, host) => {
   </table>
 </div>`;
 
-      try {
-        await sendEmail({
-          email: targetUser.email,
-          subject: 'Aprovação de Cadastro Alumni Fatec Sorocaba',
-          message: message,
-        });
-      } catch (err) {
-        throw new CustomError(
-          'Algo de errado aconteceu. Por favor, tente novamente mais tarde',
-          500
-        );
-      }
+      // Não bloquear a resposta da API: o envio acontece em background pela fila.
+      enqueueEmail({
+        email: targetUser.email,
+        subject: 'Aprovação de Cadastro Alumni Fatec Sorocaba',
+        message: message,
+      });
     } catch (err) {
       throw new CustomError('Algo de errado aconteceu. Por favor, tente novamente mais tarde', 500);
     }
@@ -229,7 +221,7 @@ export const refuseUser = async (userToken, userData, protocol, host) => {
       throw new CustomError('Usuário já processado!', 404);
     }
 
-    if (targetUser.user_status !== 'Refused') {
+    if (targetUser.user_status === 'Refused') {
       throw new CustomError('Usuário já foi recusado!', 401);
     }
 
@@ -295,18 +287,12 @@ export const refuseUser = async (userToken, userData, protocol, host) => {
   </table>
 </div>`;
 
-      try {
-        await sendEmail({
-          email: targetUser.email,
-          subject: 'Recusa de Cadastro Alumni Fatec Sorocaba',
-          message: message,
-        });
-      } catch (err) {
-        throw new CustomError(
-          'Algo de errado aconteceu. Por favor, tente novamente mais tarde',
-          500
-        );
-      }
+      // Não bloquear a resposta da API: o envio acontece em background pela fila.
+      enqueueEmail({
+        email: targetUser.email,
+        subject: 'Recusa de Cadastro Alumni Fatec Sorocaba',
+        message: message,
+      });
     } catch (err) {
       throw new CustomError('Algo de errado aconteceu. Por favor, tente novamente mais tarde', 500);
     }
