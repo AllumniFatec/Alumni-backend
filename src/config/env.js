@@ -47,6 +47,11 @@ export const env = {
     port: Number(process.env.REDIS_PORT) || 6379,
     password: process.env.REDIS_PASSWORD || undefined,
   },
+
+  // Rate limit
+  rateLimit: {
+    enabled: process.env.RATE_LIMIT_ENABLED !== 'false',
+  },
 };
 
 export default env;
