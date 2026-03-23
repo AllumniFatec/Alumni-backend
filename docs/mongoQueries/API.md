@@ -21,19 +21,14 @@ Esta API fornece funcionalidades para:
 
 | | |
 | --- | --- |
-| **🆕 Novos** | Curtidas em posts, módulo de **vagas (jobs)**, listagem/detalhe/busca de **usuários** e todo o bloco **meu perfil** (foto, empregos, skills, redes sociais). |
-| **📌 Já existia (núcleo)** | Auth (`/auth/*`), **curso** (`POST /course`), **feed**, **posts** (CRUD), **comentários** (CRUD), **esqueci / reset senha** (`POST` forgot; o `PATCH` de reset aparece em 🔄 abaixo). |
+| **🆕 Novos** | Curtidas em posts, listagem/detalhe/busca de **usuários** e todo o bloco **meu perfil** (foto, empregos no perfil, skills, redes sociais). |
+| **📌 Já existia (núcleo)** | Auth (`/auth/*`), **curso** (`POST /course`), **feed**, **posts** (CRUD), **comentários** (CRUD), **vagas** (`/job` — CRUD público de vagas), **esqueci / reset senha** (`POST` forgot; o `PATCH` de reset aparece em 🔄 abaixo). |
 
 **Novos endpoints (🆕)** — clique para abrir a spec:
 
 | Método | Endpoint |
 | ------ | -------- |
 | POST | [/post/like/:postId](#ep-post-post-like-postid) |
-| POST | [/job](#ep-post-job) |
-| GET | [/job](#ep-get-job) |
-| GET | [/job/:jobId](#ep-get-job-jobid) |
-| PATCH | [/job/:jobId](#ep-patch-job-jobid) |
-| DELETE | [/job/:jobId](#ep-delete-job-jobid) |
 | GET | [/user](#ep-get-user) |
 | GET | [/user/:userId](#ep-get-user-userid) |
 | GET | [/user/search](#ep-get-user-search) |
@@ -59,6 +54,7 @@ Esta API fornece funcionalidades para:
 | Feed | [GET /feed](#ep-get-feed) |
 | Posts | [POST /post](#ep-post-post) · [PATCH /post/:postId](#ep-patch-post-postid) · [DELETE /post/:postId](#ep-delete-post-postid) |
 | Comments | [POST /post/comment/:postId](#ep-post-post-comment-postid) · [PATCH /post/comment/:commentId](#ep-patch-post-comment-commentid) · [DELETE /post/comment/:commentId](#ep-delete-post-comment-commentid) |
+| Jobs | [POST /job](#ep-post-job) · [GET /job](#ep-get-job) · [GET /job/:jobId](#ep-get-job-jobid) · [PATCH /job/:jobId](#ep-patch-job-jobid) · [DELETE /job/:jobId](#ep-delete-job-jobid) |
 | Password | [POST /password/forgot-password](#ep-post-password-forgot-password) |
 
 **🔄 Alterado nesta doc** — revisar o corpo da seção:
@@ -217,6 +213,7 @@ Feed
 Posts
 Comments
 Likes
+Jobs
 Users
 ```
 
@@ -845,7 +842,7 @@ OR
 # 📢 Jobs · [⬆️ topo](#doc-top)
 
 <a id="ep-post-job"></a>
-## POST /job 🆕 · [⬆️ topo](#doc-top)
+## POST /job · [⬆️ topo](#doc-top)
 
 Cria uma nova vaga de emprego.
 
@@ -896,7 +893,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-get-job"></a>
-## GET /job 🆕 · [⬆️ topo](#doc-top)
+## GET /job · [⬆️ topo](#doc-top)
 
 Retorna uma lista com 20 vagas de emprego de acordo com a páginação via query params.
 
@@ -970,7 +967,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-get-job-jobid"></a>
-## GET /job/:jobId 🆕 · [⬆️ topo](#doc-top)
+## GET /job/:jobId · [⬆️ topo](#doc-top)
 
 Retorna todos os campos de uma vaga de acordo com o ID.
 
@@ -1024,7 +1021,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-patch-job-jobid"></a>
-## PATCH /job/:jobId 🆕 · [⬆️ topo](#doc-top)
+## PATCH /job/:jobId · [⬆️ topo](#doc-top)
 
 Edita o conteúdo de uma vaga (somente Admin ou Criador da vaga)
 
@@ -1081,7 +1078,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-delete-job-jobid"></a>
-## DELETE /job/:jobId 🆕 · [⬆️ topo](#doc-top)
+## DELETE /job/:jobId · [⬆️ topo](#doc-top)
 
 Exclui uma vaga de trabalho postada (somente Admin ou Criador da vaga)
 
