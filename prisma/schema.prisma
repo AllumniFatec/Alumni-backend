@@ -255,6 +255,7 @@ enum UserType {
 enum UserStatus {
   Active
   InAnalysis
+  Refused
   Suspended
   Banned
   Deleted

@@ -16,10 +16,26 @@ export const dashboard = async (req, res) => {
   }
 };
 
+export const listAllUsersInAnalysis = async (req, res) => {
+  try {
+    const user = req.user;
+    const page = req.query.page;
+
+    const usersInAnalysis = await adminService.listAllUsersInAnalysis(user, page);
+
+    return res.status(200).json(usersInAnalysis);
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+
 export const approveUser = async (req, res) => {
   try {
     const user = req.user;
-    const alumniData = req.body;
+    const alumniData = req.params.userId;
 
     const approvedUser = await adminService.approveUser(
       user,
@@ -27,5 +43,33 @@ export const approveUser = async (req, res) => {
       req.protocol,
       req.get('host')
     );
-  } catch (error) {}
+
+    return res.status(200).json({ message: 'Usuário aprovado com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const refuseUser = async (req, res) => {
+  try {
+    const user = req.user;
+    const alumniData = req.params.userId;
+
+    const approvedUser = await adminService.refuseUser(
+      user,
+      alumniData,
+      req.protocol,
+      req.get('host')
+    );
+
+    return res.status(200).json({ message: 'Usuário recusado com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
 };
