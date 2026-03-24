@@ -19,6 +19,20 @@ const actions = {
 
 const prisma = new PrismaClient();
 
+/** Mesmo shape retornado por GET /job (listagem / feed). Reutilizado em getMyProfile. */
+export const formatJobListItem = (job) => ({
+  id: job.job_id,
+  title: job.title,
+  author_id: job.author_id,
+  workplace: job.workplace.company,
+  city: job.location.city,
+  state: job.location.state,
+  employment_type: job.employment_type,
+  work_model: job.work_model,
+  status: job.status,
+  create_date: job.create_date,
+});
+
 export const findOrCreateWorkplace = async (company) => {
   let companyData;
   let work_id;
@@ -171,20 +185,7 @@ export const getJobs = async (userToken, page = 1) => {
       },
     });
 
-    const formattedJobs = jobs.map((job) => ({
-      id: job.job_id,
-      title: job.title,
-      author_id: job.author_id,
-      workplace: job.workplace.company,
-      city: job.location.city,
-      state: job.location.state,
-      employment_type: job.employment_type,
-      work_model: job.work_model,
-      status: job.status,
-      create_date: job.create_date,
-    }));
-
-    return formattedJobs;
+    return jobs.map(formatJobListItem);
   });
 };
 
