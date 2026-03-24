@@ -58,6 +58,7 @@ Alumni-backend/
 
 - **Node.js** (versão 18 ou superior)
 - **npm** (vem com o Node.js)
+- **Docker**
 
 ### Passos para Instalação
 
@@ -81,19 +82,49 @@ Alumni-backend/
    ```bash
    DATABASE_URL= "<link de conexão com o seu banco MongoDB>"
    JWT_SECRET = "<sequencia de caracteres para segredo do token>"
+
    EMAIL_USER= <email de sua cotna gmail (para SMTP Gmail)>
    EMAIL_PASSWORD= <senha gmail para APPs (não é a senha do Gmail)>
    EMAIL_HOST= <host do servidor SMTP> (smtp.gmail.com - SMTP Gmail)
    EMAIL_PORT= <porta para do servidor SMTP>
+
+   CLOUDINARY_NAME= <nome do storage>
+   CLOUDINARY_KEY= <chave do storage>
+   CLOUDINARY_SECRET= <secret do storage>
+
+   REDIS_HOST= <ip do host do Redis (exemplo: 127.0.0.1)>
+   REDIS_PORT= <porta para utilização do Rediz (exemplo: 6379)>
+
+   PORT= <porta que o servidor irá utilizar>
+
+   NODE_ENV= <indica se o servidor é de produção ou desenvolvimento (development ou production)>
+
+   MAX_AGE_COOKIES= <tempo máximo em que o Cookies ficará ativo em milisegundos (86400000 - 1 dia)>
    ```
 
-4. **Inicie o servidor de desenvolvimento:**
+4. **Inicie o Docker e instale a imagem do Redis**
+
+```bash
+   docker run --name alumni-redis -p 6379:6379 -d redis:7 redis-server
+
+   ou
+
+   docker run --name alumni-redis -p 6379:6379 -d redis:7 redis-server --requirepass "sua_senha" (caso queira utilizar senha)
+```
+
+5. **Inicialize a imagem do Redis instalada no Docke**
+
+```bash
+   docker start alumni-redis
+```
+
+6. **Inicie o servidor de desenvolvimento:**
 
    ```bash
    node server.js, node --watch server.js ou npm run dev (nodemon)
    ```
 
-5. **Acesse a aplicação:**
+7. **Acesse a aplicação:**
    ```bash
    Instale a extensão ThunderClient no seu VSCode
    Crie uma nova requisição HTTP do mesmo tipo da rota
