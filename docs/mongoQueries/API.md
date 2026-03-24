@@ -2387,7 +2387,7 @@ Realiza a aprovação do cadastro de um usuário no sistema.
 ### Example
 
 ```
-DELETE /admin/approve/69aa02beef85f8d0cb38ca66
+POST /admin/approve/69aa02beef85f8d0cb38ca66
 ```
 
 ### Headers
@@ -2419,7 +2419,7 @@ Realiza a recusa do cadastro de um usuário no sistema.
 ### Example
 
 ```
-DELETE /admin/refuse/69aa02beef85f8d0cb38ca66
+POST /admin/refuse/69aa02beef85f8d0cb38ca66
 ```
 
 ### Headers

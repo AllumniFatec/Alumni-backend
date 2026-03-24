@@ -51,21 +51,11 @@ export const getDashboard = async (userToken) => {
       take: 10,
     });
 
-    const users = await prisma.user.findMany({
-      where: {
-        user_status: 'Active',
-      },
-    });
-
-    const jobs = await prisma.job.findMany({
-      where: {
-        status: 'Active',
-      },
-    });
-
-    const countUsersInAnalysis = usersInAnalysis.length;
-    const countUsersActive = users.length;
-    const countJobsActive = jobs.length;
+    const [countUsersInAnalysis, countUsersActive, countJobsActive] = await Promise.all([
+      prisma.user.count({ where: { user_status: 'InAnalysis' } }),
+      prisma.user.count({ where: { user_status: 'Active' } }),
+      prisma.job.count({ where: { status: 'Active' } }),
+    ]);
 
     return { usersInAnalysis, countJobsActive, countUsersActive, countUsersInAnalysis };
   });

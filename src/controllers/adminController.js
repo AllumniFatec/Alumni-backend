@@ -37,12 +37,7 @@ export const approveUser = async (req, res) => {
     const user = req.user;
     const alumniData = req.params.userId;
 
-    const approvedUser = await adminService.approveUser(
-      user,
-      alumniData,
-      req.protocol,
-      req.get('host')
-    );
+    await adminService.approveUser(user, alumniData, req.protocol, req.get('host'));
 
     return res.status(200).json({ message: 'Usuário aprovado com sucesso!' });
   } catch (err) {
@@ -58,12 +53,7 @@ export const refuseUser = async (req, res) => {
     const user = req.user;
     const alumniData = req.params.userId;
 
-    const approvedUser = await adminService.refuseUser(
-      user,
-      alumniData,
-      req.protocol,
-      req.get('host')
-    );
+    await adminService.refuseUser(user, alumniData, req.protocol, req.get('host'));
 
     return res.status(200).json({ message: 'Usuário recusado com sucesso!' });
   } catch (err) {

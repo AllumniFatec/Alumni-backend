@@ -93,7 +93,7 @@ Alumni-backend/
    CLOUDINARY_SECRET= <secret do storage>
 
    REDIS_HOST= <ip do host do Redis (exemplo: 127.0.0.1)>
-   REDIS_PORT= <porta para utilização do Rediz (exemplo: 6379)>
+   REDIS_PORT= <porta para utilização do Redis (exemplo: 6379)>
 
    PORT= <porta que o servidor irá utilizar>
 
@@ -112,7 +112,7 @@ Alumni-backend/
    docker run --name alumni-redis -p 6379:6379 -d redis:7 redis-server --requirepass "sua_senha" (caso queira utilizar senha)
 ```
 
-5. **Inicialize a imagem do Redis instalada no Docke**
+5. **Inicialize a imagem do Redis instalada no Docker**
 
 ```bash
    docker start alumni-redis
