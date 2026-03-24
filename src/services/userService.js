@@ -1,5 +1,5 @@
 import { PrismaClient, UserGender, SocialMediaType } from '../generated/prisma/index.js';
-import { findOrCreateWorkplace } from './jobService.js';
+import { findOrCreateWorkplace, formatJobListItem } from './jobService.js';
 import { normalizeText, capitalizeWords } from '../utils/validations.js';
 import CustomError from '../utils/CustomError.js';
 import levenshtein from 'fast-levenshtein';
@@ -326,10 +326,29 @@ export const getUserById = async (userToken, userId) => {
           },
         },
         jobs: {
+          where: {
+            status: { not: 'Deleted' },
+          },
+          orderBy: { create_date: 'desc' },
           select: {
             job_id: true,
             title: true,
+            author_id: true,
+            workplace: {
+              select: {
+                company: true,
+              },
+            },
+            location: {
+              select: {
+                city: true,
+                state: true,
+              },
+            },
+            employment_type: true,
+            work_model: true,
             status: true,
+            create_date: true,
           },
         },
         posts: {
@@ -403,7 +422,10 @@ export const getUserById = async (userToken, userId) => {
       throw new CustomError('Usuário não econtrado!', 404);
     }
 
-    return userData;
+    return {
+      ...userData,
+      jobs: userData.jobs.map(formatJobListItem),
+    };
   });
 };
 
@@ -466,10 +488,29 @@ export const getMyProfile = async (userToken) => {
           },
         },
         jobs: {
+          where: {
+            status: { not: 'Deleted' },
+          },
+          orderBy: { create_date: 'desc' },
           select: {
             job_id: true,
             title: true,
+            author_id: true,
+            workplace: {
+              select: {
+                company: true,
+              },
+            },
+            location: {
+              select: {
+                city: true,
+                state: true,
+              },
+            },
+            employment_type: true,
+            work_model: true,
             status: true,
+            create_date: true,
           },
         },
         posts: {
@@ -545,7 +586,10 @@ export const getMyProfile = async (userToken) => {
       throw new CustomError('Usuário não econtrado!', 404);
     }
 
-    return userData;
+    return {
+      ...userData,
+      jobs: userData.jobs.map(formatJobListItem),
+    };
   });
 };
 
