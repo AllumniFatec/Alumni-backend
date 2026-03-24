@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 import { env } from '../config/env.js';
 
-const enviarEmail = async (user) => {
+const sendEmail = async (user) => {
   //criando o transporter, serviço de envio de emails
   const transport = nodemailer.createTransport({
     host: env.email.host,
@@ -24,4 +24,4 @@ const enviarEmail = async (user) => {
   return transport.sendMail(emailOptions);
 };
 
-export default enviarEmail;
+export default sendEmail;
