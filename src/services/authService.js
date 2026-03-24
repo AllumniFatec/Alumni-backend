@@ -28,7 +28,8 @@ const prepareUserData = async (userInfo) => {
 
   validations.validatePassword(userInfo.password);
 
-  const hashPassword = await bcrypt.hash(userInfo.password, await bcrypt.genSalt(10));
+  const salt = await bcrypt.genSalt(10);
+  const hashPassword = await bcrypt.hash(userInfo.password, salt);
 
   return {
     name: userInfo.name,
