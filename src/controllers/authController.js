@@ -5,7 +5,7 @@ import { env } from '../config/env.js';
 export const register = async (req, res) => {
   try {
     const user = await authService.registerUser(req.body);
-    return res.status(201).json({ message: 'Usuário cadastrado com sucesso!' });
+    return res.status(201).json(user);
   } catch (err) {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
