@@ -7,17 +7,8 @@ import { env } from '../config/env.js';
 
 const prisma = new PrismaClient();
 
-//Cadastro
-export const registerUser = async (userInfo) => {
+const prepareUserData = async (userInfo) => {
   validations.validateEmail(userInfo.email);
-
-  const isExist = await prisma.user.findUnique({
-    where: { email: userInfo.email },
-  });
-
-  if (isExist) {
-    throw new CustomError('Usuário já cadastrado!', 409);
-  }
 
   if (!Object.values(UserType).includes(userInfo.userType)) {
     throw new CustomError('Tipo de usuário inválido!', 422);
@@ -40,26 +31,52 @@ export const registerUser = async (userInfo) => {
   const salt = await bcrypt.genSalt(10);
   const hashPassword = await bcrypt.hash(userInfo.password, salt);
 
-  await prisma.user.create({
-    data: {
-      name: userInfo.name,
-      email: userInfo.email,
-      password: hashPassword,
-      gender: userInfo.gender,
-      user_type: userInfo.userType,
-
-      courses: {
-        set: [
-          {
-            course_id: course.course_id,
-            course_name: course.name,
-            course_search: course.normalize_name,
-            abbreviation: course.abbreviation,
-            enrollmentYear: Number(userInfo.enrollmentYear),
-          },
-        ],
-      },
+  return {
+    name: userInfo.name,
+    email: userInfo.email,
+    password: hashPassword,
+    gender: userInfo.gender,
+    user_type: userInfo.userType,
+    courses: {
+      set: [
+        {
+          course_id: course.course_id,
+          course_name: course.name,
+          course_search: course.normalize_name,
+          abbreviation: course.abbreviation,
+          enrollmentYear: Number(userInfo.enrollmentYear),
+        },
+      ],
     },
+  };
+};
+
+//Cadastro
+export const registerUser = async (userInfo) => {
+  const existingUser = await prisma.user.findUnique({
+    where: { email: userInfo.email },
+  });
+
+  const userData = await prepareUserData(userInfo);
+
+  if (existingUser?.user_status === 'Refused') {
+    await prisma.user.update({
+      where: { user_id: existingUser.user_id },
+      data: {
+        ...userData,
+        user_status: 'InAnalysis',
+      },
+    });
+
+    return { message: 'Usuário recadastrado com sucesso!' };
+  }
+
+  if (existingUser) {
+    throw new CustomError('Usuário já cadastrado!', 409);
+  }
+
+  await prisma.user.create({
+    data: userData,
   });
 
   return { message: 'Usuário cadastrado com sucesso!' };
@@ -103,8 +120,8 @@ export const loginUser = async (userInfo) => {
     throw new CustomError('Usuário não encontrado!', 404);
   }
 
-  if (user.user_status == 'InAnalysis') {
-    throw new CustomError('Usuário pendente de aprovação!', 403);
+  if (user.user_status !== 'Active') {
+    throw new CustomError('Usuário não autorizado!', 403);
   }
 
   validations.validatePassword(userInfo.password);
