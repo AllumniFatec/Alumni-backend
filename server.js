@@ -8,9 +8,11 @@ import postRoutes from './src/routes/postRoutes.js';
 import imageRoutes from './src/routes/imageRoutes.js';
 import jobRoutes from './src/routes/jobRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
+import adminRoutes from './src/routes/adminRoutes.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { env } from './src/config/env.js';
+import './src/queues/emailWorker.js';
 
 const app = express();
 
@@ -45,6 +47,7 @@ app.use('/', postRoutes);
 app.use('/', jobRoutes);
 app.use('/', imageRoutes);
 app.use('/', userRoutes);
+app.use('/', adminRoutes);
 
 app.listen(env.port, () => {
   console.log(`Servidor rodando na porta ${env.port}!`);

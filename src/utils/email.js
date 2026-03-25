@@ -20,7 +20,8 @@ const enviarEmail = async (user) => {
     html: user.message,
   };
 
-  transport.sendMail(emailOptions);
+  // Retorna/propaga a Promise para permitir que o caller trate erro (ex: worker da fila).
+  return transport.sendMail(emailOptions);
 };
 
 export default enviarEmail;

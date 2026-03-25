@@ -14,7 +14,7 @@ Sistema de gerenciamento de ex-alunos da FATEC Sorocaba desenvolvido como Trabal
 
 ## Sobre o Projeto
 
-O Sistema Alumni FATEC Sorocaba é um projeto desenvolvido como Trabalho de Conclusão de Curso pelos alunos [Leonardo Silva](https://linkedin.com/in/leonardo-silva), [Gabriel Bellato](https://linkedin.com/in/gabriel-bellato) e [Nicolas Ferro](https://linkedin.com/in/nicolas-ferro), sob orientação do Professor Jarbas.
+O Sistema Alumni FATEC Sorocaba é um projeto desenvolvido como Trabalho de Conclusão de Curso pelos alunos [Leonardo Silva](https://linkedin.com/in/leonardo-silva), [Gabriel Bellato](https://linkedin.com/in/gabriel-bellato) e [Nicolas Ferro](https://linkedin.com/in/nicolas-ferro), sob orientação do Professor Nelson Rampim e da Professora Denilce de Almeida.
 
 O objetivo é criar uma plataforma para conectar alunos e ex-alunos da FATEC Sorocaba, facilitando o networking, oportunidades de carreira e manutenção do vínculo com a instituição.
 
@@ -35,16 +35,16 @@ Alumni-backend/
 │
 ├── src/
 │ ├── controllers/
-│ │ └── userController.js # Controladores responsáveis pela lógica das rotas de usuário
+│ │ └── *.js # Controladores responsáveis pela lógica das rotas
 │ │
 │ ├── middlewares/
 │ │ └── authMiddleware.js # Middleware de autenticação JWT
 │ │
 │ ├── routes/
-│ │ └── userRoutes.js # Definição das rotas relacionadas a usuários
+│ │ └── *.js # Definição das rotas relacionadas a cada arquivo
 │ │
 │ └── services/
-│ └── userService.js # Camada de serviço para regras de negócio de usuário
+│ └── *.js # Camada de serviço para regras de negócio de cada modelo
 │
 ├── package-lock.json # Controle de versões exatas das dependências
 ├── package.json # Dependências, scripts e metadados do projeto
@@ -58,13 +58,14 @@ Alumni-backend/
 
 - **Node.js** (versão 18 ou superior)
 - **npm** (vem com o Node.js)
+- **Docker**
 
 ### Passos para Instalação
 
 1. **Clone o repositório:**
 
    ```bash
-   git clone https://github.com/NicolasAFerro/alumni-backend.git
+   git clone https://github.com/AllumniFatec/Alumni-backend
    cd alumni-backend
    ```
 
@@ -81,24 +82,54 @@ Alumni-backend/
    ```bash
    DATABASE_URL= "<link de conexão com o seu banco MongoDB>"
    JWT_SECRET = "<sequencia de caracteres para segredo do token>"
+
    EMAIL_USER= <email de sua cotna gmail (para SMTP Gmail)>
    EMAIL_PASSWORD= <senha gmail para APPs (não é a senha do Gmail)>
    EMAIL_HOST= <host do servidor SMTP> (smtp.gmail.com - SMTP Gmail)
    EMAIL_PORT= <porta para do servidor SMTP>
+
+   CLOUDINARY_NAME= <nome do storage>
+   CLOUDINARY_KEY= <chave do storage>
+   CLOUDINARY_SECRET= <secret do storage>
+
+   REDIS_HOST= <ip do host do Redis (exemplo: 127.0.0.1)>
+   REDIS_PORT= <porta para utilização do Redis (exemplo: 6379)>
+
+   PORT= <porta que o servidor irá utilizar>
+
+   NODE_ENV= <indica se o servidor é de produção ou desenvolvimento (development ou production)>
+
+   MAX_AGE_COOKIES= <tempo máximo em que o Cookies ficará ativo em milisegundos (86400000 - 1 dia)>
    ```
 
-4. **Inicie o servidor de desenvolvimento:**
+4. **Inicie o Docker e instale a imagem do Redis**
+
+```bash
+   docker run --name alumni-redis -p 6379:6379 -d redis:7 redis-server
+
+   ou
+
+   docker run --name alumni-redis -p 6379:6379 -d redis:7 redis-server --requirepass "sua_senha" (caso queira utilizar senha)
+```
+
+5. **Inicialize a imagem do Redis instalada no Docker**
+
+```bash
+   docker start alumni-redis
+```
+
+6. **Inicie o servidor de desenvolvimento:**
 
    ```bash
    node server.js, node --watch server.js ou npm run dev (nodemon)
    ```
 
-5. **Acesse a aplicação:**
+7. **Acesse a aplicação:**
    ```bash
    Instale a extensão ThunderClient no seu VSCode
    Crie uma nova requisição HTTP do mesmo tipo da rota
    Digite http://localhost:3000/rota no campo de rota
-   Preencha o Body ou Auth Bearer dependendo da rota
+   Preencha o Body e/ou Cookies access_token={token} dependendo da rota
    Envie a requisição e espere a resposta
    ```
 
@@ -154,7 +185,8 @@ Desenvolvido como Trabalho de Conclusão de Curso na FATEC Sorocaba.
 
 **Orientador:**
 
-- Professor Jarbas
+- Professor Nelson Rampim Filho
+- Professora Denilce de Almeida Oliveira Veloso
 
 **Instituição:**
 
@@ -178,7 +210,7 @@ Management system for FATEC Sorocaba alumni, developed as a Final Graduation Pro
 
 ## About the Project
 
-The **Alumni FATEC Sorocaba System** is a project developed as a Final Graduation Project by students [Leonardo Silva](https://linkedin.com/in/leonardo-silva), [Gabriel Bellato](https://linkedin.com/in/gabriel-bellato), and [Nicolas Ferro](https://linkedin.com/in/nicolas-ferro), under the supervision of Professor Jarbas.
+The **Alumni FATEC Sorocaba System** is a project developed as a Final Graduation Project by students [Leonardo Silva](https://linkedin.com/in/leonardo-silva), [Gabriel Bellato](https://linkedin.com/in/gabriel-bellato), and [Nicolas Ferro](https://linkedin.com/in/nicolas-ferro), under the supervision of Professor Nelson and Professor Denilce.
 
 The goal is to create a platform that connects current and former FATEC Sorocaba students, facilitating networking, career opportunities, and ongoing engagement with the institution.
 
@@ -228,7 +260,7 @@ Alumni-backend/
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/NicolasAFerro/alumni-backend.git
+   git clone https://github.com/AllumniFatec/Alumni-backend
    cd alumni-backend
    ```
 
@@ -261,7 +293,7 @@ Alumni-backend/
    Install the ThunderClient extension in VSCode.
    Create a new HTTP request matching the route method.
    Enter http://localhost:3000/route in the request URL field.
-   Fill in the Body or Auth Bearer depending on the route.
+   Fill in the Body and/or Cookies access_token{token} depending on the route.
    Send the request and wait for the response.
    ```
 
@@ -317,7 +349,8 @@ Developed as a Final Graduation Project at FATEC Sorocaba.
 
 **Supervisor:**
 
-- Professor Jarbas
+- Professor Nelson Rampim Filho
+- Professor Denilce de Almeida Oliveira Veloso
 
 **Institution:**
 

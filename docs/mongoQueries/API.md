@@ -1,4 +1,5 @@
 <a id="doc-top"></a>
+
 # 📚 Alumni Backend API · [⬆️ topo](#doc-top)
 
 Documentação oficial da API do sistema **Alumni**.
@@ -11,65 +12,71 @@ Esta API fornece funcionalidades para:
 - comentários
 - likes
 - feed da aplicação
+- painel administrador
 
 ---
 
 # ⏱️ Timeline e índice · [⬆️ topo](#doc-top)
 
 <a id="whats-new"></a>
+
 ### O que é novo nesta atualização
 
-| | |
-| --- | --- |
-| **🆕 Novos** | Curtidas em posts, listagem/detalhe/busca de **usuários** e todo o bloco **meu perfil** (foto, empregos no perfil, skills, redes sociais). |
+|                            |                                                                                                                                                                                                                                   |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **🆕 Novos**               | Curtidas em posts, listagem/detalhe/busca de **usuários** e todo o bloco **meu perfil** (foto, empregos no perfil, skills, redes sociais).                                                                                        |
 | **📌 Já existia (núcleo)** | Auth (`/auth/*`), **curso** (`POST /course`), **feed**, **posts** (CRUD), **comentários** (CRUD), **vagas** (`/job` — CRUD público de vagas), **esqueci / reset senha** (`POST` forgot; o `PATCH` de reset aparece em 🔄 abaixo). |
 
 **Novos endpoints (🆕)** — clique para abrir a spec:
 
-| Método | Endpoint |
-| ------ | -------- |
-| POST | [/post/like/:postId](#ep-post-post-like-postid) |
-| GET | [/user](#ep-get-user) |
-| GET | [/user/:userId](#ep-get-user-userid) |
-| GET | [/user/search](#ep-get-user-search) |
-| GET | [/myProfile](#ep-get-myprofile) |
-| PUT | [/myProfile](#ep-put-myprofile) |
-| PATCH | [/myProfile/profilePhoto](#ep-patch-myprofile-profilephoto) |
-| DELETE | [/myProfile](#ep-delete-myprofile) |
-| POST | [/myProfile/job](#ep-post-myprofile-job) |
-| PUT | [/myProfile/job](#ep-put-myprofile-job) |
-| DELETE | [/myProfile/job](#ep-delete-myprofile-job) |
-| POST | [/myProfile/skill](#ep-post-myprofile-skill) |
-| DELETE | [/myProfile/skill](#ep-delete-myprofile-skill) |
-| POST | [/myProfile/socialMedia](#ep-post-myprofile-socialmedia) |
-| PATCH | [/myProfile/socialMedia](#ep-patch-myprofile-socialmedia) |
-| DELETE | [/myProfile/socialMedia](#ep-delete-myprofile-socialmedia) |
+| Método | Endpoint                                                    |
+| ------ | ----------------------------------------------------------- |
+| POST   | [/post/like/:postId](#ep-post-post-like-postid)             |
+| GET    | [/user](#ep-get-user)                                       |
+| GET    | [/user/:userId](#ep-get-user-userid)                        |
+| GET    | [/user/search](#ep-get-user-search)                         |
+| GET    | [/myProfile](#ep-get-myprofile)                             |
+| PUT    | [/myProfile](#ep-put-myprofile)                             |
+| PATCH  | [/myProfile/profilePhoto](#ep-patch-myprofile-profilephoto) |
+| DELETE | [/myProfile](#ep-delete-myprofile)                          |
+| POST   | [/myProfile/job](#ep-post-myprofile-job)                    |
+| PUT    | [/myProfile/job](#ep-put-myprofile-job)                     |
+| DELETE | [/myProfile/job](#ep-delete-myprofile-job)                  |
+| POST   | [/myProfile/skill](#ep-post-myprofile-skill)                |
+| DELETE | [/myProfile/skill](#ep-delete-myprofile-skill)              |
+| POST   | [/myProfile/socialMedia](#ep-post-myprofile-socialmedia)    |
+| PATCH  | [/myProfile/socialMedia](#ep-patch-myprofile-socialmedia)   |
+| DELETE | [/myProfile/socialMedia](#ep-delete-myprofile-socialmedia)  |
+| GET    | [/admin/dashboard](#ep-get-admin-dashboard)                 |
+| GET    | [/admin/usersInAnalysis](#ep-get-admin-usersInAnalysis)     |
+| POST   | [/admin/approve/:userId](#ep-post-admin-approve-userId)     |
+| POST   | [/admin/refuse/:userId](#ep-post-admin-refuse-userId)       |
 
 **Núcleo original (sem 🆕)** — spec completa:
 
-| Módulo | Endpoints |
-| ------ | --------- |
-| Auth | [POST /auth/register](#ep-post-auth-register) · [POST /auth/login](#ep-post-auth-login) · [POST /auth/logout](#ep-post-auth-logout) · [GET /auth/me](#ep-get-auth-me) |
-| Courses | [POST /course](#ep-post-course) |
-| Feed | [GET /feed](#ep-get-feed) |
-| Posts | [POST /post](#ep-post-post) · [PATCH /post/:postId](#ep-patch-post-postid) · [DELETE /post/:postId](#ep-delete-post-postid) |
+| Módulo   | Endpoints                                                                                                                                                                                              |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Auth     | [POST /auth/register](#ep-post-auth-register) · [POST /auth/login](#ep-post-auth-login) · [POST /auth/logout](#ep-post-auth-logout) · [GET /auth/me](#ep-get-auth-me)                                  |
+| Courses  | [POST /course](#ep-post-course)                                                                                                                                                                        |
+| Feed     | [GET /feed](#ep-get-feed)                                                                                                                                                                              |
+| Posts    | [POST /post](#ep-post-post) · [PATCH /post/:postId](#ep-patch-post-postid) · [DELETE /post/:postId](#ep-delete-post-postid)                                                                            |
 | Comments | [POST /post/comment/:postId](#ep-post-post-comment-postid) · [PATCH /post/comment/:commentId](#ep-patch-post-comment-commentid) · [DELETE /post/comment/:commentId](#ep-delete-post-comment-commentid) |
-| Jobs | [POST /job](#ep-post-job) · [GET /job](#ep-get-job) · [GET /job/:jobId](#ep-get-job-jobid) · [PATCH /job/:jobId](#ep-patch-job-jobid) · [DELETE /job/:jobId](#ep-delete-job-jobid) |
-| Password | [POST /password/forgot-password](#ep-post-password-forgot-password) |
+| Jobs     | [POST /job](#ep-post-job) · [GET /job](#ep-get-job) · [GET /job/:jobId](#ep-get-job-jobid) · [PATCH /job/:jobId](#ep-patch-job-jobid) · [DELETE /job/:jobId](#ep-delete-job-jobid)                     |
+| Password | [POST /password/forgot-password](#ep-post-password-forgot-password)                                                                                                                                    |
 
 **🔄 Alterado nesta doc** — revisar o corpo da seção:
 
-| Método | Endpoint |
-| ------ | -------- |
-| PATCH | [/password/reset-password/:token](#ep-patch-password-reset-password-token) |
+| Método | Endpoint                                                                   |
+| ------ | -------------------------------------------------------------------------- |
+| PATCH  | [/password/reset-password/:token](#ep-patch-password-reset-password-token) |
 
 ---
 
 Navegação rápida por **módulo** (clique para ir à seção). Endpoints marcados com 🆕 entraram em versões recentes da API; 🔄 indica alteração de contrato. **[Resumo: o que é novo](#whats-new)**
 
-| Base | Auth | Courses | Feed | Posts | Comments | Likes | Jobs | Users | Password | Ref. |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| [URL](#base-url) | [JWT](#autenticacao-jwt) | [🎓](#modulo-courses) | [📰](#modulo-feed) | [📝](#modulo-posts) | [💬](#modulo-comments) | [❤️](#modulo-likes) | [📢](#modulo-jobs) | [👤](#modulo-users) | [🔑](#modulo-password) | [Status](#ref-status-codes) |
+|       Base       |           Auth           |        Courses        |        Feed        |        Posts        |        Comments        |        Likes        |        Jobs        |        Users        |        Password        |        Ref.         |
+| :--------------: | :----------------------: | :-------------------: | :----------------: | :-----------------: | :--------------------: | :-----------------: | :----------------: | :-----------------: | :--------------------: | :-----------------: | --------------------------- |
+| [URL](#base-url) | [JWT](#autenticacao-jwt) | [🎓](#modulo-courses) | [📰](#modulo-feed) | [📝](#modulo-posts) | [💬](#modulo-comments) | [❤️](#modulo-likes) | [📢](#modulo-jobs) | [👤](#modulo-users) | [🔑](#modulo-password) | [💻](#modulo-admin) | [Status](#ref-status-codes) |
 
 [⬆️ Voltar ao topo](#doc-top)
 
@@ -79,99 +86,110 @@ Navegação rápida por **módulo** (clique para ir à seção). Endpoints marca
 
 ### Auth
 
-| Método | Endpoint |
-| ------ | -------- |
-| POST | [/auth/register](#ep-post-auth-register) |
-| POST | [/auth/login](#ep-post-auth-login) |
-| POST | [/auth/logout](#ep-post-auth-logout) |
-| GET | [/auth/me](#ep-get-auth-me) |
+| Método | Endpoint                                 |
+| ------ | ---------------------------------------- |
+| POST   | [/auth/register](#ep-post-auth-register) |
+| POST   | [/auth/login](#ep-post-auth-login)       |
+| POST   | [/auth/logout](#ep-post-auth-logout)     |
+| GET    | [/auth/me](#ep-get-auth-me)              |
 
 ### Courses
 
-| Método | Endpoint |
-| ------ | -------- |
-| POST | [/course](#ep-post-course) |
+| Método | Endpoint                   |
+| ------ | -------------------------- |
+| POST   | [/course](#ep-post-course) |
 
 ### Feed
 
-| Método | Endpoint |
-| ------ | -------- |
-| GET | [/feed](#ep-get-feed) |
+| Método | Endpoint              |
+| ------ | --------------------- |
+| GET    | [/feed](#ep-get-feed) |
 
 ### Posts
 
-| Método | Endpoint |
-| ------ | -------- |
-| POST | [/post](#ep-post-post) |
-| PATCH | [/post/:postId](#ep-patch-post-postid) |
+| Método | Endpoint                                |
+| ------ | --------------------------------------- |
+| POST   | [/post](#ep-post-post)                  |
+| PATCH  | [/post/:postId](#ep-patch-post-postid)  |
 | DELETE | [/post/:postId](#ep-delete-post-postid) |
 
 ### Comments
 
-| Método | Endpoint |
-| ------ | -------- |
-| POST | [/post/comment/:postId](#ep-post-post-comment-postid) |
-| PATCH | [/post/comment/:commentId](#ep-patch-post-comment-commentid) |
+| Método | Endpoint                                                      |
+| ------ | ------------------------------------------------------------- |
+| POST   | [/post/comment/:postId](#ep-post-post-comment-postid)         |
+| PATCH  | [/post/comment/:commentId](#ep-patch-post-comment-commentid)  |
 | DELETE | [/post/comment/:commentId](#ep-delete-post-comment-commentid) |
 
 ### Likes
 
-| Método | Endpoint |
-| ------ | -------- |
-| POST | [/post/like/:postId](#ep-post-post-like-postid) |
+| Método | Endpoint                                        |
+| ------ | ----------------------------------------------- |
+| POST   | [/post/like/:postId](#ep-post-post-like-postid) |
 
 ### Jobs
 
-| Método | Endpoint |
-| ------ | -------- |
-| POST | [/job](#ep-post-job) |
-| GET | [/job](#ep-get-job) |
-| GET | [/job/:jobId](#ep-get-job-jobid) |
-| PATCH | [/job/:jobId](#ep-patch-job-jobid) |
+| Método | Endpoint                            |
+| ------ | ----------------------------------- |
+| POST   | [/job](#ep-post-job)                |
+| GET    | [/job](#ep-get-job)                 |
+| GET    | [/job/:jobId](#ep-get-job-jobid)    |
+| PATCH  | [/job/:jobId](#ep-patch-job-jobid)  |
 | DELETE | [/job/:jobId](#ep-delete-job-jobid) |
 
 ### Users
 
-| Método | Endpoint |
-| ------ | -------- |
-| GET | [/user](#ep-get-user) |
-| GET | [/user/:userId](#ep-get-user-userid) |
-| GET | [/user/search](#ep-get-user-search) |
-| GET | [/myProfile](#ep-get-myprofile) |
-| PUT | [/myProfile](#ep-put-myprofile) |
-| PATCH | [/myProfile/profilePhoto](#ep-patch-myprofile-profilephoto) |
-| DELETE | [/myProfile](#ep-delete-myprofile) |
-| POST | [/myProfile/job](#ep-post-myprofile-job) |
-| PUT | [/myProfile/job](#ep-put-myprofile-job) |
-| DELETE | [/myProfile/job](#ep-delete-myprofile-job) |
-| POST | [/myProfile/skill](#ep-post-myprofile-skill) |
-| DELETE | [/myProfile/skill](#ep-delete-myprofile-skill) |
-| POST | [/myProfile/socialMedia](#ep-post-myprofile-socialmedia) |
-| PATCH | [/myProfile/socialMedia](#ep-patch-myprofile-socialmedia) |
-| DELETE | [/myProfile/socialMedia](#ep-delete-myprofile-socialmedia) |
+| Método | Endpoint                                                    |
+| ------ | ----------------------------------------------------------- |
+| GET    | [/user](#ep-get-user)                                       |
+| GET    | [/user/:userId](#ep-get-user-userid)                        |
+| GET    | [/user/search](#ep-get-user-search)                         |
+| GET    | [/myProfile](#ep-get-myprofile)                             |
+| PUT    | [/myProfile](#ep-put-myprofile)                             |
+| PATCH  | [/myProfile/profilePhoto](#ep-patch-myprofile-profilephoto) |
+| DELETE | [/myProfile](#ep-delete-myprofile)                          |
+| POST   | [/myProfile/job](#ep-post-myprofile-job)                    |
+| PUT    | [/myProfile/job](#ep-put-myprofile-job)                     |
+| DELETE | [/myProfile/job](#ep-delete-myprofile-job)                  |
+| POST   | [/myProfile/skill](#ep-post-myprofile-skill)                |
+| DELETE | [/myProfile/skill](#ep-delete-myprofile-skill)              |
+| POST   | [/myProfile/socialMedia](#ep-post-myprofile-socialmedia)    |
+| PATCH  | [/myProfile/socialMedia](#ep-patch-myprofile-socialmedia)   |
+| DELETE | [/myProfile/socialMedia](#ep-delete-myprofile-socialmedia)  |
 
 ### Password
 
-| Método | Endpoint |
-| ------ | -------- |
-| POST | [/password/forgot-password](#ep-post-password-forgot-password) |
-| PATCH | [/password/reset-password/:token](#ep-patch-password-reset-password-token) |
+| Método | Endpoint                                                                   |
+| ------ | -------------------------------------------------------------------------- |
+| POST   | [/password/forgot-password](#ep-post-password-forgot-password)             |
+| PATCH  | [/password/reset-password/:token](#ep-patch-password-reset-password-token) |
+
+### Admin
+
+| Método | Endpoint                                                |
+| ------ | ------------------------------------------------------- |
+| GET    | [/admin/dashboard](#ep-get-admin-dashboard)             |
+| GET    | [/admin/usersInAnalysis](#ep-get-admin-usersInAnalysis) |
+| POST   | [/admin/approve/:userId](#ep-post-admin-approve-userId) |
+| POST   | [/admin/refuse/:userId](#ep-post-admin-refuse-userId)   |
 
 ---
 
 <a id="versionamento-doc"></a>
+
 ### Versionamento na documentação
 
-| Símbolo | Significado |
-| ------- | ----------- |
-| 🆕 | Endpoint ou módulo documentado como adição recente em relação ao núcleo inicial da API. |
-| 🔄 | Contrato ou rota alterada em relação a uma versão anterior (consulte o corpo da seção). |
+| Símbolo | Significado                                                                             |
+| ------- | --------------------------------------------------------------------------------------- |
+| 🆕      | Endpoint ou módulo documentado como adição recente em relação ao núcleo inicial da API. |
+| 🔄      | Contrato ou rota alterada em relação a uma versão anterior (consulte o corpo da seção). |
 
-*A API em si não usa prefixo de versão na URL (ex.: `/v1`); evoluções são descritas neste arquivo.*
+_A API em si não usa prefixo de versão na URL (ex.: `/v1`); evoluções são descritas neste arquivo._
 
 ---
 
 <a id="base-url"></a>
+
 # 🌐 Base URL · [⬆️ topo](#doc-top)
 
 ```
@@ -181,6 +199,7 @@ http://localhost:3001
 ---
 
 <a id="autenticacao-jwt"></a>
+
 # 🔐 Autenticação · [⬆️ topo](#doc-top)
 
 A API utiliza **JWT armazenado em Cookie** para autenticação.
@@ -202,6 +221,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="estrutura-api"></a>
+
 # 📦 Estrutura da API · [⬆️ topo](#doc-top)
 
 A API está dividida nos seguintes módulos:
@@ -220,9 +240,11 @@ Users
 ---
 
 <a id="modulo-auth"></a>
+
 # 🔐 Auth · [⬆️ topo](#doc-top)
 
 <a id="ep-post-auth-register"></a>
+
 ## POST /auth/register · [⬆️ topo](#doc-top)
 
 Realiza o cadastro de um novo usuário.
@@ -264,6 +286,7 @@ Realiza o cadastro de um novo usuário.
 ---
 
 <a id="ep-post-auth-login"></a>
+
 ## POST /auth/login · [⬆️ topo](#doc-top)
 
 Realiza o login do usuário.
@@ -294,6 +317,7 @@ access_token=JWT_TOKEN
 ---
 
 <a id="ep-post-auth-logout"></a>
+
 ## POST /auth/logout · [⬆️ topo](#doc-top)
 
 Realiza o logout do usuário.
@@ -315,6 +339,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-get-auth-me"></a>
+
 ## GET /auth/me · [⬆️ topo](#doc-top)
 
 Retorna os dados do usuário logado.
@@ -343,9 +368,11 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="modulo-courses"></a>
+
 # 🎓 Courses · [⬆️ topo](#doc-top)
 
 <a id="ep-post-course"></a>
+
 ## POST /course · [⬆️ topo](#doc-top)
 
 Cria um novo curso.
@@ -377,9 +404,11 @@ Cria um novo curso.
 ---
 
 <a id="modulo-feed"></a>
+
 # 📰 Feed · [⬆️ topo](#doc-top)
 
 <a id="ep-get-feed"></a>
+
 ## GET /feed · [⬆️ topo](#doc-top)
 
 Retorna as informações do feed da aplicação.
@@ -565,9 +594,11 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="modulo-posts"></a>
+
 # 📝 Posts · [⬆️ topo](#doc-top)
 
 <a id="ep-post-post"></a>
+
 ## POST /post · [⬆️ topo](#doc-top)
 
 Cria uma nova postagem.
@@ -603,6 +634,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-patch-post-postid"></a>
+
 ## PATCH /post/:postId · [⬆️ topo](#doc-top)
 
 Editar o conteúdo de uma postagem.
@@ -644,6 +676,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-delete-post-postid"></a>
+
 ## DELETE /post/:postId · [⬆️ topo](#doc-top)
 
 Remove uma postagem.
@@ -677,9 +710,11 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="modulo-comments"></a>
+
 # 💬 Comments · [⬆️ topo](#doc-top)
 
 <a id="ep-post-post-comment-postid"></a>
+
 ## POST /post/comment/:postId · [⬆️ topo](#doc-top)
 
 Cria um comentário em uma postagem.
@@ -722,6 +757,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-patch-post-comment-commentid"></a>
+
 ## PATCH /post/comment/:commentId · [⬆️ topo](#doc-top)
 
 Edita um comentário existente.
@@ -764,6 +800,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-delete-post-comment-commentid"></a>
+
 ## DELETE /post/comment/:commentId · [⬆️ topo](#doc-top)
 
 Remove um comentário.
@@ -797,9 +834,11 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="modulo-likes"></a>
+
 # ❤️ Likes · [⬆️ topo](#doc-top)
 
 <a id="ep-post-post-like-postid"></a>
+
 ## POST /post/like/:postId 🆕 · [⬆️ topo](#doc-top)
 
 Adiciona ou remove um like em uma postagem.
@@ -839,9 +878,11 @@ OR
 ---
 
 <a id="modulo-jobs"></a>
+
 # 📢 Jobs · [⬆️ topo](#doc-top)
 
 <a id="ep-post-job"></a>
+
 ## POST /job · [⬆️ topo](#doc-top)
 
 Cria uma nova vaga de emprego.
@@ -893,6 +934,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-get-job"></a>
+
 ## GET /job · [⬆️ topo](#doc-top)
 
 Retorna uma lista com 20 vagas de emprego de acordo com a páginação via query params.
@@ -967,6 +1009,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-get-job-jobid"></a>
+
 ## GET /job/:jobId · [⬆️ topo](#doc-top)
 
 Retorna todos os campos de uma vaga de acordo com o ID.
@@ -1021,6 +1064,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-patch-job-jobid"></a>
+
 ## PATCH /job/:jobId · [⬆️ topo](#doc-top)
 
 Edita o conteúdo de uma vaga (somente Admin ou Criador da vaga)
@@ -1078,6 +1122,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-delete-job-jobid"></a>
+
 ## DELETE /job/:jobId · [⬆️ topo](#doc-top)
 
 Exclui uma vaga de trabalho postada (somente Admin ou Criador da vaga)
@@ -1111,12 +1156,15 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="modulo-events"></a>
+
 # 📅 Events (In Progress) · [⬆️ topo](#doc-top)
 
 <a id="modulo-users"></a>
+
 # 👤 Users · [⬆️ topo](#doc-top)
 
 <a id="ep-get-user"></a>
+
 ## GET /user 🆕 · [⬆️ topo](#doc-top)
 
 Retorna uma lista com 40 usuários de acordo com a páginação via query params.
@@ -1240,6 +1288,7 @@ Cookie: access_token=JWT_TOKEN
 ```
 
 <a id="ep-get-user-userid"></a>
+
 ## GET /user/:userId 🆕 · [⬆️ topo](#doc-top)
 
 Retorna os dados de apenas 1 usuário pelo ID.
@@ -1447,6 +1496,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-get-myprofile"></a>
+
 ## GET /myProfile 🆕 · [⬆️ topo](#doc-top)
 
 Retorna o perfil do usuário logado
@@ -1646,6 +1696,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-put-myprofile"></a>
+
 ## PUT /myProfile 🆕 · [⬆️ topo](#doc-top)
 
 Edita uma parte dos dados de perfil do usuário
@@ -1687,6 +1738,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-patch-myprofile-profilephoto"></a>
+
 ## PATCH /myProfile/profilePhoto 🆕 · [⬆️ topo](#doc-top)
 
 Atualiza a foto de perfil do usuário logado.
@@ -1719,6 +1771,7 @@ Value: image.jpg
 ---
 
 <a id="ep-delete-myprofile"></a>
+
 ## DELETE /myProfile 🆕 · [⬆️ topo](#doc-top)
 
 Exclui (soft delete) o perfil do usuário logado.
@@ -1740,6 +1793,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-post-myprofile-job"></a>
+
 ## POST /myProfile/job 🆕 · [⬆️ topo](#doc-top)
 
 Insere um novo emprego ao histórico de trabalho do usuário logado.
@@ -1783,6 +1837,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-put-myprofile-job"></a>
+
 ## PUT /myProfile/job 🆕 · [⬆️ topo](#doc-top)
 
 Edita um emprego já inserido no histórico de trabalho do usuário logado.
@@ -1828,6 +1883,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-delete-myprofile-job"></a>
+
 ## DELETE /myProfile/job 🆕 · [⬆️ topo](#doc-top)
 
 Exclui um emprego já inserido no histórico de trabalho do usuário logado.
@@ -1863,6 +1919,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-post-myprofile-skill"></a>
+
 ## POST /myProfile/skill 🆕 · [⬆️ topo](#doc-top)
 
 Insere uma habilidade no perfil do usuário logado.
@@ -1898,6 +1955,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-delete-myprofile-skill"></a>
+
 ## DELETE /myProfile/skill 🆕 · [⬆️ topo](#doc-top)
 
 Exclui uma habilidade do perfil do usuário.
@@ -1933,6 +1991,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-post-myprofile-socialmedia"></a>
+
 ## POST /myProfile/socialMedia 🆕 · [⬆️ topo](#doc-top)
 
 Insere uma rede social no perfil do usuário logado
@@ -1970,6 +2029,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-patch-myprofile-socialmedia"></a>
+
 ## PATCH /myProfile/socialMedia 🆕 · [⬆️ topo](#doc-top)
 
 Editar o link de uma rede social no perfil do usuário logado.
@@ -2009,6 +2069,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-delete-myprofile-socialmedia"></a>
+
 ## DELETE /myProfile/socialMedia 🆕 · [⬆️ topo](#doc-top)
 
 Exclui uma rede social do perfil do usuário logado.
@@ -2044,6 +2105,7 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="ep-get-user-search"></a>
+
 ## GET /user/search 🆕 · [⬆️ topo](#doc-top)
 
 Realiza a pesquisa de usuários pelos campos: nome, curso, habilidades ou trabalhos.
@@ -2142,9 +2204,11 @@ Cookie: access_token=JWT_TOKEN
 ---
 
 <a id="modulo-password"></a>
+
 # 🔑 Password · [⬆️ topo](#doc-top)
 
 <a id="ep-post-password-forgot-password"></a>
+
 ## POST /password/forgot-password · [⬆️ topo](#doc-top)
 
 Envia o email para redefinição de senha do usuário informado.
@@ -2174,6 +2238,7 @@ Envia o email para redefinição de senha do usuário informado.
 ---
 
 <a id="ep-patch-password-reset-password-token"></a>
+
 ## PATCH /password/reset-password/:token 🔄 · [⬆️ topo](#doc-top)
 
 Atualiza a senha alterada do usuário no banco de dados
@@ -2210,7 +2275,175 @@ PATCH /password/reset-password/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5
 
 ---
 
+<a id="modulo-admin"></a>
+
+# 💻 Admin · [⬆️ topo](#doc-top)
+
+<a id="ep-get-admin-dashboard"></a>
+
+## GET /admin/dashboard
+
+Recebe os dados da dashboard inicial do sistema (usuários a serem aprovados, contagens de: usuarios ativos, usuário para aprovação e vagas criadas).
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Response (200)
+
+```json
+{
+  "usersInAnalysis": [
+    {
+      "user_id": "69a86c171cb9a26b750064a5",
+      "name": "Gabriela Martins",
+      "email": "gabi@email.com",
+      "courses": [
+        {
+          "course_name": "Polímeros",
+          "enrollmentYear": 2020
+        }
+      ],
+      "gender": "Female",
+      "user_type": "Student"
+    },
+    {
+      "user_id": "69b347f4169b76edb5dade06",
+      "name": "Teste",
+      "email": "teste@email.com",
+      "courses": [
+        {
+          "course_name": "Análise e Desenvolvimento de Sistemas",
+          "enrollmentYear": 2025
+        }
+      ],
+      "gender": "Male",
+      "user_type": "Student"
+    }
+  ],
+  "countJobsActive": 3,
+  "countUsersActive": 5,
+  "countUsersInAnalysis": 2
+}
+```
+
+---
+
+<a id="ep-get-admin-usersInAnalysis"></a>
+
+## GET /admin/usersInAnalysis
+
+Recebe uma lista de todos os usuários em análise para aprovação.
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Response (200)
+
+```json
+[
+  {
+    "user_id": "69a86c171cb9a26b750064a5",
+    "name": "Gabriela Martins",
+    "email": "gabi@email.com",
+    "courses": [
+      {
+        "course_name": "Polímeros",
+        "enrollmentYear": 2020
+      }
+    ],
+    "gender": "Female",
+    "user_type": "Student"
+  },
+  {
+    "user_id": "69b347f4169b76edb5dade06",
+    "name": "Teste",
+    "email": "teste@email.com",
+    "courses": [
+      {
+        "course_name": "Análise e Desenvolvimento de Sistemas",
+        "enrollmentYear": 2025
+      }
+    ],
+    "gender": "Male",
+    "user_type": "Student"
+  }
+]
+```
+
+---
+
+<a id="ep-post-admin-approve-userId"></a>
+
+## POST /admin/approve/:userId
+
+Realiza a aprovação do cadastro de um usuário no sistema.
+
+### Example
+
+```
+POST /admin/approve/69aa02beef85f8d0cb38ca66
+```
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Parâmetros
+
+| Parâmetro | Tipo   | Descrição     |
+| --------- | ------ | ------------- |
+| userId    | string | ID do usuário |
+
+```json
+{
+  "message": "Usuário aprovado com sucesso!"
+}
+```
+
+---
+
+<a id="ep-post-admin-refuse-userId"></a>
+
+## POST /admin/refuse/:userId
+
+Realiza a recusa do cadastro de um usuário no sistema.
+
+### Example
+
+```
+POST /admin/refuse/69aa02beef85f8d0cb38ca66
+```
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Parâmetros
+
+| Parâmetro | Tipo   | Descrição     |
+| --------- | ------ | ------------- |
+| userId    | string | ID do usuário |
+
+```json
+{
+  "message": "Usuário recusado com sucesso!"
+}
+```
+
+---
+
 <a id="ref-status-codes"></a>
+
 # 📊 Status Codes · [⬆️ topo](#doc-top)
 
 | Código | Significado              |
@@ -2226,6 +2459,7 @@ PATCH /password/reset-password/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5
 ---
 
 <a id="ref-tecnologias"></a>
+
 # 🚀 Tecnologias Utilizadas · [⬆️ topo](#doc-top)
 
 Backend desenvolvido utilizando:
@@ -2239,6 +2473,7 @@ Backend desenvolvido utilizando:
 ---
 
 <a id="ref-projeto"></a>
+
 # 👨‍💻 Projeto · [⬆️ topo](#doc-top)
 
 Sistema desenvolvido para gerenciamento e interação entre **ex-alunos (Alumni)** de instituições de ensino.
@@ -2255,6 +2490,7 @@ Funcionalidades principais:
 ---
 
 <a id="ref-observacoes"></a>
+
 # 📌 Observações · [⬆️ topo](#doc-top)
 
 - Algumas rotas exigem autenticação via **JWT Cookie**
