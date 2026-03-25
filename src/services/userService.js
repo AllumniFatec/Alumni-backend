@@ -1,6 +1,6 @@
 import { PrismaClient, UserGender, SocialMediaType } from '../generated/prisma/index.js';
 import { findOrCreateWorkplace, formatJobListItem } from './jobService.js';
-import { normalizeText, capitalizeWords } from '../utils/validations.js';
+import { normalizeText, capitalizeWords, isValidHttpUrl } from '../utils/validations.js';
 import CustomError from '../utils/CustomError.js';
 import levenshtein from 'fast-levenshtein';
 import cloudinary from '../config/cloudinary.js';
@@ -165,16 +165,6 @@ function scoreUser(user, tokens, fullSearch) {
   });
 
   return score;
-}
-
-function isValidHttpUrl(url) {
-  const parsed = new URL(url);
-
-  if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
-    return;
-  } else {
-    throw new CustomError('URL informada inválida', 404);
-  }
 }
 
 function parseBRDate(dateString) {
