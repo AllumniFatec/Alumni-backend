@@ -65,10 +65,10 @@ export const getDashboard = async (userToken) => {
 export const listAllUsersInAnalysis = async (userToken, page = 1) => {
   const user_id = userToken.id;
 
-  const pageVerifyed = Number(page);
+  let pageVerifyed = Number(page);
 
   if (!Number.isInteger(pageVerifyed) || pageVerifyed < 1) {
-    page = 1;
+    pageVerifyed = 1;
   }
 
   const limit = 30;
