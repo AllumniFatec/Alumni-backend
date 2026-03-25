@@ -2,6 +2,7 @@ import { PrismaClient } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
 import { enqueueEmail } from '../utils/emailQueue.js';
+import { messageApproveUser, messageRefuseUser } from '../utils/emailMessages.js';
 
 const prisma = new PrismaClient();
 
@@ -64,10 +65,10 @@ export const getDashboard = async (userToken) => {
 export const listAllUsersInAnalysis = async (userToken, page = 1) => {
   const user_id = userToken.id;
 
-  const pageVerifyed = Number(page);
+  let pageVerifyed = Number(page);
 
   if (!Number.isInteger(pageVerifyed) || pageVerifyed < 1) {
-    page = 1;
+    pageVerifyed = 1;
   }
 
   const limit = 30;
@@ -104,9 +105,9 @@ export const listAllUsersInAnalysis = async (userToken, page = 1) => {
   });
 };
 
-export const approveUser = async (userToken, userData, protocol, host) => {
+export const approveUser = async (userToken, alumniId, protocol, host) => {
   const user_id = userToken.id;
-  const alumni_id = userData;
+  const alumni_id = alumniId;
 
   return authenticateUser(user_id, actions.approveUser, async (user) => {
     verifyAdminUser(user, actions.approveUser);
@@ -138,48 +139,7 @@ export const approveUser = async (userToken, userData, protocol, host) => {
       });
 
       const urlPlatform = `${protocol}://${host}/sign-in`;
-      const message = `<div style="width: 100%; text-align: center; font-family: Arial, sans-serif; background-color: #f6f6f6; padding: 30px 0;">
-  <table align="center" cellpadding="0" cellspacing="0" width="100%" style="max-width: 500px; background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-    <tr>
-      <td align="center" style="color: #333333; font-size: 18px;">
-        <h3 style="margin-top: 0;">Bem-vindo(a), ${targetUser.name}!</h3>
-
-        <p style="margin: 10px 0 20px 0;">
-          Seu perfil no <strong>Sistema Alumni Fatec Sorocaba</strong> foi aprovado!
-        </p>
-
-        <p style="margin: 10px 0 20px 0;">
-          Agora você pode se conectar com outros ex-alunos, compartilhar experiências,
-          acompanhar novidades e expandir sua rede profissional.
-        </p>
-
-        <a href="${urlPlatform}" 
-           style="background-color: #AE0C0D;
-                  color: white;
-                  padding: 12px 30px;
-                  text-decoration: none;
-                  border-radius: 8px;
-                  display: inline-block;
-                  font-weight: bold;
-                  margin: 20px 0;">
-          ACESSAR PLATAFORMA
-        </a>
-
-        <p style="margin-top: 20px; color: #555555;">
-          Complete seu perfil para aproveitar ao máximo todos os recursos disponíveis.
-        </p>
-
-        <p style="margin-top: 10px; color: #777777; font-size: 14px;">
-          Se você tiver qualquer dúvida, nossa equipe estará pronta para ajudar.
-        </p>
-
-        <p style="margin-top: 25px; color: #999999; font-size: 13px;">
-          © ${new Date().getFullYear()} Alumni — Conectando histórias e oportunidades.
-        </p>
-      </td>
-    </tr>
-  </table>
-</div>`;
+      const message = messageApproveUser(targetUser.name, urlPlatform);
 
       // Não bloquear a resposta da API: o envio acontece em background pela fila.
       enqueueEmail({
@@ -194,9 +154,9 @@ export const approveUser = async (userToken, userData, protocol, host) => {
   });
 };
 
-export const refuseUser = async (userToken, userData, protocol, host) => {
+export const refuseUser = async (userToken, alumniId, protocol, host) => {
   const user_id = userToken.id;
-  const alumni_id = userData;
+  const alumni_id = alumniId;
 
   return authenticateUser(user_id, actions.refuseUser, async (user) => {
     verifyAdminUser(user, actions.refuseUser);
@@ -228,55 +188,7 @@ export const refuseUser = async (userToken, userData, protocol, host) => {
       });
 
       const urlPlatform = `${protocol}://${host}/sign-up`;
-      const message = `<div style="width: 100%; text-align: center; font-family: Arial, sans-serif; background-color: #f6f6f6; padding: 30px 0;">
-  <table align="center" cellpadding="0" cellspacing="0" width="100%" style="max-width: 500px; background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-    <tr>
-      <td align="center" style="color: #333333; font-size: 18px;">
-        <h3 style="margin-top: 0;">Olá, ${targetUser.name}</h3>
-
-        <p style="margin: 10px 0 20px 0;">
-          Após a análise realizada pela administração, seu cadastro no 
-          <strong>Sistema Alumni Fatec Sorocaba</strong> não pôde ser aprovado neste momento.
-        </p>
-
-        <p style="margin: 10px 0 20px 0;">
-          Isso pode ocorrer devido a informações incompletas ou divergentes no cadastro.
-          Caso tenha sido um engano, você pode realizar um novo cadastro normalmente.
-        </p>
-
-        <p style="margin: 10px 0 20px 0;">
-          Você pode se cadastrar novamente utilizando <strong>o mesmo e-mail</strong>, 
-          corrigindo ou atualizando suas informações.
-        </p>
-
-        <a href="${urlPlatform}" 
-           style="background-color: #AE0C0D;
-                  color: white;
-                  padding: 12px 30px;
-                  text-decoration: none;
-                  border-radius: 8px;
-                  display: inline-block;
-                  font-weight: bold;
-                  margin: 20px 0;">
-          REALIZAR NOVO CADASTRO
-        </a>
-
-        <p style="margin-top: 20px; color: #555555;">
-          Se você acredita que esta decisão foi um erro ou possui dúvidas,
-          recomendamos realizar um novo cadastro revisando os dados informados, e, após isso, entre em contato com a administração do sistema.
-        </p>
-
-        <p style="margin-top: 10px; color: #777777; font-size: 14px;">
-          Agradecemos seu interesse em participar da comunidade Alumni.
-        </p>
-
-        <p style="margin-top: 25px; color: #999999; font-size: 13px;">
-          © ${new Date().getFullYear()} Alumni — Conectando histórias e oportunidades.
-        </p>
-      </td>
-    </tr>
-  </table>
-</div>`;
+      const message = messageRefuseUser(targetUser.name, urlPlatform);
 
       // Não bloquear a resposta da API: o envio acontece em background pela fila.
       enqueueEmail({
