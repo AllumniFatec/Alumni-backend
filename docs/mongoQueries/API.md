@@ -8,10 +8,13 @@ Esta API fornece funcionalidades para:
 
 - autenticação de usuários
 - gerenciamento de cursos
+- criação de vagas
+- criação de eventos
 - criação de posts
 - comentários
 - likes
 - feed da aplicação
+- pesquisa de usuário
 - painel administrador
 
 ---
@@ -21,11 +24,6 @@ Esta API fornece funcionalidades para:
 <a id="whats-new"></a>
 
 ### O que é novo nesta atualização
-
-|                            |                                                                                                                                                                                                                                   |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **🆕 Novos**               | Curtidas em posts, listagem/detalhe/busca de **usuários** e todo o bloco **meu perfil** (foto, empregos no perfil, skills, redes sociais).                                                                                        |
-| **📌 Já existia (núcleo)** | Auth (`/auth/*`), **curso** (`POST /course`), **feed**, **posts** (CRUD), **comentários** (CRUD), **vagas** (`/job` — CRUD público de vagas), **esqueci / reset senha** (`POST` forgot; o `PATCH` de reset aparece em 🔄 abaixo). |
 
 **Novos endpoints (🆕)** — clique para abrir a spec:
 
@@ -51,6 +49,12 @@ Esta API fornece funcionalidades para:
 | GET    | [/admin/usersInAnalysis](#ep-get-admin-usersInAnalysis)     |
 | POST   | [/admin/approve/:userId](#ep-post-admin-approve-userId)     |
 | POST   | [/admin/refuse/:userId](#ep-post-admin-refuse-userId)       |
+| GET    | [/event](#ep-get-event) 🆕                                  |
+| GET    | [/event/:eventId](#ep-get-event-by-id) 🆕                   |
+| POST   | [/event](#ep-post-event) 🆕                                 |
+| PUT    | [/event/:eventId](#ep-put-event) 🆕                         |
+| DELETE | [/event/:eventId](#ep-delete-event) 🆕                      |
+| PATCH  | [/event/:eventId](#ep-patch-event) 🆕                       |
 
 **Núcleo original (sem 🆕)** — spec completa:
 
@@ -74,13 +78,13 @@ Esta API fornece funcionalidades para:
 
 Navegação rápida por **módulo** (clique para ir à seção). Endpoints marcados com 🆕 entraram em versões recentes da API; 🔄 indica alteração de contrato. **[Resumo: o que é novo](#whats-new)**
 
-|       Base       |           Auth           |        Courses        |        Feed        |        Posts        |        Comments        |        Likes        |        Jobs        |        Users        |        Password        |        Ref.         |
-| :--------------: | :----------------------: | :-------------------: | :----------------: | :-----------------: | :--------------------: | :-----------------: | :----------------: | :-----------------: | :--------------------: | :-----------------: | --------------------------- |
-| [URL](#base-url) | [JWT](#autenticacao-jwt) | [🎓](#modulo-courses) | [📰](#modulo-feed) | [📝](#modulo-posts) | [💬](#modulo-comments) | [❤️](#modulo-likes) | [📢](#modulo-jobs) | [👤](#modulo-users) | [🔑](#modulo-password) | [💻](#modulo-admin) | [Status](#ref-status-codes) |
+|       Base       |           Auth           |        Courses        |        Feed        |        Posts        |        Comments        |        Likes        |        Jobs        |        Events        |        Users        |        Password        |        Admin        |            Ref.             |
+| :--------------: | :----------------------: | :-------------------: | :----------------: | :-----------------: | :--------------------: | :-----------------: | :----------------: | :------------------: | :-----------------: | :--------------------: | :-----------------: | :-------------------------: |
+| [URL](#base-url) | [JWT](#autenticacao-jwt) | [🎓](#modulo-courses) | [📰](#modulo-feed) | [📝](#modulo-posts) | [💬](#modulo-comments) | [❤️](#modulo-likes) | [📢](#modulo-jobs) | [📅](#modulo-events) | [👤](#modulo-users) | [🔑](#modulo-password) | [💻](#modulo-admin) | [Status](#ref-status-codes) |
 
 [⬆️ Voltar ao topo](#doc-top)
 
-**[Versionamento na documentação](#versionamento-doc)** · **[Estrutura dos módulos](#estrutura-api)** · **[Events (em andamento)](#modulo-events)**
+**[Versionamento na documentação](#versionamento-doc)** · **[Estrutura dos módulos](#estrutura-api)**
 
 ---
 
@@ -136,6 +140,17 @@ Navegação rápida por **módulo** (clique para ir à seção). Endpoints marca
 | GET    | [/job/:jobId](#ep-get-job-jobid)    |
 | PATCH  | [/job/:jobId](#ep-patch-job-jobid)  |
 | DELETE | [/job/:jobId](#ep-delete-job-jobid) |
+
+### Events
+
+| Método | Endpoint                               |
+| ------ | -------------------------------------- |
+| GET    | [/event](#ep-get-event)                |
+| GET    | [/event/:eventId](#ep-get-event-by-id) |
+| POST   | [/event](#ep-post-event)               |
+| PUT    | [/event/:eventId](#ep-put-event)       |
+| DELETE | [/event/:eventId](#ep-delete-event)    |
+| PATCH  | [/event/:eventId](#ep-patch-event)     |
 
 ### Users
 
@@ -234,6 +249,7 @@ Posts
 Comments
 Likes
 Jobs
+Events
 Users
 ```
 
@@ -1157,7 +1173,287 @@ Cookie: access_token=JWT_TOKEN
 
 <a id="modulo-events"></a>
 
-# 📅 Events (In Progress) · [⬆️ topo](#doc-top)
+# 📅 Events · [⬆️ topo](#doc-top)
+
+<a id="ep-get-events"></a>
+
+## GET /event
+
+Retonar uma lista dos próximos 20 eventos
+
+### Example
+
+```
+GET /event?page=1
+```
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Response (200)
+
+```json
+{
+  "data": [
+    {
+      "id": "69c53e3933760efdc4dac064",
+      "title": "Evento Téste",
+      "local": "Auditório 1",
+      "date_start": "26/03/2026, 16:30:00"
+    },
+    {
+      "id": "69b7056d8affb46c728583e3",
+      "title": "Palestra: Carreira em Cibersegurança",
+      "local": "Online — Google Meet",
+      "date_start": "28/03/2026, 16:00:00"
+    },
+    {
+      "id": "69b7056d8affb46c728583e0",
+      "title": "Workshop de Inteligência Artificial na Prática",
+      "local": "Fatec Sorocaba — Lab 3",
+      "date_start": "05/04/2026, 06:00:00"
+    },
+    {
+      "id": "69b7056d8affb46c728583e1",
+      "title": "Alumni Connect — Networking & Mentoria",
+      "local": "Fatec Sorocaba — Auditório",
+      "date_start": "18/04/2026, 11:00:00"
+    },
+    {
+      "id": "69b7056d8affb46c728583e2",
+      "title": "Semana da Computação 2026",
+      "local": "Fatec Sorocaba — Campus completo",
+      "date_start": "11/05/2026, 05:00:00"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "totalItems": 5,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  }
+}
+```
+
+---
+
+<a id="ep-get-event-by-id"></a>
+
+## GET /event/:eventId
+
+Retorna os dados de um evento pelo ID.
+
+### Example
+
+```
+GET /event/69b7056d8affb46c728583e3
+```
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Parâmetros
+
+| Parâmetro | Tipo   | Descrição    |
+| --------- | ------ | ------------ |
+| eventId   | string | ID do evento |
+
+### Response (200)
+
+```json
+{
+  "id": "69b7056d8affb46c728583e3",
+  "author_id": "69b59d073dfcbf4d5b46b90f",
+  "author_name": "nicolas",
+  "title": "Palestra: Carreira em Cibersegurança",
+  "description": "Ex-aluno da Fatec compartilha sua trajetória e as oportunidades na área de segurança da informação.",
+  "local": "Online — Google Meet",
+  "date_start": "28/03/2026, 16:00:00",
+  "date_end": "28/03/2026, 18:00:00",
+  "status": "Active",
+  "images": []
+}
+```
+
+---
+
+<a id="ep-create-event"></a>
+
+## POST /event
+
+Cria um novo evento.
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Request Body
+
+```json
+{
+  "title": "evento téste",
+  "description": "primeiro evento criado",
+  "local": "Auditório 1",
+  "date_start": "26/03/2026",
+  "time_start": "19:30",
+  "date_end": "26/03/2026",
+  "time_end": "22:30"
+}
+```
+
+### Parâmetros
+
+| Parâmetro   | Tipo   | Descrição           |
+| ----------- | ------ | ------------------- |
+| title       | string | Título do evento    |
+| description | string | Descrição do evento |
+| local       | string | Local de realização |
+| date_start  | string | Data de início      |
+| time_start  | string | Hora de início      |
+| date_end    | string | Data de término     |
+| time_end    | string | Hora de término     |
+
+### Response (200)
+
+```json
+{
+  "message": "Evento criado com sucesso!"
+}
+```
+
+---
+
+<a id="ep-put-event"></a>
+
+## PUT /event/:eventId
+
+Edita os dados do evento
+
+### Example
+
+```
+PUT /event/69aa02beef85f8d0cb38ca66
+```
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Request Body
+
+```json
+{
+  "title": "evento téste",
+  "description": "primeiro evento criado. editei esse evento",
+  "local": "Auditório 1",
+  "date_start": "26/03/2026",
+  "time_start": "19:30",
+  "date_end": "26/03/2026",
+  "time_end": "22:30"
+}
+```
+
+### Parâmetros
+
+| Parâmetro   | Tipo   | Descrição           |
+| ----------- | ------ | ------------------- |
+| title       | string | Título do evento    |
+| description | string | Descrição do evento |
+| local       | string | Local de realização |
+| date_start  | string | Data de início      |
+| time_start  | string | Hora de início      |
+| date_end    | string | Data de término     |
+| time_end    | string | Hora de término     |
+
+### Response (200)
+
+```json
+{
+  "message": "Evento editado com sucesso!"
+}
+```
+
+---
+
+<a id="ep-delete-event"></a>
+
+## DELETE /event/:eventId
+
+Deleta um evento.
+
+### Example
+
+```
+DELETE /event/69aa02beef85f8d0cb38ca66
+```
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Parâmetros
+
+| Parâmetro | Tipo   | Descrição    |
+| --------- | ------ | ------------ |
+| eventId   | string | ID do evento |
+
+### Response (200)
+
+```json
+{
+  "message": "Evento excluído com sucesso!"
+}
+```
+
+---
+
+<a id="ep-patch-event"></a>
+
+## PATCH /event/:eventId
+
+Encerra um evento.
+
+### Example
+
+```
+PATCH /event/69aa02beef85f8d0cb38ca66
+```
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Parâmetros
+
+| Parâmetro | Tipo   | Descrição    |
+| --------- | ------ | ------------ |
+| eventId   | string | ID do evento |
+
+### Response (200)
+
+```json
+{
+  "message": "Evento encerrado com sucesso!"
+}
+```
+
+---
 
 <a id="modulo-users"></a>
 
@@ -2498,7 +2794,5 @@ Funcionalidades principais:
 - A API pode evoluir com novos módulos como:
 
 ```
-Eventos (In Progress)
-Admin (In Progress)
 Chat (In Progress)
 ```
