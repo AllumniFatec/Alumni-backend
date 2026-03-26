@@ -116,6 +116,7 @@ export const createLikePost = async (req, res) => {
   }
 };
 
+/*
 export const deleteLikePost = async (req, res) => {
   try {
     const postId = req.params.id;
@@ -131,3 +132,4 @@ export const deleteLikePost = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+*/
