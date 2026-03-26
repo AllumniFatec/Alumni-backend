@@ -27,13 +27,8 @@ export const formattedEvent = (event) =>
     title: event.title,
     description: event.description ?? null,
     local: event.local,
-    date_start: event.date_start?.toLocaleString('pt-BR', {
-      timeZone: 'America/Sao_Paulo',
-    }),
-    date_end:
-      event.date_end?.toLocaleString('pt-BR', {
-        timeZone: 'America/Sao_Paulo',
-      }) ?? null,
+    date_start: event.date_start?.toISOString(),
+    date_end: event.date_end?.toISOString() ?? null,
     status: event.status ?? null,
     images: event.images ?? null,
   });
@@ -59,14 +54,14 @@ function parseDateTimeUTC(date, time) {
   const hour = Number(hourStr);
   const minute = Number(minuteStr);
 
-  const dateUtc = new Date(Date.UTC(year, month - 1, day, hour, minute, 0));
+  const dateUtc = new Date(year, month - 1, day, hour, minute, 0);
 
   if (
-    dateUtc.getUTCFullYear() !== year ||
-    dateUtc.getUTCMonth() !== month - 1 ||
-    dateUtc.getUTCDate() !== day ||
-    dateUtc.getUTCHours() !== hour ||
-    dateUtc.getUTCMinutes() !== minute
+    dateUtc.getFullYear() !== year ||
+    dateUtc.getMonth() !== month - 1 ||
+    dateUtc.getDate() !== day ||
+    dateUtc.getHours() !== hour ||
+    dateUtc.getMinutes() !== minute
   ) {
     throw new CustomError('Data ou hora inválida', 400);
   }
