@@ -43,11 +43,11 @@ const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 function parseDateTimeUTC(date, time) {
   if (!date || typeof date !== 'string' || !DATE_REGEX.test(date)) {
-    throw new CustomError('Data de início ou Data de fim inválido, use DD/MM/YYYY', 400);
+    throw new CustomError('Formato de data inválido. Use DD/MM/YYYY', 400);
   }
 
   if (!time || typeof time !== 'string' || !TIME_REGEX.test(time)) {
-    throw new CustomError('Hora de início ou hora de fim inválido, use HH:MM', 400);
+    throw new CustomError('HFormato de hora inválido. Use HH:MM', 400);
   }
 
   const [, dayStr, monthStr, yearStr] = date.match(DATE_REGEX);
@@ -228,6 +228,10 @@ export const getEventById = async (userToken, eventId) => {
       },
     });
 
+    if (!event) {
+      throw new CustomError('Evento não encontrado!', 404);
+    }
+
     if (event.status !== 'Active') {
       throw new CustomError('Evento finalizado!', 401);
     }
@@ -283,6 +287,10 @@ export const deleteEvent = async (userToken, eventId) => {
       },
     });
 
+    if (!targetEvent) {
+      throw new CustomError('Evento não encontrado!', 404);
+    }
+
     if (targetEvent.status !== 'Active') {
       throw new CustomError('Evento já encerrado ou excluído', 401);
     }
@@ -315,6 +323,10 @@ export const closeEvent = async (userToken, eventId) => {
         event_id: event_id,
       },
     });
+
+    if (!targetEvent) {
+      throw new CustomError('Evento não encontrado!', 404);
+    }
 
     if (targetEvent.status !== 'Active') {
       throw new CustomError('Evento já encerrado ou excluído', 401);

@@ -1179,7 +1179,7 @@ Cookie: access_token=JWT_TOKEN
 
 ## GET /event
 
-Retonar uma lista dos próximos 20 eventos
+Retorna uma lista dos próximos 20 eventos
 
 ### Example
 
@@ -1200,7 +1200,7 @@ Cookie: access_token=JWT_TOKEN
   "data": [
     {
       "id": "69c53e3933760efdc4dac064",
-      "title": "Evento Téste",
+      "title": "Evento Teste",
       "local": "Auditório 1",
       "date_start": "26/03/2026, 16:30:00"
     },
