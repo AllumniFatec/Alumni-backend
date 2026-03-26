@@ -6,7 +6,7 @@ import {
 } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
-import { capitalizeWords } from '../utils/validations.js';
+import { capitalizeWords, isValidHttpUrl } from '../utils/validations.js';
 import levenshtein from 'fast-levenshtein';
 
 const actions = {
@@ -92,6 +92,7 @@ export const createJob = async (data, userToken) => {
     seniority_level,
     work_model,
     workplace_name,
+    url,
   } = data;
 
   if (Object.values(data).some((value) => !value)) {
@@ -114,6 +115,8 @@ export const createJob = async (data, userToken) => {
     throw new CustomError('A descrição da vaga deve conter no máximo 3500 caracteres', 400);
   }
 
+  isValidHttpUrl(url);
+
   return authenticateUser(user_id, actions.createJob, async (user) => {
     const company = capitalizeWords(workplace_name.trim());
 
@@ -133,6 +136,7 @@ export const createJob = async (data, userToken) => {
         work_model: work_model,
         workplace_id: company_id,
         author_id: user.user_id,
+        url: url,
       },
     });
 
@@ -241,6 +245,7 @@ export const getJobById = async (userToken, jobId) => {
         work_model: true,
         status: true,
         create_date: true,
+        url: true,
       },
     });
 
@@ -266,6 +271,7 @@ export const getJobById = async (userToken, jobId) => {
       work_model: job.work_model,
       status: job.status,
       create_date: job.create_date,
+      url: job.url,
     };
 
     return formattedJob;

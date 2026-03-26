@@ -38,3 +38,13 @@ export function capitalizeWords(text) {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
 }
+
+export function isValidHttpUrl(url) {
+  const parsed = new URL(url);
+
+  if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+    return;
+  } else {
+    throw new CustomError('URL informada inválida', 400);
+  }
+}
