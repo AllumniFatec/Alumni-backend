@@ -45,6 +45,6 @@ export function isValidHttpUrl(url) {
   if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
     return;
   } else {
-    throw new CustomError('URL informada inválida', 404);
+    throw new CustomError('URL informada inválida', 400);
   }
 }
