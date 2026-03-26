@@ -36,7 +36,7 @@ export const formattedEvent = (event) =>
 const DATE_REGEX = /^(\d{2})\/(\d{2})\/(\d{4})$/;
 const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
-function parseDateTimeUTC(date, time) {
+function parseDateTime(date, time) {
   if (!date || typeof date !== 'string' || !DATE_REGEX.test(date)) {
     throw new CustomError('Formato de data inválido. Use DD/MM/YYYY', 400);
   }
@@ -102,8 +102,8 @@ function validateEventData(eventData) {
     throw new CustomError('Descrição deve ter entre 10 e 3000 caracteres', 400);
   }
 
-  const startDate = parseDateTimeUTC(eventData.date_start, eventData.time_start);
-  const endDate = parseDateTimeUTC(eventData.date_end, eventData.time_end);
+  const startDate = parseDateTime(eventData.date_start, eventData.time_start);
+  const endDate = parseDateTime(eventData.date_end, eventData.time_end);
 
   if (endDate.getTime() < startDate.getTime()) {
     throw new CustomError('Data de fim deve ser posterior a Data de início', 400);
@@ -227,7 +227,10 @@ export const getEventById = async (userToken, eventId) => {
       throw new CustomError('Evento não encontrado!', 404);
     }
 
-    if (event.status !== 'Active') {
+    if (event.status === 'Deleted') {
+      throw new CustomError('Evento excluído!', 404);
+    }
+    if (event.status === 'Closed') {
       throw new CustomError('Evento finalizado!', 401);
     }
 

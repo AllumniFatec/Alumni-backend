@@ -1199,34 +1199,34 @@ Cookie: access_token=JWT_TOKEN
 {
   "data": [
     {
-      "id": "69c53e3933760efdc4dac064",
+      "id": "69c58874b49bfd4fb7b9a99d",
       "title": "Evento Teste",
       "local": "Auditório 1",
-      "date_start": "26/03/2026, 16:30:00"
+      "date_start": "2026-03-26T22:30:00.000Z"
     },
     {
       "id": "69b7056d8affb46c728583e3",
       "title": "Palestra: Carreira em Cibersegurança",
       "local": "Online — Google Meet",
-      "date_start": "28/03/2026, 16:00:00"
+      "date_start": "2026-03-28T19:00:00.000Z"
     },
     {
       "id": "69b7056d8affb46c728583e0",
       "title": "Workshop de Inteligência Artificial na Prática",
       "local": "Fatec Sorocaba — Lab 3",
-      "date_start": "05/04/2026, 06:00:00"
+      "date_start": "2026-04-05T09:00:00.000Z"
     },
     {
       "id": "69b7056d8affb46c728583e1",
       "title": "Alumni Connect — Networking & Mentoria",
       "local": "Fatec Sorocaba — Auditório",
-      "date_start": "18/04/2026, 11:00:00"
+      "date_start": "2026-04-18T14:00:00.000Z"
     },
     {
       "id": "69b7056d8affb46c728583e2",
       "title": "Semana da Computação 2026",
       "local": "Fatec Sorocaba — Campus completo",
-      "date_start": "11/05/2026, 05:00:00"
+      "date_start": "2026-05-11T08:00:00.000Z"
     }
   ],
   "pagination": {
@@ -1270,14 +1270,14 @@ Cookie: access_token=JWT_TOKEN
 
 ```json
 {
-  "id": "69b7056d8affb46c728583e3",
-  "author_id": "69b59d073dfcbf4d5b46b90f",
-  "author_name": "nicolas",
-  "title": "Palestra: Carreira em Cibersegurança",
-  "description": "Ex-aluno da Fatec compartilha sua trajetória e as oportunidades na área de segurança da informação.",
-  "local": "Online — Google Meet",
-  "date_start": "28/03/2026, 16:00:00",
-  "date_end": "28/03/2026, 18:00:00",
+  "id": "69c58874b49bfd4fb7b9a99d",
+  "author_id": "69a864f5e704caa8ff079520",
+  "author_name": "Leonardo Barbosa da Silva",
+  "title": "Evento Teste",
+  "description": "primeiro evento criado. editei aqui",
+  "local": "Auditório 1",
+  "date_start": "2026-03-26T22:30:00.000Z",
+  "date_end": "2026-03-27T01:30:00.000Z",
   "status": "Active",
   "images": []
 }
