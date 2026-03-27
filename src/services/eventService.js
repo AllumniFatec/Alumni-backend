@@ -2,6 +2,7 @@ import { PrismaClient } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
 import { capitalizeWords } from '../utils/validations.js';
+import { parse } from 'date-fns';
 
 const prisma = new PrismaClient();
 
@@ -32,42 +33,6 @@ export const formattedEvent = (event) =>
     status: event.status ?? null,
     images: event.images ?? null,
   });
-
-const DATE_REGEX = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
-
-function parseDateTime(date, time) {
-  if (!date || typeof date !== 'string' || !DATE_REGEX.test(date)) {
-    throw new CustomError('Formato de data inválido. Use DD/MM/YYYY', 400);
-  }
-
-  if (!time || typeof time !== 'string' || !TIME_REGEX.test(time)) {
-    throw new CustomError('HFormato de hora inválido. Use HH:MM', 400);
-  }
-
-  const [, dayStr, monthStr, yearStr] = date.match(DATE_REGEX);
-  const [, hourStr, minuteStr] = time.match(TIME_REGEX);
-
-  const day = Number(dayStr);
-  const month = Number(monthStr);
-  const year = Number(yearStr);
-  const hour = Number(hourStr);
-  const minute = Number(minuteStr);
-
-  const dateUtc = new Date(year, month - 1, day, hour, minute, 0);
-
-  if (
-    dateUtc.getFullYear() !== year ||
-    dateUtc.getMonth() !== month - 1 ||
-    dateUtc.getDate() !== day ||
-    dateUtc.getHours() !== hour ||
-    dateUtc.getMinutes() !== minute
-  ) {
-    throw new CustomError('Data ou hora inválida', 400);
-  }
-
-  return dateUtc;
-}
 
 function validateEventData(eventData) {
   const requiredFields = [
@@ -102,8 +67,20 @@ function validateEventData(eventData) {
     throw new CustomError('Descrição deve ter entre 10 e 3000 caracteres', 400);
   }
 
-  const startDate = parseDateTime(eventData.date_start, eventData.time_start);
-  const endDate = parseDateTime(eventData.date_end, eventData.time_end);
+  const startDate = parse(
+    `${eventData.date_start} ${eventData.time_start}`,
+    'dd/MM/yyyy HH:mm',
+    new Date()
+  );
+  const endDate = parse(
+    `${eventData.date_end} ${eventData.time_end}`,
+    'dd/MM/yyyy HH:mm',
+    new Date()
+  );
+
+  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    throw new CustomError('Data ou hora inválidos', 400);
+  }
 
   if (endDate.getTime() < startDate.getTime()) {
     throw new CustomError('Data de fim deve ser posterior a Data de início', 400);
