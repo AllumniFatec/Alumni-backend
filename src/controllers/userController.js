@@ -21,8 +21,11 @@ export const getUserById = async (req, res) => {
   try {
     const user = req.user;
     const userId = req.params.id;
+    const pageEvent = req.query.pageEvent || 1;
+    const pageJob = req.query.pageJob || 1;
+    const pagePost = req.query.pagePost || 1;
 
-    const userData = await userService.getUserById(user, userId);
+    const userData = await userService.getUserById(user, userId, pageEvent, pageJob, pagePost);
 
     return res.status(200).json(userData);
   } catch (err) {
@@ -36,8 +39,11 @@ export const getUserById = async (req, res) => {
 export const getMyProfile = async (req, res) => {
   try {
     const user = req.user;
+    const pageEvent = req.query.pageEvent || 1;
+    const pageJob = req.query.pageJob || 1;
+    const pagePost = req.query.pagePost || 1;
 
-    const userData = await userService.getMyProfile(user);
+    const userData = await userService.getMyProfile(user, pageEvent, pageJob, pagePost);
 
     return res.status(200).json(userData);
   } catch (err) {

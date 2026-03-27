@@ -1602,7 +1602,7 @@ Retorna os dados de apenas 1 usuário pelo ID.
 ### Example
 
 ```
-GET /user/69a864f5e704caa8ff079520
+GET /user/69a864f5e704caa8ff079520?pageEvent=2&pageJob=1&pagePost=1
 ```
 
 ### Headers
@@ -1621,91 +1621,126 @@ Cookie: access_token=JWT_TOKEN
 
 ```json
 {
-  "user_id": "69a864f5e704caa8ff079520",
-  "perfil_photo": {
-    "url": "https://res.cloudinary.com/alumni-fatecso/image/upload/v1773520519/images/69a864f5e704caa8ff079520_1773520517438.jpg",
-    "public_id": "images/69a864f5e704caa8ff079520_1773520517438"
+  "user": {
+    "user_id": "69a864f5e704caa8ff079520",
+    "perfil_photo": {
+      "url": "https://res.cloudinary.com/alumni-fatecso/image/upload/v1773520519/images/69a864f5e704caa8ff079520_1773520517438.jpg",
+      "public_id": "images/69a864f5e704caa8ff079520_1773520517438"
+    },
+    "name": "Leonardo Barbosa da Silva",
+    "biography": "Estudante da FATEC e desenvolvedor C#",
+    "user_type": "Student",
+    "courses": [
+      {
+        "course_name": "Análise e Desenvolvimento de Sistemas",
+        "enrollmentYear": 2025
+      }
+    ],
+    "workplace_history": [
+      {
+        "workplace_user_id": "69b453af6739721bd34e54ff",
+        "position": "Gerente de Banco de Dados",
+        "function": "Quase todas possíveis",
+        "workplace": {
+          "company": "Google"
+        },
+        "start_date": "2026-01-29T03:00:00.000Z",
+        "end_date": "2026-02-28T03:00:00.000Z"
+      },
+      {
+        "workplace_user_id": "69b45168826012b4d65a4e23",
+        "position": "Engenheiro de Software",
+        "function": "Desenvolver novidades para o software IOS",
+        "workplace": {
+          "company": "Valid"
+        },
+        "start_date": "2022-03-01T03:00:00.000Z",
+        "end_date": "2023-12-31T03:00:00.000Z"
+      }
+    ],
+    "social_media": [
+      {
+        "id": "4cb1cfa5-0f4a-40ae-bee7-2881d4a66a96",
+        "type": "Github",
+        "url": "https://github.com/leeo-s"
+      }
+    ],
+    "skills": [
+      {
+        "skill": {
+          "name": "Node Js"
+        }
+      }
+    ],
+    "gender": "Male",
+    "email": "leo_bs97@hotmail.com.br",
+    "receive_notifications": true
   },
-  "name": "Leonardo Barbosa da Silva",
-  "biography": "Estudante da FATEC e desenvolvedor C# na Apple",
-  "user_type": "Student",
-  "courses": [
-    {
-      "course_name": "Análise e Desenvolvimento de Sistemas",
-      "enrollmentYear": 2025
-    }
-  ],
-  "workplace_history": [
-    {
-      "workplace_user_id": "69b453af6739721bd34e54ff",
-      "position": "Gerente de Banco de Dados",
-      "function": "Quase todas possíveis",
-      "workplace": {
-        "company": "Google"
-      },
-      "start_date": "2026-01-29T03:00:00.000Z",
-      "end_date": "2026-02-28T03:00:00.000Z"
-    },
-    {
-      "workplace_user_id": "69b45168826012b4d65a4e23",
-      "position": "Desenvolvedor Full-Stack JavaScript",
-      "function": "Quase todas possíveis",
-      "workplace": {
-        "company": "Google"
-      },
-      "start_date": "2026-01-01T00:00:00.000Z",
-      "end_date": null
-    },
-    {
-      "workplace_user_id": "69bb0097c7b407a5f1bad4e8",
-      "position": "Engenheiro de Software",
-      "function": "Desenvolver novidades para o software IOS",
-      "workplace": {
-        "company": "Apple"
-      },
-      "start_date": "2022-03-01T03:00:00.000Z",
-      "end_date": "2022-12-31T03:00:00.000Z"
-    }
-  ],
-  "social_media": [],
-  "skills": [],
-  "events": [
-    {
-      "title": "Workshop de Inteligência Artificial na Prática",
-      "event_id": "69b7056d8affb46c728583e0",
-      "status": "Active"
-    },
-    {
-      "title": "Visita Técnica — Google São Paulo",
-      "event_id": "69b7056d8affb46c728583e4",
-      "status": "Active"
-    }
-  ],
   "jobs": [
     {
-      "job_id": "69bbfc52b2d03171e1c439ef",
+      "id": "69bbfc52b2d03171e1c439ef",
       "title": "BRBRBRBRBRBR",
-      "status": "Active"
+      "author_id": "69a864f5e704caa8ff079520",
+      "workplace": "Fatec Sorocaba",
+      "city": "Pirituba",
+      "state": "SP",
+      "employment_type": "CLT",
+      "work_model": "Remote",
+      "status": "Active",
+      "create_date": "2026-03-19T13:38:26.830Z"
     },
     {
-      "job_id": "69bb27ce4cc35d687dffae2d",
-      "title": "BRBRBRBRBRBR",
-      "status": "Deleted"
-    },
-    {
-      "job_id": "69bb260844dbded927373944",
+      "id": "69bb260844dbded927373944",
       "title": "blablalbalba",
-      "status": "Active"
+      "author_id": "69a864f5e704caa8ff079520",
+      "workplace": "Apple",
+      "city": "Xique Xique",
+      "state": "BA",
+      "employment_type": "CLT",
+      "work_model": "Remote",
+      "status": "Active",
+      "create_date": "2026-03-18T22:24:08.344Z"
     },
     {
-      "job_id": "69b09f3aa6fd5dbeab23474b",
+      "id": "69b09f3aa6fd5dbeab23474b",
       "title": "Desenvolvedor FullStack JavaScript",
+      "author_id": "69a864f5e704caa8ff079520",
+      "workplace": "Google",
+      "city": "Sorocaba",
+      "state": "SP",
+      "employment_type": "CLT",
+      "work_model": "OnSite",
+      "status": "Active",
+      "create_date": "2026-03-10T22:46:18.168Z"
+    }
+  ],
+  "events": [
+    {
+      "id": "69c6740f8aa67110322448ea",
+      "title": "Evento Teste",
+      "description": "primeiro evento criado",
+      "local": "Auditório 1",
+      "date_start": "2026-02-28T22:30:00.000Z",
+      "date_end": "2026-03-01T21:30:00.000Z",
       "status": "Active"
     },
     {
-      "job_id": "69b03e5eabddec4a70674167",
-      "title": "Desenvolvedor Full Stack TypeScript",
-      "status": "Deleted"
+      "id": "69b7056d8affb46c728583e0",
+      "title": "Workshop de Inteligência Artificial na Prática",
+      "description": "Workshop hands-on explorando as principais ferramentas de IA generativa aplicadas ao mercado de trabalho. Traga seu notebook!",
+      "local": "Fatec Sorocaba — Lab 3",
+      "date_start": "2026-04-05T09:00:00.000Z",
+      "date_end": "2026-04-05T13:00:00.000Z",
+      "status": "Active"
+    },
+    {
+      "id": "69b7056d8affb46c728583e4",
+      "title": "Visita Técnica — Google São Paulo",
+      "description": "Visita guiada ao escritório do Google Brasil com apresentação das equipes de engenharia e produto. Vagas limitadas.",
+      "local": "Google Brasil — São Paulo, SP",
+      "date_start": "2026-04-25T10:00:00.000Z",
+      "date_end": "2026-04-25T16:00:00.000Z",
+      "status": "Closed"
     }
   ],
   "posts": [
@@ -1714,20 +1749,96 @@ Cookie: access_token=JWT_TOKEN
       "content": "Agora eu editei so de sacanagem",
       "create_date": "2026-03-18T19:51:23.486Z",
       "images": [],
-      "comments_count": 0,
-      "comments": [],
-      "likes_count": 0,
-      "likes": []
-    },
-    {
-      "post_id": "69aa02beef85f8d0cb38ca66",
-      "content": "Tentei editar",
-      "create_date": "2026-03-05T22:25:02.904Z",
-      "images": [],
-      "comments_count": 0,
-      "comments": [],
-      "likes_count": 0,
-      "likes": []
+      "comments_count": 4,
+      "comments": [
+        {
+          "content": "ddddddd",
+          "comment_id": "69c062472c8cfe901f452ef9",
+          "create_date": "2026-03-22T21:42:31.917Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        },
+        {
+          "content": "invariantes",
+          "comment_id": "69c050052c8cfe901f452ef8",
+          "create_date": "2026-03-22T20:24:37.192Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        },
+        {
+          "content": "safadao",
+          "comment_id": "69c04f902c8cfe901f452ef7",
+          "create_date": "2026-03-22T20:22:40.998Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        },
+        {
+          "content": "o leo é muito sacana",
+          "comment_id": "69c04f502c8cfe901f452ef3",
+          "create_date": "2026-03-22T20:21:36.475Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        }
+      ],
+      "likes_count": 1,
+      "likes": [
+        {
+          "like_id": "69c04b362c8cfe901f452eed",
+          "create_date": "2026-03-22T20:04:06.710Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        }
+      ]
     },
     {
       "post_id": "69a9d4cfb755a17cd7967c72",
@@ -1795,7 +1906,30 @@ Cookie: access_token=JWT_TOKEN
       "likes": []
     }
   ],
-  "gender": "Male"
+  "paginationEvents": {
+    "page": 1,
+    "limit": 3,
+    "totalItems": 3,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  },
+  "paginationJobs": {
+    "page": 1,
+    "limit": 3,
+    "totalItems": 3,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  },
+  "paginationPosts": {
+    "page": 1,
+    "limit": 10,
+    "totalItems": 4,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  }
 }
 ```
 
@@ -1807,6 +1941,12 @@ Cookie: access_token=JWT_TOKEN
 
 Retorna o perfil do usuário logado
 
+### Example
+
+```
+GET /myProfile?pageEvent=2&pageJob=1&pagePost=1
+```
+
 ### Headers
 
 ```
@@ -1817,93 +1957,126 @@ Cookie: access_token=JWT_TOKEN
 
 ```json
 {
-  "user_id": "69a864f5e704caa8ff079520",
-  "perfil_photo": {
-    "url": "https://res.cloudinary.com/alumni-fatecso/image/upload/v1773520519/images/69a864f5e704caa8ff079520_1773520517438.jpg",
-    "public_id": "images/69a864f5e704caa8ff079520_1773520517438"
-  },
-  "name": "Leonardo Barbosa da Silva",
-  "biography": "Estudante da FATEC e desenvolvedor C# na Apple",
-  "user_type": "Student",
-  "courses": [
-    {
-      "course_name": "Análise e Desenvolvimento de Sistemas",
-      "enrollmentYear": 2025
-    }
-  ],
-  "workplace_history": [
-    {
-      "workplace_user_id": "69b453af6739721bd34e54ff",
-      "position": "Gerente de Banco de Dados",
-      "function": "Quase todas possíveis",
-      "workplace": {
-        "company": "Google"
+  "user": {
+    "user_id": "69a864f5e704caa8ff079520",
+    "perfil_photo": {
+      "url": "https://res.cloudinary.com/alumni-fatecso/image/upload/v1773520519/images/69a864f5e704caa8ff079520_1773520517438.jpg",
+      "public_id": "images/69a864f5e704caa8ff079520_1773520517438"
+    },
+    "name": "Leonardo Barbosa da Silva",
+    "biography": "Estudante da FATEC e desenvolvedor C#",
+    "user_type": "Student",
+    "courses": [
+      {
+        "course_name": "Análise e Desenvolvimento de Sistemas",
+        "enrollmentYear": 2025
+      }
+    ],
+    "workplace_history": [
+      {
+        "workplace_user_id": "69b453af6739721bd34e54ff",
+        "position": "Gerente de Banco de Dados",
+        "function": "Quase todas possíveis",
+        "workplace": {
+          "company": "Google"
+        },
+        "start_date": "2026-01-29T03:00:00.000Z",
+        "end_date": "2026-02-28T03:00:00.000Z"
       },
-      "start_date": "2026-01-29T03:00:00.000Z",
-      "end_date": "2026-02-28T03:00:00.000Z"
+      {
+        "workplace_user_id": "69b45168826012b4d65a4e23",
+        "position": "Engenheiro de Software",
+        "function": "Desenvolver novidades para o software IOS",
+        "workplace": {
+          "company": "Valid"
+        },
+        "start_date": "2022-03-01T03:00:00.000Z",
+        "end_date": "2023-12-31T03:00:00.000Z"
+      }
+    ],
+    "social_media": [
+      {
+        "id": "4cb1cfa5-0f4a-40ae-bee7-2881d4a66a96",
+        "type": "Github",
+        "url": "https://github.com/leeo-s"
+      }
+    ],
+    "skills": [
+      {
+        "skill": {
+          "name": "Node Js"
+        }
+      }
+    ],
+    "gender": "Male",
+    "email": "leo_bs97@hotmail.com.br",
+    "receive_notifications": true
+  },
+  "jobs": [
+    {
+      "id": "69bbfc52b2d03171e1c439ef",
+      "title": "BRBRBRBRBRBR",
+      "author_id": "69a864f5e704caa8ff079520",
+      "workplace": "Fatec Sorocaba",
+      "city": "Pirituba",
+      "state": "SP",
+      "employment_type": "CLT",
+      "work_model": "Remote",
+      "status": "Active",
+      "create_date": "2026-03-19T13:38:26.830Z"
     },
     {
-      "workplace_user_id": "69b45168826012b4d65a4e23",
-      "position": "Engenheiro de Software",
-      "function": "Desenvolver novidades para o software IOS",
-      "workplace": {
-        "company": "Valid"
-      },
-      "start_date": "2022-03-01T03:00:00.000Z",
-      "end_date": "2023-12-31T03:00:00.000Z"
-    }
-  ],
-  "social_media": [
+      "id": "69bb260844dbded927373944",
+      "title": "blablalbalba",
+      "author_id": "69a864f5e704caa8ff079520",
+      "workplace": "Apple",
+      "city": "Xique Xique",
+      "state": "BA",
+      "employment_type": "CLT",
+      "work_model": "Remote",
+      "status": "Active",
+      "create_date": "2026-03-18T22:24:08.344Z"
+    },
     {
-      "id": "f138dd72-d838-4fbe-b897-bdb8d058f890",
-      "type": "Github",
-      "url": "https://github.com/NicolasAFerro"
-    }
-  ],
-  "skills": [
-    {
-      "skill": {
-        "name": "Node Js"
-      }
+      "id": "69b09f3aa6fd5dbeab23474b",
+      "title": "Desenvolvedor FullStack JavaScript",
+      "author_id": "69a864f5e704caa8ff079520",
+      "workplace": "Google",
+      "city": "Sorocaba",
+      "state": "SP",
+      "employment_type": "CLT",
+      "work_model": "OnSite",
+      "status": "Active",
+      "create_date": "2026-03-10T22:46:18.168Z"
     }
   ],
   "events": [
     {
+      "id": "69c6740f8aa67110322448ea",
+      "title": "Evento Teste",
+      "description": "primeiro evento criado",
+      "local": "Auditório 1",
+      "date_start": "2026-02-28T22:30:00.000Z",
+      "date_end": "2026-03-01T21:30:00.000Z",
+      "status": "Active"
+    },
+    {
+      "id": "69b7056d8affb46c728583e0",
       "title": "Workshop de Inteligência Artificial na Prática",
-      "event_id": "69b7056d8affb46c728583e0",
+      "description": "Workshop hands-on explorando as principais ferramentas de IA generativa aplicadas ao mercado de trabalho. Traga seu notebook!",
+      "local": "Fatec Sorocaba — Lab 3",
+      "date_start": "2026-04-05T09:00:00.000Z",
+      "date_end": "2026-04-05T13:00:00.000Z",
       "status": "Active"
     },
     {
+      "id": "69b7056d8affb46c728583e4",
       "title": "Visita Técnica — Google São Paulo",
-      "event_id": "69b7056d8affb46c728583e4",
-      "status": "Active"
-    }
-  ],
-  "jobs": [
-    {
-      "job_id": "69bbfc52b2d03171e1c439ef",
-      "title": "BRBRBRBRBRBR",
-      "status": "Active"
-    },
-    {
-      "job_id": "69bb27ce4cc35d687dffae2d",
-      "title": "BRBRBRBRBRBR",
-      "status": "Deleted"
-    },
-    {
-      "job_id": "69bb260844dbded927373944",
-      "title": "blablalbalba",
-      "status": "Active"
-    },
-    {
-      "job_id": "69b09f3aa6fd5dbeab23474b",
-      "title": "Desenvolvedor FullStack JavaScript",
-      "status": "Active"
-    },
-    {
-      "job_id": "69b03e5eabddec4a70674167",
-      "title": "Desenvolvedor Full Stack TypeScript",
-      "status": "Deleted"
+      "description": "Visita guiada ao escritório do Google Brasil com apresentação das equipes de engenharia e produto. Vagas limitadas.",
+      "local": "Google Brasil — São Paulo, SP",
+      "date_start": "2026-04-25T10:00:00.000Z",
+      "date_end": "2026-04-25T16:00:00.000Z",
+      "status": "Closed"
     }
   ],
   "posts": [
@@ -1912,20 +2085,96 @@ Cookie: access_token=JWT_TOKEN
       "content": "Agora eu editei so de sacanagem",
       "create_date": "2026-03-18T19:51:23.486Z",
       "images": [],
-      "comments_count": 0,
-      "comments": [],
-      "likes_count": 0,
-      "likes": []
-    },
-    {
-      "post_id": "69aa02beef85f8d0cb38ca66",
-      "content": "Tentei editar",
-      "create_date": "2026-03-05T22:25:02.904Z",
-      "images": [],
-      "comments_count": 0,
-      "comments": [],
-      "likes_count": 0,
-      "likes": []
+      "comments_count": 4,
+      "comments": [
+        {
+          "content": "ddddddd",
+          "comment_id": "69c062472c8cfe901f452ef9",
+          "create_date": "2026-03-22T21:42:31.917Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        },
+        {
+          "content": "invariantes",
+          "comment_id": "69c050052c8cfe901f452ef8",
+          "create_date": "2026-03-22T20:24:37.192Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        },
+        {
+          "content": "safadao",
+          "comment_id": "69c04f902c8cfe901f452ef7",
+          "create_date": "2026-03-22T20:22:40.998Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        },
+        {
+          "content": "o leo é muito sacana",
+          "comment_id": "69c04f502c8cfe901f452ef3",
+          "create_date": "2026-03-22T20:21:36.475Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        }
+      ],
+      "likes_count": 1,
+      "likes": [
+        {
+          "like_id": "69c04b362c8cfe901f452eed",
+          "create_date": "2026-03-22T20:04:06.710Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        }
+      ]
     },
     {
       "post_id": "69a9d4cfb755a17cd7967c72",
@@ -1993,9 +2242,30 @@ Cookie: access_token=JWT_TOKEN
       "likes": []
     }
   ],
-  "gender": "Male",
-  "email": "leo@email.com",
-  "receive_notifications": true
+  "paginationEvents": {
+    "page": 1,
+    "limit": 3,
+    "totalItems": 3,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  },
+  "paginationJobs": {
+    "page": 1,
+    "limit": 3,
+    "totalItems": 3,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  },
+  "paginationPosts": {
+    "page": 1,
+    "limit": 10,
+    "totalItems": 4,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  }
 }
 ```
 
