@@ -26,6 +26,266 @@ const actions = {
   searchUser: 'pesquisar usuários',
 };
 
+const PROFILE_PAGE_EVENTS_LIMIT = 3;
+const PROFILE_PAGE_JOBS_LIMIT = 3;
+const PROFILE_PAGE_POSTS_LIMIT = 10;
+
+const _getUserProfileData = async (targetUserId, pageEvent = 1, pageJob = 1, pagePost = 1) => {
+  const limitEvents = PROFILE_PAGE_EVENTS_LIMIT;
+  const limitJobs = PROFILE_PAGE_JOBS_LIMIT;
+  const limitPosts = PROFILE_PAGE_POSTS_LIMIT;
+
+  const pageEventNumber = Math.max(1, Number(pageEvent) || 1);
+  const pageJobNumber = Math.max(1, Number(pageJob) || 1);
+  const pagePostNumber = Math.max(1, Number(pagePost) || 1);
+
+  const skipEvents = (pageEventNumber - 1) * limitEvents;
+  const skipJobs = (pageJobNumber - 1) * limitJobs;
+  const skipPosts = (pagePostNumber - 1) * limitPosts;
+
+  const userData = await prisma.user.findUnique({
+    where: {
+      user_id: targetUserId,
+    },
+    select: {
+      user_id: true,
+      perfil_photo: true,
+      name: true,
+      biography: true,
+      user_type: true,
+      courses: {
+        select: {
+          course_name: true,
+          enrollmentYear: true,
+        },
+      },
+      workplace_history: {
+        orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
+        select: {
+          workplace_user_id: true,
+          position: true,
+          function: true,
+          workplace: {
+            select: {
+              company: true,
+            },
+          },
+          start_date: true,
+          end_date: true,
+        },
+      },
+      social_media: {
+        select: {
+          id: true,
+          type: true,
+          url: true,
+        },
+      },
+      skills: {
+        select: {
+          skill: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+      gender: true,
+      email: true,
+      receive_notifications: true,
+    },
+  });
+
+  if (!userData) {
+    throw new CustomError('Usuário não econtrado!', 404);
+  }
+
+  const [eventsUserData, jobsUserData, postsUserData, totalEvents, totalJobs, totalPosts] =
+    await Promise.all([
+      prisma.event.findMany({
+        take: limitEvents,
+        skip: skipEvents,
+        where: {
+          author_id: targetUserId,
+          status: { not: 'Deleted' },
+        },
+        orderBy: {
+          date_start: 'asc',
+        },
+        select: {
+          title: true,
+          event_id: true,
+          status: true,
+          date_start: true,
+          date_end: true,
+          local: true,
+          description: true,
+        },
+      }),
+
+      prisma.job.findMany({
+        take: limitJobs,
+        skip: skipJobs,
+        where: {
+          author_id: targetUserId,
+          status: { not: 'Deleted' },
+        },
+        orderBy: {
+          create_date: 'desc',
+        },
+        select: {
+          job_id: true,
+          title: true,
+          author_id: true,
+          workplace: {
+            select: {
+              company: true,
+            },
+          },
+          location: {
+            select: {
+              city: true,
+              state: true,
+            },
+          },
+          employment_type: true,
+          work_model: true,
+          status: true,
+          create_date: true,
+        },
+      }),
+
+      prisma.post.findMany({
+        take: limitPosts,
+        skip: skipPosts,
+        where: {
+          author_id: targetUserId,
+          status: { not: 'Deleted' },
+        },
+        orderBy: {
+          create_date: 'desc',
+        },
+        select: {
+          post_id: true,
+          content: true,
+          create_date: true,
+          images: true,
+          comments_count: true,
+          comments: {
+            where: {
+              status: 'Active',
+              author: {
+                user_status: 'Active',
+              },
+            },
+            select: {
+              content: true,
+              comment_id: true,
+              create_date: true,
+              author: {
+                select: {
+                  user_id: true,
+                  name: true,
+                  perfil_photo: true,
+                  user_status: true,
+                  courses: {
+                    select: {
+                      abbreviation: true,
+                      enrollmentYear: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          likes_count: true,
+          likes: {
+            where: {
+              status: 'Active',
+              author: {
+                user_status: 'Active',
+              },
+            },
+            select: {
+              like_id: true,
+              create_date: true,
+              author: {
+                select: {
+                  user_id: true,
+                  name: true,
+                  perfil_photo: true,
+                  user_status: true,
+                  courses: {
+                    select: {
+                      abbreviation: true,
+                      enrollmentYear: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+
+      prisma.event.count({
+        where: {
+          author_id: targetUserId,
+          status: { not: 'Deleted' },
+        },
+      }),
+
+      prisma.job.count({
+        where: {
+          author_id: targetUserId,
+          status: { not: 'Deleted' },
+        },
+      }),
+
+      prisma.post.count({
+        where: {
+          author_id: targetUserId,
+          status: { not: 'Deleted' },
+        },
+      }),
+    ]);
+
+  const totalPagesEvents = Math.ceil(totalEvents / limitEvents);
+  const totalPagesJobs = Math.ceil(totalJobs / limitJobs);
+  const totalPagesPosts = Math.ceil(totalPosts / limitPosts);
+
+  return {
+    user: userData,
+    jobs: jobsUserData.map(formatJobListItem),
+    events: eventsUserData.map((event) => formattedEvent(event)),
+    posts: postsUserData,
+    paginationEvents: {
+      page: pageEventNumber,
+      limit: limitEvents,
+      totalItems: totalEvents,
+      totalPages: totalPagesEvents,
+      hasNextPage: pageEventNumber < totalPagesEvents,
+      hasPreviousPage: pageEventNumber > 1,
+    },
+    paginationJobs: {
+      page: pageJobNumber,
+      limit: limitJobs,
+      totalItems: totalJobs,
+      totalPages: totalPagesJobs,
+      hasNextPage: pageJobNumber < totalPagesJobs,
+      hasPreviousPage: pageJobNumber > 1,
+    },
+    paginationPosts: {
+      page: pagePostNumber,
+      limit: limitPosts,
+      totalItems: totalPosts,
+      totalPages: totalPagesPosts,
+      hasNextPage: pagePostNumber < totalPagesPosts,
+      hasPreviousPage: pagePostNumber > 1,
+    },
+  };
+};
+
 const STOPWORDS = new Set(['e', 'de', 'da', 'do', 'das', 'dos', 'a', 'o', 'em', 'para', 'com']);
 
 async function findOrCreateSkill(skillName, slugName) {
@@ -263,266 +523,7 @@ export const getUserById = async (userToken, userId, pageEvent = 1, pageJob = 1,
   const user_id = userToken.id;
 
   return authenticateUser(user_id, actions.getUsers, async (user) => {
-    const limitEvents = 3;
-    const limitJobs = 3;
-    const limitPosts = 10;
-
-    const pageEventNumber = Math.max(1, Number(pageEvent) || 1);
-    const pageJobNumber = Math.max(1, Number(pageJob) || 1);
-    const pagePostNumber = Math.max(1, Number(pagePost) || 1);
-
-    const skipEvents = (pageEventNumber - 1) * limitEvents;
-    const skipJobs = (pageJobNumber - 1) * limitJobs;
-    const skipPosts = (pagePostNumber - 1) * limitPosts;
-
-    const [
-      userData,
-      eventsUserData,
-      jobsUserData,
-      postsUserData,
-      totalEvents,
-      totalJobs,
-      totalPosts,
-    ] = await Promise.all([
-      await prisma.user.findUnique({
-        where: {
-          user_id: userId,
-        },
-        select: {
-          user_id: true,
-          perfil_photo: true,
-          name: true,
-          biography: true,
-          user_type: true,
-          courses: {
-            select: {
-              course_name: true,
-              enrollmentYear: true,
-            },
-          },
-          workplace_history: {
-            orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
-            select: {
-              workplace_user_id: true,
-              position: true,
-              function: true,
-              workplace: {
-                select: {
-                  company: true,
-                },
-              },
-              start_date: true,
-              end_date: true,
-            },
-          },
-          social_media: {
-            select: {
-              id: true,
-              type: true,
-              url: true,
-            },
-          },
-          skills: {
-            select: {
-              skill: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
-          gender: true,
-          email: true,
-          receive_notifications: true,
-        },
-      }),
-
-      await prisma.event.findMany({
-        take: limitEvents,
-        skip: skipEvents,
-        where: {
-          author_id: userId,
-          status: { not: 'Deleted' },
-        },
-        orderBy: {
-          date_start: 'asc',
-        },
-        select: {
-          title: true,
-          event_id: true,
-          status: true,
-          date_start: true,
-          date_end: true,
-          local: true,
-          description: true,
-        },
-      }),
-
-      await prisma.job.findMany({
-        take: limitJobs,
-        skip: skipJobs,
-        where: {
-          author_id: userId,
-          status: { not: 'Deleted' },
-        },
-        orderBy: {
-          create_date: 'desc',
-        },
-        select: {
-          job_id: true,
-          title: true,
-          author_id: true,
-          workplace: {
-            select: {
-              company: true,
-            },
-          },
-          location: {
-            select: {
-              city: true,
-              state: true,
-            },
-          },
-          employment_type: true,
-          work_model: true,
-          status: true,
-          create_date: true,
-        },
-      }),
-
-      await prisma.post.findMany({
-        take: limitPosts,
-        skip: skipPosts,
-        where: {
-          author_id: userId,
-          status: { not: 'Deleted' },
-        },
-        orderBy: {
-          create_date: 'desc',
-        },
-        select: {
-          post_id: true,
-          content: true,
-          create_date: true,
-          images: true,
-          comments_count: true,
-          comments: {
-            where: {
-              status: 'Active',
-              author: {
-                user_status: 'Active',
-              },
-            },
-            select: {
-              content: true,
-              comment_id: true,
-              create_date: true,
-              author: {
-                select: {
-                  user_id: true,
-                  name: true,
-                  perfil_photo: true,
-                  user_status: true,
-                  courses: {
-                    select: {
-                      abbreviation: true,
-                      enrollmentYear: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-          likes_count: true,
-          likes: {
-            where: {
-              status: 'Active',
-              author: {
-                user_status: 'Active',
-              },
-            },
-            select: {
-              like_id: true,
-              create_date: true,
-              author: {
-                select: {
-                  user_id: true,
-                  name: true,
-                  perfil_photo: true,
-                  user_status: true,
-                  courses: {
-                    select: {
-                      abbreviation: true,
-                      enrollmentYear: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      }),
-
-      await prisma.event.count({
-        where: {
-          author_id: userId,
-          status: { not: 'Deleted' },
-        },
-      }),
-
-      await prisma.job.count({
-        where: {
-          author_id: userId,
-          status: { not: 'Deleted' },
-        },
-      }),
-
-      await prisma.post.count({
-        where: {
-          author_id: userId,
-          status: { not: 'Deleted' },
-        },
-      }),
-    ]);
-
-    const totalPagesEvents = Math.ceil(totalEvents / limitEvents);
-    const totalPagesJobs = Math.ceil(totalJobs / limitJobs);
-    const totalPagesPosts = Math.ceil(totalPosts / limitPosts);
-
-    if (!userData) {
-      throw new CustomError('Usuário não econtrado!', 404);
-    }
-
-    return {
-      user: userData,
-      jobs: jobsUserData.map(formatJobListItem),
-      events: eventsUserData.map((event) => formattedEvent(event)),
-      posts: postsUserData,
-      paginationEvents: {
-        page: pageEventNumber,
-        limit: limitEvents,
-        totalItems: totalEvents,
-        totalPages: totalPagesEvents,
-        hasNextPage: pageEventNumber < totalPagesEvents,
-        hasPreviousPage: pageEventNumber > 1,
-      },
-      paginationJobs: {
-        page: pageJobNumber,
-        limit: limitJobs,
-        totalItems: totalJobs,
-        totalPages: totalPagesJobs,
-        hasNextPage: pageJobNumber < totalPagesJobs,
-        hasPreviousPage: pageJobNumber > 1,
-      },
-      paginationPosts: {
-        page: pagePostNumber,
-        limit: limitPosts,
-        totalItems: totalPosts,
-        totalPages: totalPagesPosts,
-        hasNextPage: pagePostNumber < totalPagesPosts,
-        hasPreviousPage: pagePostNumber > 1,
-      },
-    };
+    return _getUserProfileData(userId, pageEvent, pageJob, pagePost);
   });
 };
 
@@ -530,266 +531,7 @@ export const getMyProfile = async (userToken, pageEvent = 1, pageJob = 1, pagePo
   const user_id = userToken.id;
 
   return authenticateUser(user_id, actions.getProfile, async (user) => {
-    const limitEvents = 3;
-    const limitJobs = 3;
-    const limitPosts = 10;
-
-    const pageEventNumber = Math.max(1, Number(pageEvent) || 1);
-    const pageJobNumber = Math.max(1, Number(pageJob) || 1);
-    const pagePostNumber = Math.max(1, Number(pagePost) || 1);
-
-    const skipEvents = (pageEventNumber - 1) * limitEvents;
-    const skipJobs = (pageJobNumber - 1) * limitJobs;
-    const skipPosts = (pagePostNumber - 1) * limitPosts;
-
-    const [
-      userData,
-      eventsUserData,
-      jobsUserData,
-      postsUserData,
-      totalEvents,
-      totalJobs,
-      totalPosts,
-    ] = await Promise.all([
-      await prisma.user.findUnique({
-        where: {
-          user_id: user.user_id,
-        },
-        select: {
-          user_id: true,
-          perfil_photo: true,
-          name: true,
-          biography: true,
-          user_type: true,
-          courses: {
-            select: {
-              course_name: true,
-              enrollmentYear: true,
-            },
-          },
-          workplace_history: {
-            orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
-            select: {
-              workplace_user_id: true,
-              position: true,
-              function: true,
-              workplace: {
-                select: {
-                  company: true,
-                },
-              },
-              start_date: true,
-              end_date: true,
-            },
-          },
-          social_media: {
-            select: {
-              id: true,
-              type: true,
-              url: true,
-            },
-          },
-          skills: {
-            select: {
-              skill: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
-          gender: true,
-          email: true,
-          receive_notifications: true,
-        },
-      }),
-
-      await prisma.event.findMany({
-        take: limitEvents,
-        skip: skipEvents,
-        where: {
-          author_id: user.user_id,
-          status: { not: 'Deleted' },
-        },
-        orderBy: {
-          date_start: 'asc',
-        },
-        select: {
-          title: true,
-          event_id: true,
-          status: true,
-          date_start: true,
-          date_end: true,
-          local: true,
-          description: true,
-        },
-      }),
-
-      await prisma.job.findMany({
-        take: limitJobs,
-        skip: skipJobs,
-        where: {
-          author_id: user.user_id,
-          status: { not: 'Deleted' },
-        },
-        orderBy: {
-          create_date: 'desc',
-        },
-        select: {
-          job_id: true,
-          title: true,
-          author_id: true,
-          workplace: {
-            select: {
-              company: true,
-            },
-          },
-          location: {
-            select: {
-              city: true,
-              state: true,
-            },
-          },
-          employment_type: true,
-          work_model: true,
-          status: true,
-          create_date: true,
-        },
-      }),
-
-      await prisma.post.findMany({
-        take: limitPosts,
-        skip: skipPosts,
-        where: {
-          author_id: user.user_id,
-          status: { not: 'Deleted' },
-        },
-        orderBy: {
-          create_date: 'desc',
-        },
-        select: {
-          post_id: true,
-          content: true,
-          create_date: true,
-          images: true,
-          comments_count: true,
-          comments: {
-            where: {
-              status: 'Active',
-              author: {
-                user_status: 'Active',
-              },
-            },
-            select: {
-              content: true,
-              comment_id: true,
-              create_date: true,
-              author: {
-                select: {
-                  user_id: true,
-                  name: true,
-                  perfil_photo: true,
-                  user_status: true,
-                  courses: {
-                    select: {
-                      abbreviation: true,
-                      enrollmentYear: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-          likes_count: true,
-          likes: {
-            where: {
-              status: 'Active',
-              author: {
-                user_status: 'Active',
-              },
-            },
-            select: {
-              like_id: true,
-              create_date: true,
-              author: {
-                select: {
-                  user_id: true,
-                  name: true,
-                  perfil_photo: true,
-                  user_status: true,
-                  courses: {
-                    select: {
-                      abbreviation: true,
-                      enrollmentYear: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      }),
-
-      await prisma.event.count({
-        where: {
-          author_id: user.user_id,
-          status: { not: 'Deleted' },
-        },
-      }),
-
-      await prisma.job.count({
-        where: {
-          author_id: user.user_id,
-          status: { not: 'Deleted' },
-        },
-      }),
-
-      await prisma.post.count({
-        where: {
-          author_id: user.user_id,
-          status: { not: 'Deleted' },
-        },
-      }),
-    ]);
-
-    const totalPagesEvents = Math.ceil(totalEvents / limitEvents);
-    const totalPagesJobs = Math.ceil(totalJobs / limitJobs);
-    const totalPagesPosts = Math.ceil(totalPosts / limitPosts);
-
-    if (!userData) {
-      throw new CustomError('Usuário não econtrado!', 404);
-    }
-
-    return {
-      user: userData,
-      jobs: jobsUserData.map(formatJobListItem),
-      events: eventsUserData.map((event) => formattedEvent(event)),
-      posts: postsUserData,
-      paginationEvents: {
-        page: pageEventNumber,
-        limit: limitEvents,
-        totalItems: totalEvents,
-        totalPages: totalPagesEvents,
-        hasNextPage: pageEventNumber < totalPagesEvents,
-        hasPreviousPage: pageEventNumber > 1,
-      },
-      paginationJobs: {
-        page: pageJobNumber,
-        limit: limitJobs,
-        totalItems: totalJobs,
-        totalPages: totalPagesJobs,
-        hasNextPage: pageJobNumber < totalPagesJobs,
-        hasPreviousPage: pageJobNumber > 1,
-      },
-      paginationPosts: {
-        page: pagePostNumber,
-        limit: limitPosts,
-        totalItems: totalPosts,
-        totalPages: totalPagesPosts,
-        hasNextPage: pagePostNumber < totalPagesPosts,
-        hasPreviousPage: pagePostNumber > 1,
-      },
-    };
+    return _getUserProfileData(user.user_id, pageEvent, pageJob, pagePost);
   });
 };
 

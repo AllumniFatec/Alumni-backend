@@ -153,7 +153,7 @@ export const getJobs = async (userToken, page = 1) => {
 
   return authenticateUser(user_id, actions.getJobs, async (user) => {
     const [jobs, total] = await Promise.all([
-      await prisma.job.findMany({
+      prisma.job.findMany({
         take: limit,
         skip: skip,
         where: {
@@ -191,7 +191,7 @@ export const getJobs = async (userToken, page = 1) => {
         },
       }),
 
-      await prisma.job.count({
+      prisma.job.count({
         where: {
           status: {
             not: 'Deleted',

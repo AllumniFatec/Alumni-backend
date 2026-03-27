@@ -1,5 +1,6 @@
 import * as userService from '../services/userService.js';
 import CustomError from '../utils/CustomError.js';
+import { isValidObjectId } from '../utils/validations.js';
 
 export const getUsers = async (req, res) => {
   try {
@@ -24,6 +25,10 @@ export const getUserById = async (req, res) => {
     const pageEvent = req.query.pageEvent || 1;
     const pageJob = req.query.pageJob || 1;
     const pagePost = req.query.pagePost || 1;
+
+    if (!isValidObjectId(userId)) {
+      throw new CustomError('Id inválido', 400);
+    }
 
     const userData = await userService.getUserById(user, userId, pageEvent, pageJob, pagePost);
 
@@ -122,6 +127,10 @@ export const updateJob = async (req, res) => {
     const user = req.user;
     const data = req.body;
 
+    if (!isValidObjectId(data.jobUserId)) {
+      throw new CustomError('Id inválido', 400);
+    }
+
     const userJob = await userService.updateJob(user, data);
 
     return res.status(200).json({ message: 'Trabalho atualizado com sucesso!' });
@@ -137,6 +146,10 @@ export const deleteJob = async (req, res) => {
   try {
     const user = req.user;
     const userJobId = req.body.jobUserId;
+
+    if (!isValidObjectId(userJobId)) {
+      throw new CustomError('Id inválido', 400);
+    }
 
     const deletedJob = await userService.deleteJob(user, userJobId);
 
@@ -170,6 +183,10 @@ export const deleteSkill = async (req, res) => {
     const user = req.user;
     const skill = req.body;
 
+    if (!isValidObjectId(skill.user_skill_id)) {
+      throw new CustomError('Id inválido', 400);
+    }
+
     const deletedSkill = await userService.deleteUserSkill(user, skill);
 
     return res.status(200).json({ message: 'Habilidade excluída com sucesso!' });
@@ -202,6 +219,10 @@ export const updateSocialMedia = async (req, res) => {
     const user = req.user;
     const socialMedia = req.body;
 
+    if (!isValidObjectId(socialMedia.socialMediaId)) {
+      throw new CustomError('Id inválido', 400);
+    }
+
     const updatedSocialMedia = await userService.updateSocialMedia(user, socialMedia);
 
     return res.status(200).json({ message: 'Rede social alterada com sucesso!' });
@@ -217,6 +238,10 @@ export const deleteSocialMedia = async (req, res) => {
   try {
     const user = req.user;
     const socialMedia = req.body;
+
+    if (!isValidObjectId(socialMedia.socialMediaId)) {
+      throw new CustomError('Id inválido', 400);
+    }
 
     const deletedSocialMedia = await userService.deleteSocialMedia(user, socialMedia);
 
