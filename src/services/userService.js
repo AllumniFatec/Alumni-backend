@@ -1129,9 +1129,6 @@ export const searchUsers = async (userToken, search) => {
         where: {
           AND: [{ user_status: 'Active' }, { user_type: { not: 'Admin' } }],
         },
-        orderBy: {
-          name: 'asc',
-        },
         take: 200,
         select: {
           user_id: true,
