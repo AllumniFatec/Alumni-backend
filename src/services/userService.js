@@ -973,7 +973,13 @@ export const searchUsers = async (userToken, search) => {
   const user_id = userToken.id;
 
   return authenticateUser(user_id, actions.searchUser, async () => {
-    const normalizedSearch = normalizeText(search.replace('%', ' '));
+    const rawSearch = Array.isArray(search) ? search[0] : search;
+
+    if (!rawSearch || typeof rawSearch !== 'string') {
+      return [];
+    }
+
+    const normalizedSearch = normalizeText(rawSearch.replace('%', ' '));
     const tokens = tokenize(normalizedSearch);
 
     const users = await prisma.user.findMany({
@@ -1006,6 +1012,7 @@ export const searchUsers = async (userToken, search) => {
                   some: {
                     course_search: {
                       contains: normalizedSearch,
+                      mode: 'insensitive',
                     },
                   },
                 },
@@ -1035,6 +1042,7 @@ export const searchUsers = async (userToken, search) => {
                     some: {
                       course_search: {
                         contains: token,
+                        mode: 'insensitive',
                       },
                     },
                   },
@@ -1078,6 +1086,7 @@ export const searchUsers = async (userToken, search) => {
         user_type: true,
         workplace_history: {
           select: {
+            workplace_user_id: true,
             position: true,
             function: true,
             workplace: {
@@ -1091,6 +1100,7 @@ export const searchUsers = async (userToken, search) => {
         },
         skills: {
           select: {
+            user_skill_id: true,
             skill: {
               select: {
                 name: true,
@@ -1113,7 +1123,69 @@ export const searchUsers = async (userToken, search) => {
       .map((r) => r.user);
 
     if (rankedUsers.length === 0) {
-      return [];
+      // Fallback: quando o `contains` do Prisma não encontra por causa de normalização/acentos,
+      // ranqueamos em cima de um conjunto maior de candidatos.
+      const fallbackUsers = await prisma.user.findMany({
+        where: {
+          AND: [{ user_status: 'Active' }, { user_type: { not: 'Admin' } }],
+        },
+        take: 200,
+        select: {
+          user_id: true,
+          name: true,
+          courses: {
+            select: {
+              course_name: true,
+              enrollmentYear: true,
+              abbreviation: true,
+            },
+          },
+          social_media: {
+            select: {
+              type: true,
+              url: true,
+            },
+          },
+          gender: true,
+          perfil_photo: true,
+          user_type: true,
+          workplace_history: {
+            select: {
+              workplace_user_id: true,
+              position: true,
+              function: true,
+              workplace: {
+                select: {
+                  company: true,
+                },
+              },
+              start_date: true,
+              end_date: true,
+            },
+          },
+          skills: {
+            select: {
+              user_skill_id: true,
+              skill: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const rankedFallbackUsers = fallbackUsers
+        .map((user) => ({
+          user,
+          score: scoreUser(user, tokens, normalizedSearch),
+        }))
+        .filter((r) => r.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .map((r) => r.user);
+
+      return rankedFallbackUsers.slice(0, 30);
     }
 
     return rankedUsers;
