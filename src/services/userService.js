@@ -813,7 +813,7 @@ export const insertUserSkill = async (userToken, skillData) => {
     });
 
     if (targetUserSkill) {
-      throw new CustomError('Habilidade já inserida', 401);
+      throw new CustomError('Habilidade já inserida', 409);
     }
 
     await prisma.userSkill.create({
@@ -844,7 +844,7 @@ export const deleteUserSkill = async (userToken, skillData) => {
     });
 
     if (!skill) {
-      throw new CustomError('Habilidade não encontrada para esse usuário', 403);
+      throw new CustomError('Habilidade não encontrada para esse usuário', 404);
     }
 
     if (skill.user_id !== user.user_id) {
