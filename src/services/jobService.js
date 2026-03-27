@@ -148,48 +148,71 @@ export const getJobs = async (userToken, page = 1) => {
   const user_id = userToken.id;
 
   const limit = 20;
-  const skip = (page - 1) * limit;
+  const pageNumber = Math.max(1, Number(page) || 1);
+  const skip = (pageNumber - 1) * limit;
 
   return authenticateUser(user_id, actions.getJobs, async (user) => {
-    const jobs = await prisma.job.findMany({
-      take: limit,
-      skip: skip,
-      where: {
-        status: {
-          not: 'Deleted',
-        },
-      },
-      orderBy: {
-        create_date: 'desc',
-      },
-      select: {
-        job_id: true,
-        title: true,
-        author_id: true,
-        workplace: {
-          select: {
-            company: true,
+    const [jobs, total] = await Promise.all([
+      await prisma.job.findMany({
+        take: limit,
+        skip: skip,
+        where: {
+          status: {
+            not: 'Deleted',
           },
         },
-        author: {
-          select: {
-            user_id: true,
-          },
+        orderBy: {
+          create_date: 'desc',
         },
-        location: {
-          select: {
-            city: true,
-            state: true,
+        select: {
+          job_id: true,
+          title: true,
+          author_id: true,
+          workplace: {
+            select: {
+              company: true,
+            },
           },
+          author: {
+            select: {
+              user_id: true,
+            },
+          },
+          location: {
+            select: {
+              city: true,
+              state: true,
+            },
+          },
+          employment_type: true,
+          work_model: true,
+          status: true,
+          create_date: true,
         },
-        employment_type: true,
-        work_model: true,
-        status: true,
-        create_date: true,
-      },
-    });
+      }),
 
-    return jobs.map(formatJobListItem);
+      await prisma.job.count({
+        where: {
+          status: {
+            not: 'Deleted',
+          },
+        },
+      }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      jobs: jobs.map(formatJobListItem),
+      pagination: {
+        page: pageNumber,
+        limit: limit,
+        totalItems: total,
+        totalPages: totalPages,
+        hasNextPage: pageNumber < totalPages,
+        hasPreviousPage: pageNumber > 1,
+      },
+    };
   });
 };
 

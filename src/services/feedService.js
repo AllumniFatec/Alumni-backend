@@ -23,11 +23,13 @@ export const loadFeed = async (page = 1, userToken) => {
 
     const limit = 20;
 
-    const skip = (page - 1) * limit;
+    const pageNumber = Math.max(1, Number(page) || 1);
 
-    const [posts, users, events, jobs] = await Promise.all([
+    const skip = (pageNumber - 1) * limit;
+
+    const [posts, totalPosts, users, events, jobs] = await Promise.all([
       prisma.post.findMany({
-        skip,
+        skip: skip,
         take: limit,
         where: {
           status: 'Active',
@@ -110,6 +112,15 @@ export const loadFeed = async (page = 1, userToken) => {
                 },
               },
             },
+          },
+        },
+      }),
+
+      prisma.post.count({
+        where: {
+          status: 'Active',
+          author: {
+            user_status: 'Active',
           },
         },
       }),
@@ -223,6 +234,8 @@ export const loadFeed = async (page = 1, userToken) => {
       })),
     }));
 
+    const totalPages = Math.ceil(totalPosts / limit);
+
     const formattedEvents = events.map((event) => ({
       id: event.event_id,
       title: event.title,
@@ -244,6 +257,14 @@ export const loadFeed = async (page = 1, userToken) => {
       latestUsers: formattedUsers,
       latestEvents: formattedEvents,
       latestJobs: formattedJobs,
+      pagination: {
+        page: pageNumber,
+        limit: limit,
+        totalItems: totalPosts,
+        totalPages: totalPages,
+        hasNextPage: pageNumber < totalPages,
+        hasPreviousPage: pageNumber > 1,
+      },
     };
   });
 };

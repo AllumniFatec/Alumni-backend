@@ -954,56 +954,66 @@ Cookie: access_token=JWT_TOKEN
 ### Response (200)
 
 ```json
-[
-  {
-    "id": "69bbfc52b2d03171e1c439ef",
-    "title": "BRBRBRBRBRBR",
-    "author_id": "69a864f5e704caa8ff079520",
-    "workplace": "Fatec Sorocaba",
-    "city": "Pirituba",
-    "state": "SP",
-    "employment_type": "CLT",
-    "work_model": "Remote",
-    "status": "Active",
-    "create_date": "2026-03-19T13:38:26.830Z"
-  },
-  {
-    "id": "69bb41c937aeab5317860cc7",
-    "title": "dddd",
-    "author_id": "69b59d073dfcbf4d5b46b90f",
-    "workplace": "ddddd",
-    "city": "Sorocaba",
-    "state": "SP",
-    "employment_type": "Trainee",
-    "work_model": "OnSite",
-    "status": "Active",
-    "create_date": "2026-03-19T00:22:33.760Z"
-  },
-  {
-    "id": "69bb260844dbded927373944",
-    "title": "blablalbalba",
-    "author_id": "69a864f5e704caa8ff079520",
-    "workplace": "Apple",
-    "city": "Xique Xique",
-    "state": "BA",
-    "employment_type": "CLT",
-    "work_model": "Remote",
-    "status": "Active",
-    "create_date": "2026-03-18T22:24:08.344Z"
-  },
-  {
-    "id": "69b09f3aa6fd5dbeab23474b",
-    "title": "Desenvolvedor FullStack JavaScript",
-    "author_id": "69a864f5e704caa8ff079520",
-    "workplace": "Google",
-    "city": "Sorocaba",
-    "state": "SP",
-    "employment_type": "CLT",
-    "work_model": "OnSite",
-    "status": "Active",
-    "create_date": "2026-03-10T22:46:18.168Z"
+{
+  "jobs": [
+    {
+      "id": "69c3140a1684ceeb5944650f",
+      "title": "eweweq",
+      "author_id": "69b59d073dfcbf4d5b46b90f",
+      "workplace": "Ewewewew",
+      "city": "Sorocaba",
+      "state": "SP",
+      "employment_type": "Trainee",
+      "work_model": "OnSite",
+      "status": "Active",
+      "create_date": "2026-03-24T22:45:30.029Z"
+    },
+    {
+      "id": "69bbfc52b2d03171e1c439ef",
+      "title": "BRBRBRBRBRBR",
+      "author_id": "69a864f5e704caa8ff079520",
+      "workplace": "Fatec Sorocaba",
+      "city": "Pirituba",
+      "state": "SP",
+      "employment_type": "CLT",
+      "work_model": "Remote",
+      "status": "Active",
+      "create_date": "2026-03-19T13:38:26.830Z"
+    },
+    {
+      "id": "69bb260844dbded927373944",
+      "title": "blablalbalba",
+      "author_id": "69a864f5e704caa8ff079520",
+      "workplace": "Apple",
+      "city": "Xique Xique",
+      "state": "BA",
+      "employment_type": "CLT",
+      "work_model": "Remote",
+      "status": "Active",
+      "create_date": "2026-03-18T22:24:08.344Z"
+    },
+    {
+      "id": "69b09f3aa6fd5dbeab23474b",
+      "title": "Desenvolvedor FullStack JavaScript",
+      "author_id": "69a864f5e704caa8ff079520",
+      "workplace": "Google",
+      "city": "Sorocaba",
+      "state": "SP",
+      "employment_type": "CLT",
+      "work_model": "OnSite",
+      "status": "Active",
+      "create_date": "2026-03-10T22:46:18.168Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "totalItems": 4,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
   }
-]
+}
 ```
 
 ---
