@@ -31,9 +31,9 @@ Esta API fornece funcionalidades para:
 | ------ | ----------------------------------------------------------- |
 | POST   | [/post/like/:postId](#ep-post-post-like-postid)             |
 | GET    | [/user](#ep-get-user)                                       |
-| GET    | [/user/:userId](#ep-get-user-userid)                        |
+| GET    | [/user/:userId](#ep-get-user-userid)🔄                      |
 | GET    | [/user/search](#ep-get-user-search)                         |
-| GET    | [/myProfile](#ep-get-myprofile)                             |
+| GET    | [/myProfile](#ep-get-myprofile)🔄                           |
 | PUT    | [/myProfile](#ep-put-myprofile)                             |
 | PATCH  | [/myProfile/profilePhoto](#ep-patch-myprofile-profilephoto) |
 | DELETE | [/myProfile](#ep-delete-myprofile)                          |
@@ -73,6 +73,9 @@ Esta API fornece funcionalidades para:
 | Método | Endpoint                                                                   |
 | ------ | -------------------------------------------------------------------------- |
 | PATCH  | [/password/reset-password/:token](#ep-patch-password-reset-password-token) |
+| GET    | [/job](#ep-get-job)                                                        |
+| GET    | [/user/:userId](#ep-get-user-userid)                                       |
+| GET    | [/myProfile](#ep-get-myprofile)                                            |
 
 ---
 
