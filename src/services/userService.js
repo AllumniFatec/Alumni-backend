@@ -803,6 +803,19 @@ export const insertUserSkill = async (userToken, skillData) => {
 
     const skill_id = await findOrCreateSkill(skill, slug);
 
+    const targetUserSkill = await prisma.userSkill.findUnique({
+      where: {
+        user_id_skill_id: {
+          user_id: user.user_id,
+          skill_id: skill_id,
+        },
+      },
+    });
+
+    if (targetUserSkill) {
+      throw new CustomError('Habilidade já inserida', 401);
+    }
+
     await prisma.userSkill.create({
       data: {
         skill_id: skill_id,
@@ -829,6 +842,10 @@ export const deleteUserSkill = async (userToken, skillData) => {
         user_skill_id: true,
       },
     });
+
+    if (!skill) {
+      throw new CustomError('Habilidade não encontrada para esse usuário', 403);
+    }
 
     if (skill.user_id !== user.user_id) {
       throw new CustomError('Usuário não autorizado a excluir esta habilidade', 403);
