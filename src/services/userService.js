@@ -463,9 +463,11 @@ export const getMyProfile = async (userToken) => {
         },
         skills: {
           select: {
+            user_skill_id: true,
             skill: {
               select: {
                 name: true,
+                skill_id: true,
               },
             },
           },
@@ -804,9 +806,9 @@ export const insertUserSkill = async (userToken, skillData) => {
   });
 };
 
-export const deleteUserSkill = async (userToken, skillData) => {
+export const deleteUserSkill = async (userToken, skillData) => { 
   const user_id = userToken.id;
-  const skill_id = skillData.user_skill_id;
+  const skill_id = skillData.user_skill_id; 
 
   return authenticateUser(user_id, actions.deleteUserSkill, async (user) => {
     const skill = await prisma.userSkill.findUnique({
