@@ -21,9 +21,9 @@ router.patch(
 router.put('/my-profile', auth, userController.updateMyProfile);
 router.delete('/my-profile', auth, userController.deleteMyProfile);
 
-router.post('/my-profile/job', auth, userController.insertWorkplace);
-router.put('/my-profile/job', auth, userController.updateWorkplace);
-router.delete('/my-profile/job', auth, userController.deleteWorkplace);
+router.post('/my-profile/workplace', auth, userController.insertWorkplace);
+router.put('/my-profile/workplace', auth, userController.updateWorkplace);
+router.delete('/my-profile/workplace', auth, userController.deleteWorkplace);
 
 router.post('/my-profile/skill', auth, userController.insertSkill);
 router.delete('/my-profile/skill', auth, userController.deleteSkill);

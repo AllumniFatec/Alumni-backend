@@ -37,9 +37,9 @@ Esta API fornece funcionalidades para:
 | PUT    | [/my-profile](#ep-put-myprofile)                             |
 | PATCH  | [/my-profile/profile-photo](#ep-patch-myprofile-profilephoto) |
 | DELETE | [/my-profile](#ep-delete-myprofile)                          |
-| POST   | [/my-profile/job](#ep-post-myprofile-job)                    |
-| PUT    | [/my-profile/job](#ep-put-myprofile-job)                     |
-| DELETE | [/my-profile/job](#ep-delete-myprofile-job)                  |
+| POST   | [/my-profile/workplace](#ep-post-myprofile-workplace)                    |
+| PUT    | [/my-profile/workplace](#ep-put-myprofile-workplace)                     |
+| DELETE | [/my-profile/workplace](#ep-delete-myprofile-workplace)                  |
 | POST   | [/my-profile/skill](#ep-post-myprofile-skill)                |
 | DELETE | [/my-profile/skill](#ep-delete-myprofile-skill)              |
 | POST   | [/my-profile/social-media](#ep-post-myprofile-socialmedia)    |
@@ -163,9 +163,9 @@ Navegação rápida por **módulo** (clique para ir à seção). Endpoints marca
 | PUT    | [/my-profile](#ep-put-myprofile)                             |
 | PATCH  | [/my-profile/profile-photo](#ep-patch-myprofile-profilephoto) |
 | DELETE | [/my-profile](#ep-delete-myprofile)                          |
-| POST   | [/my-profile/job](#ep-post-myprofile-job)                    |
-| PUT    | [/my-profile/job](#ep-put-myprofile-job)                     |
-| DELETE | [/my-profile/job](#ep-delete-myprofile-job)                  |
+| POST   | [/my-profile/workplace](#ep-post-myprofile-workplace)                    |
+| PUT    | [/my-profile/workplace](#ep-put-myprofile-workplace)                     |
+| DELETE | [/my-profile/workplace](#ep-delete-myprofile-workplace)                  |
 | POST   | [/my-profile/skill](#ep-post-myprofile-skill)                |
 | DELETE | [/my-profile/skill](#ep-delete-myprofile-skill)              |
 | POST   | [/my-profile/social-media](#ep-post-myprofile-socialmedia)    |
@@ -2088,9 +2088,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-<a id="ep-post-myprofile-job"></a>
+<a id="ep-post-myprofile-workplace"></a>
 
-## POST /my-profile/job 🆕 · [⬆️ topo](#doc-top)
+## POST /my-profile/workplace 🆕 · [⬆️ topo](#doc-top)
 
 Insere um novo emprego ao histórico de trabalho do usuário logado.
 
@@ -2132,9 +2132,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-<a id="ep-put-myprofile-job"></a>
+<a id="ep-put-myprofile-workplace"></a>
 
-## PUT /my-profile/job 🆕 · [⬆️ topo](#doc-top)
+## PUT /my-profile/workplace 🆕 · [⬆️ topo](#doc-top)
 
 Edita um emprego já inserido no histórico de trabalho do usuário logado.
 
@@ -2178,9 +2178,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-<a id="ep-delete-myprofile-job"></a>
+<a id="ep-delete-myprofile-workplace"></a>
 
-## DELETE /my-profile/job 🆕 · [⬆️ topo](#doc-top)
+## DELETE /my-profile/workplace 🆕 · [⬆️ topo](#doc-top)
 
 Exclui um emprego já inserido no histórico de trabalho do usuário logado.
 
