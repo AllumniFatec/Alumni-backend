@@ -53,7 +53,7 @@ export const insertWorkplace = async (req, res) => {
     const user = req.user;
     const data = req.body;
 
-    const userJob = await userService.insertJob(user, data);
+    const userJob = await userService.insertWorkplace(user, data);
 
     return res.status(201).json({ message: 'Trabalho inserido com sucesso!' });
   } catch (err) {
