@@ -679,7 +679,7 @@ export const deleteMyProfile = async (userToken) => {
   });
 };
 
-export const insertJob = async (userToken, data) => {
+export const insertWorkplace = async (userToken, data) => {
   const user_id = userToken.id;
   const { company_name, position, functions, start_date, end_date } = data;
 
@@ -710,7 +710,7 @@ export const insertJob = async (userToken, data) => {
   });
 };
 
-export const updateJob = async (userToken, jobData) => {
+export const updateWorkplace = async (userToken, jobData) => {
   const user_id = userToken.id;
   const { jobUserId, company_name, position, functions, start_date, end_date } = jobData;
 
@@ -756,7 +756,7 @@ export const updateJob = async (userToken, jobData) => {
   });
 };
 
-export const deleteJob = async (userToken, userJobId) => {
+export const deleteWorkplace = async (userToken, userJobId) => {
   const user_id = userToken.id;
   const user_job_id = userJobId;
 
