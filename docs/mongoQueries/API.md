@@ -33,18 +33,18 @@ Esta API fornece funcionalidades para:
 | GET    | [/user](#ep-get-user)                                       |
 | GET    | [/user/:userId](#ep-get-user-userid)                        |
 | GET    | [/user/search](#ep-get-user-search)                         |
-| GET    | [/myProfile](#ep-get-myprofile)                             |
-| PUT    | [/myProfile](#ep-put-myprofile)                             |
-| PATCH  | [/myProfile/profilePhoto](#ep-patch-myprofile-profilephoto) |
-| DELETE | [/myProfile](#ep-delete-myprofile)                          |
-| POST   | [/myProfile/job](#ep-post-myprofile-job)                    |
-| PUT    | [/myProfile/job](#ep-put-myprofile-job)                     |
-| DELETE | [/myProfile/job](#ep-delete-myprofile-job)                  |
-| POST   | [/myProfile/skill](#ep-post-myprofile-skill)                |
-| DELETE | [/myProfile/skill](#ep-delete-myprofile-skill)              |
-| POST   | [/myProfile/socialMedia](#ep-post-myprofile-socialmedia)    |
-| PATCH  | [/myProfile/socialMedia](#ep-patch-myprofile-socialmedia)   |
-| DELETE | [/myProfile/socialMedia](#ep-delete-myprofile-socialmedia)  |
+| GET    | [/my-profile](#ep-get-myprofile)                             |
+| PUT    | [/my-profile](#ep-put-myprofile)                             |
+| PATCH  | [/my-profile/profile-photo](#ep-patch-myprofile-profilephoto) |
+| DELETE | [/my-profile](#ep-delete-myprofile)                          |
+| POST   | [/my-profile/workplace](#ep-post-myprofile-workplace)                    |
+| PUT    | [/my-profile/workplace](#ep-put-myprofile-workplace)                     |
+| DELETE | [/my-profile/workplace](#ep-delete-myprofile-workplace)                  |
+| POST   | [/my-profile/skill](#ep-post-myprofile-skill)                |
+| DELETE | [/my-profile/skill](#ep-delete-myprofile-skill)              |
+| POST   | [/my-profile/social-media](#ep-post-myprofile-socialmedia)    |
+| PATCH  | [/my-profile/social-media](#ep-patch-myprofile-socialmedia)   |
+| DELETE | [/my-profile/social-media](#ep-delete-myprofile-socialmedia)  |
 | GET    | [/admin/dashboard](#ep-get-admin-dashboard)                 |
 | GET    | [/admin/usersInAnalysis](#ep-get-admin-usersInAnalysis)     |
 | POST   | [/admin/approve/:userId](#ep-post-admin-approve-userId)     |
@@ -159,18 +159,18 @@ Navegação rápida por **módulo** (clique para ir à seção). Endpoints marca
 | GET    | [/user](#ep-get-user)                                       |
 | GET    | [/user/:userId](#ep-get-user-userid)                        |
 | GET    | [/user/search](#ep-get-user-search)                         |
-| GET    | [/myProfile](#ep-get-myprofile)                             |
-| PUT    | [/myProfile](#ep-put-myprofile)                             |
-| PATCH  | [/myProfile/profilePhoto](#ep-patch-myprofile-profilephoto) |
-| DELETE | [/myProfile](#ep-delete-myprofile)                          |
-| POST   | [/myProfile/job](#ep-post-myprofile-job)                    |
-| PUT    | [/myProfile/job](#ep-put-myprofile-job)                     |
-| DELETE | [/myProfile/job](#ep-delete-myprofile-job)                  |
-| POST   | [/myProfile/skill](#ep-post-myprofile-skill)                |
-| DELETE | [/myProfile/skill](#ep-delete-myprofile-skill)              |
-| POST   | [/myProfile/socialMedia](#ep-post-myprofile-socialmedia)    |
-| PATCH  | [/myProfile/socialMedia](#ep-patch-myprofile-socialmedia)   |
-| DELETE | [/myProfile/socialMedia](#ep-delete-myprofile-socialmedia)  |
+| GET    | [/my-profile](#ep-get-myprofile)                             |
+| PUT    | [/my-profile](#ep-put-myprofile)                             |
+| PATCH  | [/my-profile/profile-photo](#ep-patch-myprofile-profilephoto) |
+| DELETE | [/my-profile](#ep-delete-myprofile)                          |
+| POST   | [/my-profile/workplace](#ep-post-myprofile-workplace)                    |
+| PUT    | [/my-profile/workplace](#ep-put-myprofile-workplace)                     |
+| DELETE | [/my-profile/workplace](#ep-delete-myprofile-workplace)                  |
+| POST   | [/my-profile/skill](#ep-post-myprofile-skill)                |
+| DELETE | [/my-profile/skill](#ep-delete-myprofile-skill)              |
+| POST   | [/my-profile/social-media](#ep-post-myprofile-socialmedia)    |
+| PATCH  | [/my-profile/social-media](#ep-patch-myprofile-socialmedia)   |
+| DELETE | [/my-profile/social-media](#ep-delete-myprofile-socialmedia)  |
 
 ### Password
 
@@ -1793,7 +1793,7 @@ Cookie: access_token=JWT_TOKEN
 
 <a id="ep-get-myprofile"></a>
 
-## GET /myProfile 🆕 · [⬆️ topo](#doc-top)
+## GET /my-profile 🆕 · [⬆️ topo](#doc-top)
 
 Retorna o perfil do usuário logado
 
@@ -1993,7 +1993,7 @@ Cookie: access_token=JWT_TOKEN
 
 <a id="ep-put-myprofile"></a>
 
-## PUT /myProfile 🆕 · [⬆️ topo](#doc-top)
+## PUT /my-profile 🆕 · [⬆️ topo](#doc-top)
 
 Edita uma parte dos dados de perfil do usuário
 
@@ -2035,7 +2035,7 @@ Cookie: access_token=JWT_TOKEN
 
 <a id="ep-patch-myprofile-profilephoto"></a>
 
-## PATCH /myProfile/profilePhoto 🆕 · [⬆️ topo](#doc-top)
+## PATCH /my-profile/profile-photo 🆕 · [⬆️ topo](#doc-top)
 
 Atualiza a foto de perfil do usuário logado.
 
@@ -2068,7 +2068,7 @@ Value: image.jpg
 
 <a id="ep-delete-myprofile"></a>
 
-## DELETE /myProfile 🆕 · [⬆️ topo](#doc-top)
+## DELETE /my-profile 🆕 · [⬆️ topo](#doc-top)
 
 Exclui (soft delete) o perfil do usuário logado.
 
@@ -2088,9 +2088,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-<a id="ep-post-myprofile-job"></a>
+<a id="ep-post-myprofile-workplace"></a>
 
-## POST /myProfile/job 🆕 · [⬆️ topo](#doc-top)
+## POST /my-profile/workplace 🆕 · [⬆️ topo](#doc-top)
 
 Insere um novo emprego ao histórico de trabalho do usuário logado.
 
@@ -2132,9 +2132,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-<a id="ep-put-myprofile-job"></a>
+<a id="ep-put-myprofile-workplace"></a>
 
-## PUT /myProfile/job 🆕 · [⬆️ topo](#doc-top)
+## PUT /my-profile/workplace 🆕 · [⬆️ topo](#doc-top)
 
 Edita um emprego já inserido no histórico de trabalho do usuário logado.
 
@@ -2178,9 +2178,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-<a id="ep-delete-myprofile-job"></a>
+<a id="ep-delete-myprofile-workplace"></a>
 
-## DELETE /myProfile/job 🆕 · [⬆️ topo](#doc-top)
+## DELETE /my-profile/workplace 🆕 · [⬆️ topo](#doc-top)
 
 Exclui um emprego já inserido no histórico de trabalho do usuário logado.
 
@@ -2216,7 +2216,7 @@ Cookie: access_token=JWT_TOKEN
 
 <a id="ep-post-myprofile-skill"></a>
 
-## POST /myProfile/skill 🆕 · [⬆️ topo](#doc-top)
+## POST /my-profile/skill 🆕 · [⬆️ topo](#doc-top)
 
 Insere uma habilidade no perfil do usuário logado.
 
@@ -2252,7 +2252,7 @@ Cookie: access_token=JWT_TOKEN
 
 <a id="ep-delete-myprofile-skill"></a>
 
-## DELETE /myProfile/skill 🆕 · [⬆️ topo](#doc-top)
+## DELETE /my-profile/skill 🆕 · [⬆️ topo](#doc-top)
 
 Exclui uma habilidade do perfil do usuário.
 
@@ -2288,7 +2288,7 @@ Cookie: access_token=JWT_TOKEN
 
 <a id="ep-post-myprofile-socialmedia"></a>
 
-## POST /myProfile/socialMedia 🆕 · [⬆️ topo](#doc-top)
+## POST /my-profile/social-media 🆕 · [⬆️ topo](#doc-top)
 
 Insere uma rede social no perfil do usuário logado
 
@@ -2326,7 +2326,7 @@ Cookie: access_token=JWT_TOKEN
 
 <a id="ep-patch-myprofile-socialmedia"></a>
 
-## PATCH /myProfile/socialMedia 🆕 · [⬆️ topo](#doc-top)
+## PATCH /my-profile/social-media 🆕 · [⬆️ topo](#doc-top)
 
 Editar o link de uma rede social no perfil do usuário logado.
 
@@ -2366,7 +2366,7 @@ Cookie: access_token=JWT_TOKEN
 
 <a id="ep-delete-myprofile-socialmedia"></a>
 
-## DELETE /myProfile/socialMedia 🆕 · [⬆️ topo](#doc-top)
+## DELETE /my-profile/social-media 🆕 · [⬆️ topo](#doc-top)
 
 Exclui uma rede social do perfil do usuário logado.
 
