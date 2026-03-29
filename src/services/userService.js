@@ -1,5 +1,6 @@
 import { PrismaClient, UserGender, SocialMediaType } from '../generated/prisma/index.js';
 import { findOrCreateWorkplace, formatJobListItem } from './jobService.js';
+import { formatPost, postSelectForApi } from './postApiFormatter.js';
 import { normalizeText, capitalizeWords, isValidHttpUrl } from '../utils/validations.js';
 import CustomError from '../utils/CustomError.js';
 import levenshtein from 'fast-levenshtein';
@@ -342,67 +343,13 @@ export const getUserById = async (userToken, userId) => {
           },
         },
         posts: {
-          select: {
-            post_id: true,
-            content: true,
-            create_date: true,
-            images: true,
-            comments_count: true,
-            comments: {
-              where: {
-                status: 'Active',
-                author: {
-                  user_status: 'Active',
-                },
-              },
-              select: {
-                content: true,
-                comment_id: true,
-                create_date: true,
-                author: {
-                  select: {
-                    user_id: true,
-                    name: true,
-                    perfil_photo: true,
-                    user_status: true,
-                    courses: {
-                      select: {
-                        abbreviation: true,
-                        enrollmentYear: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            likes_count: true,
-            likes: {
-              where: {
-                status: 'Active',
-                author: {
-                  user_status: 'Active',
-                },
-              },
-              select: {
-                like_id: true,
-                create_date: true,
-                author: {
-                  select: {
-                    user_id: true,
-                    name: true,
-                    perfil_photo: true,
-                    user_status: true,
-                    courses: {
-                      select: {
-                        abbreviation: true,
-                        enrollmentYear: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
+          where: {
+            status: 'Active',
           },
+          orderBy: {
+            create_date: 'desc',
+          },
+          select: postSelectForApi,
         },
         gender: true,
       },
@@ -415,6 +362,7 @@ export const getUserById = async (userToken, userId) => {
     return {
       ...userData,
       jobs: userData.jobs.map(formatJobListItem),
+      posts: userData.posts.map(formatPost),
     };
   });
 };
@@ -506,67 +454,13 @@ export const getMyProfile = async (userToken) => {
           },
         },
         posts: {
-          select: {
-            post_id: true,
-            content: true,
-            create_date: true,
-            images: true,
-            comments_count: true,
-            comments: {
-              where: {
-                status: 'Active',
-                author: {
-                  user_status: 'Active',
-                },
-              },
-              select: {
-                content: true,
-                comment_id: true,
-                create_date: true,
-                author: {
-                  select: {
-                    user_id: true,
-                    name: true,
-                    perfil_photo: true,
-                    user_status: true,
-                    courses: {
-                      select: {
-                        abbreviation: true,
-                        enrollmentYear: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            likes_count: true,
-            likes: {
-              where: {
-                status: 'Active',
-                author: {
-                  user_status: 'Active',
-                },
-              },
-              select: {
-                like_id: true,
-                create_date: true,
-                author: {
-                  select: {
-                    user_id: true,
-                    name: true,
-                    perfil_photo: true,
-                    user_status: true,
-                    courses: {
-                      select: {
-                        abbreviation: true,
-                        enrollmentYear: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
+          where: {
+            status: 'Active',
           },
+          orderBy: {
+            create_date: 'desc',
+          },
+          select: postSelectForApi,
         },
         gender: true,
         email: true,
@@ -581,6 +475,7 @@ export const getMyProfile = async (userToken) => {
     return {
       ...userData,
       jobs: userData.jobs.map(formatJobListItem),
+      posts: userData.posts.map(formatPost),
     };
   });
 };
