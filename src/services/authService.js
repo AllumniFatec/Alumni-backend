@@ -103,6 +103,7 @@ export const getMe = async (userId) => {
     id: user.user_id,
     name: user.name,
     email: user.email,
+    user_type: user.user_type,
     admin: user.user_type === 'Admin',
     perfil_photo: user.perfil_photo ?? null,
   };
