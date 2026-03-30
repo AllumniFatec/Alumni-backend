@@ -55,12 +55,12 @@ export const getMyProfile = async (req, res) => {
   }
 };
 
-export const insertJob = async (req, res) => {
+export const insertWorkplace = async (req, res) => {
   try {
     const user = req.user;
     const data = req.body;
 
-    const userJob = await userService.insertJob(user, data);
+    const userJob = await userService.insertWorkplace(user, data);
 
     return res.status(201).json({ message: 'Trabalho inserido com sucesso!' });
   } catch (err) {
@@ -118,7 +118,7 @@ export const deleteMyProfile = async (req, res) => {
   }
 };
 
-export const updateJob = async (req, res) => {
+export const updateWorkplace = async (req, res) => {
   try {
     const user = req.user;
     const data = req.body;
@@ -127,7 +127,7 @@ export const updateJob = async (req, res) => {
       throw new CustomError('Id inválido', 400);
     }
 
-    const userJob = await userService.updateJob(user, data);
+    const userJob = await userService.updateWorkplace(user, data);
 
     return res.status(200).json({ message: 'Trabalho atualizado com sucesso!' });
   } catch (err) {
@@ -138,7 +138,7 @@ export const updateJob = async (req, res) => {
   }
 };
 
-export const deleteJob = async (req, res) => {
+export const deleteWorkplace = async (req, res) => {
   try {
     const user = req.user;
     const userJobId = req.body.jobUserId;
@@ -147,7 +147,7 @@ export const deleteJob = async (req, res) => {
       throw new CustomError('Id inválido', 400);
     }
 
-    const deletedJob = await userService.deleteJob(user, userJobId);
+    const deletedJob = await userService.deleteWorkplace(user, userJobId);
 
     return res.status(200).json({ message: 'Trabalho excluído com sucesso!' });
   } catch (err) {
