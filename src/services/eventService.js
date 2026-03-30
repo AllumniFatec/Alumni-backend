@@ -1,7 +1,7 @@
 import { PrismaClient } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
-import { capitalizeWords } from '../utils/validations.js';
+import { capitalizeWords, getPageNumber } from '../utils/validations.js';
 import { parse } from 'date-fns';
 
 const prisma = new PrismaClient();
@@ -122,7 +122,7 @@ export const getEvents = async (userToken, page = 1) => {
 
   return authenticateUser(user_id, actions.getEvents, async (user) => {
     const limit = 20;
-    const pageNumber = Math.max(1, Number(page) || 1);
+    const pageNumber = getPageNumber(page);
     const skip = (pageNumber - 1) * limit;
 
     const [events, total] = await Promise.all([

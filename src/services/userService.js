@@ -1,7 +1,12 @@
 import { PrismaClient, UserGender, SocialMediaType } from '../generated/prisma/index.js';
 import { findOrCreateWorkplace, formatJobListItem } from './jobService.js';
 import { formattedEvent } from './eventService.js';
-import { normalizeText, capitalizeWords, isValidHttpUrl } from '../utils/validations.js';
+import {
+  normalizeText,
+  capitalizeWords,
+  isValidHttpUrl,
+  getPageNumber,
+} from '../utils/validations.js';
 import CustomError from '../utils/CustomError.js';
 import levenshtein from 'fast-levenshtein';
 import cloudinary from '../config/cloudinary.js';
@@ -35,9 +40,9 @@ const _getUserProfileData = async (targetUserId, pageEvent = 1, pageJob = 1, pag
   const limitJobs = PROFILE_PAGE_JOBS_LIMIT;
   const limitPosts = PROFILE_PAGE_POSTS_LIMIT;
 
-  const pageEventNumber = Math.max(1, Number(pageEvent) || 1);
-  const pageJobNumber = Math.max(1, Number(pageJob) || 1);
-  const pagePostNumber = Math.max(1, Number(pagePost) || 1);
+  const pageEventNumber = getPageNumber(pageEvent);
+  const pageJobNumber = getPageNumber(pageJob);
+  const pagePostNumber = getPageNumber(pagePost);
 
   const skipEvents = (pageEventNumber - 1) * limitEvents;
   const skipJobs = (pageJobNumber - 1) * limitJobs;

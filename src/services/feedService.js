@@ -1,5 +1,6 @@
 import { PrismaClient } from '../generated/prisma/index.js';
 import { authenticateUser } from './userService.js';
+import { getPageNumber } from '../utils/validations.js';
 
 const prisma = new PrismaClient();
 
@@ -23,7 +24,7 @@ export const loadFeed = async (page = 1, userToken) => {
 
     const limit = 20;
 
-    const pageNumber = Math.max(1, Number(page) || 1);
+    const pageNumber = getPageNumber(page);
 
     const skip = (pageNumber - 1) * limit;
 

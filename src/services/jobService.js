@@ -6,7 +6,7 @@ import {
 } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
-import { capitalizeWords, isValidHttpUrl } from '../utils/validations.js';
+import { capitalizeWords, isValidHttpUrl, getPageNumber } from '../utils/validations.js';
 import levenshtein from 'fast-levenshtein';
 
 const actions = {
@@ -148,7 +148,7 @@ export const getJobs = async (userToken, page = 1) => {
   const user_id = userToken.id;
 
   const limit = 20;
-  const pageNumber = Math.max(1, Number(page) || 1);
+  const pageNumber = getPageNumber(page);
   const skip = (pageNumber - 1) * limit;
 
   return authenticateUser(user_id, actions.getJobs, async (user) => {

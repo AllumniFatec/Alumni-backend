@@ -3,6 +3,7 @@ import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
 import { enqueueEmail } from '../utils/emailQueue.js';
 import { messageApproveUser, messageRefuseUser } from '../utils/emailMessages.js';
+import { getPageNumber } from '../utils/validations.js';
 
 const prisma = new PrismaClient();
 
@@ -65,14 +66,10 @@ export const getDashboard = async (userToken) => {
 export const listAllUsersInAnalysis = async (userToken, page = 1) => {
   const user_id = userToken.id;
 
-  let pageVerifyed = Number(page);
-
-  if (!Number.isInteger(pageVerifyed) || pageVerifyed < 1) {
-    pageVerifyed = 1;
-  }
+  const pageNumber = getPageNumber(page);
 
   const limit = 30;
-  const skip = (pageVerifyed - 1) * limit;
+  const skip = (pageNumber - 1) * limit;
 
   return authenticateUser(user_id, actions.listAllUsersInAnalysis, async (user) => {
     verifyAdminUser(user, actions.listAllUsersInAnalysis);

@@ -22,9 +22,7 @@ export const getUserById = async (req, res) => {
   try {
     const user = req.user;
     const userId = req.params.id;
-    const pageEvent = req.query.pageEvent || 1;
-    const pageJob = req.query.pageJob || 1;
-    const pagePost = req.query.pagePost || 1;
+    const { pageEvent, pageJob, pagePost } = req.query;
 
     if (!isValidObjectId(userId)) {
       throw new CustomError('Id inválido', 400);
@@ -44,9 +42,7 @@ export const getUserById = async (req, res) => {
 export const getMyProfile = async (req, res) => {
   try {
     const user = req.user;
-    const pageEvent = req.query.pageEvent || 1;
-    const pageJob = req.query.pageJob || 1;
-    const pagePost = req.query.pagePost || 1;
+    const { pageEvent, pageJob, pagePost } = req.query;
 
     const userData = await userService.getMyProfile(user, pageEvent, pageJob, pagePost);
 
@@ -219,10 +215,6 @@ export const updateSocialMedia = async (req, res) => {
     const user = req.user;
     const socialMedia = req.body;
 
-    if (!isValidObjectId(socialMedia.socialMediaId)) {
-      throw new CustomError('Id inválido', 400);
-    }
-
     const updatedSocialMedia = await userService.updateSocialMedia(user, socialMedia);
 
     return res.status(200).json({ message: 'Rede social alterada com sucesso!' });
@@ -238,10 +230,6 @@ export const deleteSocialMedia = async (req, res) => {
   try {
     const user = req.user;
     const socialMedia = req.body;
-
-    if (!isValidObjectId(socialMedia.socialMediaId)) {
-      throw new CustomError('Id inválido', 400);
-    }
 
     const deletedSocialMedia = await userService.deleteSocialMedia(user, socialMedia);
 
