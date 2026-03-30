@@ -27,34 +27,34 @@ Esta API fornece funcionalidades para:
 
 **Novos endpoints (🆕)** — clique para abrir a spec:
 
-| Método | Endpoint                                                    |
-| ------ | ----------------------------------------------------------- |
-| POST   | [/post/like/:postId](#ep-post-post-like-postid)             |
-| GET    | [/user](#ep-get-user)                                       |
-| GET    | [/user/:userId](#ep-get-user-userid)🔄                      |
-| GET    | [/user/search](#ep-get-user-search)                         |
-| GET    | [/myProfile](#ep-get-myprofile)🔄                           |
-| PUT    | [/myProfile](#ep-put-myprofile)                             |
-| PATCH  | [/myProfile/profilePhoto](#ep-patch-myprofile-profilephoto) |
-| DELETE | [/myProfile](#ep-delete-myprofile)                          |
-| POST   | [/myProfile/job](#ep-post-myprofile-job)                    |
-| PUT    | [/myProfile/job](#ep-put-myprofile-job)                     |
-| DELETE | [/myProfile/job](#ep-delete-myprofile-job)                  |
-| POST   | [/myProfile/skill](#ep-post-myprofile-skill)                |
-| DELETE | [/myProfile/skill](#ep-delete-myprofile-skill)              |
-| POST   | [/myProfile/socialMedia](#ep-post-myprofile-socialmedia)    |
-| PATCH  | [/myProfile/socialMedia](#ep-patch-myprofile-socialmedia)   |
-| DELETE | [/myProfile/socialMedia](#ep-delete-myprofile-socialmedia)  |
-| GET    | [/admin/dashboard](#ep-get-admin-dashboard)                 |
-| GET    | [/admin/usersInAnalysis](#ep-get-admin-usersInAnalysis)     |
-| POST   | [/admin/approve/:userId](#ep-post-admin-approve-userId)     |
-| POST   | [/admin/refuse/:userId](#ep-post-admin-refuse-userId)       |
-| GET    | [/event](#ep-get-event) 🆕                                  |
-| GET    | [/event/:eventId](#ep-get-event-by-id) 🆕                   |
-| POST   | [/event](#ep-post-event) 🆕                                 |
-| PUT    | [/event/:eventId](#ep-put-event) 🆕                         |
-| DELETE | [/event/:eventId](#ep-delete-event) 🆕                      |
-| PATCH  | [/event/:eventId](#ep-patch-event) 🆕                       |
+| Método | Endpoint                                                      |
+| ------ | ------------------------------------------------------------- |
+| POST   | [/post/like/:postId](#ep-post-post-like-postid)               |
+| GET    | [/user](#ep-get-user)                                         |
+| GET    | [/user/:userId](#ep-get-user-userid)🔄                        |
+| GET    | [/user/search](#ep-get-user-search)                           |
+| GET    | [/my-profile](#ep-get-myprofile)                              |
+| PUT    | [/my-profile](#ep-put-myprofile)                              |
+| PATCH  | [/my-profile/profile-photo](#ep-patch-myprofile-profilephoto) |
+| DELETE | [/my-profile](#ep-delete-myprofile)                           |
+| POST   | [/my-profile/workplace](#ep-post-myprofile-workplace)         |
+| PUT    | [/my-profile/workplace](#ep-put-myprofile-workplace)          |
+| DELETE | [/my-profile/workplace](#ep-delete-myprofile-workplace)       |
+| POST   | [/my-profile/skill](#ep-post-myprofile-skill)                 |
+| DELETE | [/my-profile/skill](#ep-delete-myprofile-skill)               |
+| POST   | [/my-profile/social-media](#ep-post-myprofile-socialmedia)    |
+| PATCH  | [/my-profile/social-media](#ep-patch-myprofile-socialmedia)   |
+| DELETE | [/my-profile/social-media](#ep-delete-myprofile-socialmedia)  |
+| GET    | [/admin/dashboard](#ep-get-admin-dashboard)                   |
+| GET    | [/admin/usersInAnalysis](#ep-get-admin-usersInAnalysis)       |
+| POST   | [/admin/approve/:userId](#ep-post-admin-approve-userId)       |
+| POST   | [/admin/refuse/:userId](#ep-post-admin-refuse-userId)         |
+| GET    | [/event](#ep-get-event) 🆕                                    |
+| GET    | [/event/:eventId](#ep-get-event-by-id) 🆕                     |
+| POST   | [/event](#ep-post-event) 🆕                                   |
+| PUT    | [/event/:eventId](#ep-put-event) 🆕                           |
+| DELETE | [/event/:eventId](#ep-delete-event) 🆕                        |
+| PATCH  | [/event/:eventId](#ep-patch-event) 🆕                         |
 
 **Núcleo original (sem 🆕)** — spec completa:
 
