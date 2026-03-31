@@ -1,6 +1,12 @@
 import { PrismaClient, UserGender, SocialMediaType } from '../generated/prisma/index.js';
 import { findOrCreateWorkplace, formatJobListItem } from './jobService.js';
-import { normalizeText, capitalizeWords, isValidHttpUrl } from '../utils/validations.js';
+import { formattedEvent } from './eventService.js';
+import {
+  normalizeText,
+  capitalizeWords,
+  isValidHttpUrl,
+  getPageNumber,
+} from '../utils/validations.js';
 import CustomError from '../utils/CustomError.js';
 import levenshtein from 'fast-levenshtein';
 import cloudinary from '../config/cloudinary.js';
@@ -23,6 +29,266 @@ const actions = {
   updatedSocialMedia: 'editar rede social',
   deleteSocialMedia: 'excluir rede social',
   searchUser: 'pesquisar usuários',
+};
+
+const PROFILE_PAGE_EVENTS_LIMIT = 3;
+const PROFILE_PAGE_JOBS_LIMIT = 3;
+const PROFILE_PAGE_POSTS_LIMIT = 10;
+
+const _getUserProfileData = async (targetUserId, pageEvent = 1, pageJob = 1, pagePost = 1) => {
+  const limitEvents = PROFILE_PAGE_EVENTS_LIMIT;
+  const limitJobs = PROFILE_PAGE_JOBS_LIMIT;
+  const limitPosts = PROFILE_PAGE_POSTS_LIMIT;
+
+  const currentPageEventNumber = getPageNumber(pageEvent);
+  const currentPageJobNumber = getPageNumber(pageJob);
+  const currentPagePostNumber = getPageNumber(pagePost);
+
+  const skipEvents = (currentPageEventNumber - 1) * limitEvents;
+  const skipJobs = (currentPageJobNumber - 1) * limitJobs;
+  const skipPosts = (currentPagePostNumber - 1) * limitPosts;
+
+  const userData = await prisma.user.findUnique({
+    where: {
+      user_id: targetUserId,
+    },
+    select: {
+      user_id: true,
+      perfil_photo: true,
+      name: true,
+      biography: true,
+      user_type: true,
+      courses: {
+        select: {
+          course_name: true,
+          enrollmentYear: true,
+        },
+      },
+      workplace_history: {
+        orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
+        select: {
+          workplace_user_id: true,
+          position: true,
+          function: true,
+          workplace: {
+            select: {
+              company: true,
+            },
+          },
+          start_date: true,
+          end_date: true,
+        },
+      },
+      social_media: {
+        select: {
+          id: true,
+          type: true,
+          url: true,
+        },
+      },
+      skills: {
+        select: {
+          skill: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+      gender: true,
+      email: true,
+      receive_notifications: true,
+    },
+  });
+
+  if (!userData) {
+    throw new CustomError('Usuário não econtrado!', 404);
+  }
+
+  const [eventsUserData, jobsUserData, postsUserData, totalEvents, totalJobs, totalPosts] =
+    await Promise.all([
+      prisma.event.findMany({
+        take: limitEvents,
+        skip: skipEvents,
+        where: {
+          author_id: targetUserId,
+          status: { not: 'Deleted' },
+        },
+        orderBy: {
+          date_start: 'asc',
+        },
+        select: {
+          title: true,
+          event_id: true,
+          status: true,
+          date_start: true,
+          date_end: true,
+          local: true,
+          description: true,
+        },
+      }),
+
+      prisma.job.findMany({
+        take: limitJobs,
+        skip: skipJobs,
+        where: {
+          author_id: targetUserId,
+          status: { not: 'Deleted' },
+        },
+        orderBy: {
+          create_date: 'desc',
+        },
+        select: {
+          job_id: true,
+          title: true,
+          author_id: true,
+          workplace: {
+            select: {
+              company: true,
+            },
+          },
+          location: {
+            select: {
+              city: true,
+              state: true,
+            },
+          },
+          employment_type: true,
+          work_model: true,
+          status: true,
+          create_date: true,
+        },
+      }),
+
+      prisma.post.findMany({
+        take: limitPosts,
+        skip: skipPosts,
+        where: {
+          author_id: targetUserId,
+          status: { not: 'Deleted' },
+        },
+        orderBy: {
+          create_date: 'desc',
+        },
+        select: {
+          post_id: true,
+          content: true,
+          create_date: true,
+          images: true,
+          comments_count: true,
+          comments: {
+            where: {
+              status: 'Active',
+              author: {
+                user_status: 'Active',
+              },
+            },
+            select: {
+              content: true,
+              comment_id: true,
+              create_date: true,
+              author: {
+                select: {
+                  user_id: true,
+                  name: true,
+                  perfil_photo: true,
+                  user_status: true,
+                  courses: {
+                    select: {
+                      abbreviation: true,
+                      enrollmentYear: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          likes_count: true,
+          likes: {
+            where: {
+              status: 'Active',
+              author: {
+                user_status: 'Active',
+              },
+            },
+            select: {
+              like_id: true,
+              create_date: true,
+              author: {
+                select: {
+                  user_id: true,
+                  name: true,
+                  perfil_photo: true,
+                  user_status: true,
+                  courses: {
+                    select: {
+                      abbreviation: true,
+                      enrollmentYear: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+
+      prisma.event.count({
+        where: {
+          author_id: targetUserId,
+          status: { not: 'Deleted' },
+        },
+      }),
+
+      prisma.job.count({
+        where: {
+          author_id: targetUserId,
+          status: { not: 'Deleted' },
+        },
+      }),
+
+      prisma.post.count({
+        where: {
+          author_id: targetUserId,
+          status: { not: 'Deleted' },
+        },
+      }),
+    ]);
+
+  const totalPagesEvents = Math.ceil(totalEvents / limitEvents);
+  const totalPagesJobs = Math.ceil(totalJobs / limitJobs);
+  const totalPagesPosts = Math.ceil(totalPosts / limitPosts);
+
+  return {
+    user: userData,
+    jobs: jobsUserData.map(formatJobListItem),
+    events: eventsUserData.map((event) => formattedEvent(event)),
+    posts: postsUserData,
+    paginationEvents: {
+      page: currentPageEventNumber,
+      limit: limitEvents,
+      totalItems: totalEvents,
+      totalPages: totalPagesEvents,
+      hasNextPage: currentPageEventNumber < totalPagesEvents,
+      hasPreviousPage: currentPageEventNumber > 1,
+    },
+    paginationJobs: {
+      page: currentPageJobNumber,
+      limit: limitJobs,
+      totalItems: totalJobs,
+      totalPages: totalPagesJobs,
+      hasNextPage: currentPageJobNumber < totalPagesJobs,
+      hasPreviousPage: currentPageJobNumber > 1,
+    },
+    paginationPosts: {
+      page: currentPagePostNumber,
+      limit: limitPosts,
+      totalItems: totalPosts,
+      totalPages: totalPagesPosts,
+      hasNextPage: currentPagePostNumber < totalPagesPosts,
+      hasPreviousPage: currentPagePostNumber > 1,
+    },
+  };
 };
 
 const STOPWORDS = new Set(['e', 'de', 'da', 'do', 'das', 'dos', 'a', 'o', 'em', 'para', 'com']);
@@ -258,330 +524,19 @@ export const getUsers = async (userToken, page = 1) => {
   });
 };
 
-export const getUserById = async (userToken, userId) => {
+export const getUserById = async (userToken, userId, pageEvent = 1, pageJob = 1, pagePost = 1) => {
   const user_id = userToken.id;
 
   return authenticateUser(user_id, actions.getUsers, async (user) => {
-    const userData = await prisma.user.findUnique({
-      where: {
-        user_id: userId,
-      },
-      select: {
-        user_id: true,
-        perfil_photo: true,
-        name: true,
-        biography: true,
-        user_type: true,
-        courses: {
-          select: {
-            course_name: true,
-            enrollmentYear: true,
-          },
-        },
-        workplace_history: {
-          orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
-          select: {
-            workplace_user_id: true,
-            position: true,
-            function: true,
-            workplace: {
-              select: {
-                company: true,
-              },
-            },
-            start_date: true,
-            end_date: true,
-          },
-        },
-        social_media: {
-          select: {
-            type: true,
-            url: true,
-          },
-        },
-        skills: {
-          select: {
-            skill: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
-        events: {
-          select: {
-            title: true,
-            event_id: true,
-            status: true,
-          },
-        },
-        jobs: {
-          where: {
-            status: { not: 'Deleted' },
-          },
-          orderBy: { create_date: 'desc' },
-          select: {
-            job_id: true,
-            title: true,
-            author_id: true,
-            workplace: {
-              select: {
-                company: true,
-              },
-            },
-            location: {
-              select: {
-                city: true,
-                state: true,
-              },
-            },
-            employment_type: true,
-            work_model: true,
-            status: true,
-            create_date: true,
-          },
-        },
-        posts: {
-          select: {
-            post_id: true,
-            content: true,
-            create_date: true,
-            images: true,
-            comments_count: true,
-            comments: {
-              where: {
-                status: 'Active',
-                author: {
-                  user_status: 'Active',
-                },
-              },
-              select: {
-                content: true,
-                comment_id: true,
-                create_date: true,
-                author: {
-                  select: {
-                    user_id: true,
-                    name: true,
-                    perfil_photo: true,
-                    user_status: true,
-                    courses: {
-                      select: {
-                        abbreviation: true,
-                        enrollmentYear: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            likes_count: true,
-            likes: {
-              where: {
-                status: 'Active',
-                author: {
-                  user_status: 'Active',
-                },
-              },
-              select: {
-                like_id: true,
-                create_date: true,
-                author: {
-                  select: {
-                    user_id: true,
-                    name: true,
-                    perfil_photo: true,
-                    user_status: true,
-                    courses: {
-                      select: {
-                        abbreviation: true,
-                        enrollmentYear: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        gender: true,
-      },
-    });
-
-    if (!userData) {
-      throw new CustomError('Usuário não econtrado!', 404);
-    }
-
-    return {
-      ...userData,
-      jobs: userData.jobs.map(formatJobListItem),
-    };
+    return _getUserProfileData(userId, pageEvent, pageJob, pagePost);
   });
 };
 
-export const getMyProfile = async (userToken) => {
+export const getMyProfile = async (userToken, pageEvent = 1, pageJob = 1, pagePost = 1) => {
   const user_id = userToken.id;
 
-  return authenticateUser(user_id, actions.getMyProfile, async (user) => {
-    const userData = await prisma.user.findUnique({
-      where: {
-        user_id: user.user_id,
-      },
-      select: {
-        user_id: true,
-        perfil_photo: true,
-        name: true,
-        biography: true,
-        user_type: true,
-        courses: {
-          select: {
-            course_name: true,
-            enrollmentYear: true,
-          },
-        },
-        workplace_history: {
-          orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
-          select: {
-            workplace_user_id: true,
-            position: true,
-            function: true,
-            workplace: {
-              select: {
-                company: true,
-              },
-            },
-            start_date: true,
-            end_date: true,
-          },
-        },
-        social_media: {
-          select: {
-            id: true,
-            type: true,
-            url: true,
-          },
-        },
-        skills: {
-          select: {
-            user_skill_id: true,
-            skill: {
-              select: {
-                name: true,
-                skill_id: true,
-              },
-            },
-          },
-        },
-        events: {
-          select: {
-            title: true,
-            event_id: true,
-            status: true,
-          },
-        },
-        jobs: {
-          where: {
-            status: { not: 'Deleted' },
-          },
-          orderBy: { create_date: 'desc' },
-          select: {
-            job_id: true,
-            title: true,
-            author_id: true,
-            workplace: {
-              select: {
-                company: true,
-              },
-            },
-            location: {
-              select: {
-                city: true,
-                state: true,
-              },
-            },
-            employment_type: true,
-            work_model: true,
-            status: true,
-            create_date: true,
-          },
-        },
-        posts: {
-          select: {
-            post_id: true,
-            content: true,
-            create_date: true,
-            images: true,
-            comments_count: true,
-            comments: {
-              where: {
-                status: 'Active',
-                author: {
-                  user_status: 'Active',
-                },
-              },
-              select: {
-                content: true,
-                comment_id: true,
-                create_date: true,
-                author: {
-                  select: {
-                    user_id: true,
-                    name: true,
-                    perfil_photo: true,
-                    user_status: true,
-                    courses: {
-                      select: {
-                        abbreviation: true,
-                        enrollmentYear: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            likes_count: true,
-            likes: {
-              where: {
-                status: 'Active',
-                author: {
-                  user_status: 'Active',
-                },
-              },
-              select: {
-                like_id: true,
-                create_date: true,
-                author: {
-                  select: {
-                    user_id: true,
-                    name: true,
-                    perfil_photo: true,
-                    user_status: true,
-                    courses: {
-                      select: {
-                        abbreviation: true,
-                        enrollmentYear: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        gender: true,
-        email: true,
-        receive_notifications: true,
-      },
-    });
-
-    if (!userData) {
-      throw new CustomError('Usuário não econtrado!', 404);
-    }
-
-    return {
-      ...userData,
-      jobs: userData.jobs.map(formatJobListItem),
-    };
+  return authenticateUser(user_id, actions.getProfile, async (user) => {
+    return _getUserProfileData(user.user_id, pageEvent, pageJob, pagePost);
   });
 };
 
@@ -819,9 +774,9 @@ export const insertUserSkill = async (userToken, skillData) => {
   });
 };
 
-export const deleteUserSkill = async (userToken, skillData) => { 
+export const deleteUserSkill = async (userToken, skillData) => {
   const user_id = userToken.id;
-  const skill_id = skillData.user_skill_id; 
+  const skill_id = skillData.user_skill_id;
 
   return authenticateUser(user_id, actions.deleteUserSkill, async (user) => {
     const skill = await prisma.userSkill.findUnique({

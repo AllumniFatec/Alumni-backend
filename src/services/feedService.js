@@ -1,5 +1,6 @@
 import { PrismaClient } from '../generated/prisma/index.js';
 import { authenticateUser } from './userService.js';
+import { getPageNumber } from '../utils/validations.js';
 
 const prisma = new PrismaClient();
 
@@ -23,11 +24,13 @@ export const loadFeed = async (page = 1, userToken) => {
 
     const limit = 20;
 
-    const skip = (page - 1) * limit;
+    const currentPageNumber = getPageNumber(page);
 
-    const [posts, users, events, jobs] = await Promise.all([
+    const skip = (currentPageNumber - 1) * limit;
+
+    const [posts, totalPosts, users, events, jobs] = await Promise.all([
       prisma.post.findMany({
-        skip,
+        skip: skip,
         take: limit,
         where: {
           status: 'Active',
@@ -110,6 +113,15 @@ export const loadFeed = async (page = 1, userToken) => {
                 },
               },
             },
+          },
+        },
+      }),
+
+      prisma.post.count({
+        where: {
+          status: 'Active',
+          author: {
+            user_status: 'Active',
           },
         },
       }),
@@ -223,6 +235,8 @@ export const loadFeed = async (page = 1, userToken) => {
       })),
     }));
 
+    const totalPages = Math.ceil(totalPosts / limit);
+
     const formattedEvents = events.map((event) => ({
       id: event.event_id,
       title: event.title,
@@ -244,6 +258,14 @@ export const loadFeed = async (page = 1, userToken) => {
       latestUsers: formattedUsers,
       latestEvents: formattedEvents,
       latestJobs: formattedJobs,
+      pagination: {
+        page: currentPageNumber,
+        limit: limit,
+        totalItems: totalPosts,
+        totalPages: totalPages,
+        hasNextPage: currentPageNumber < totalPages,
+        hasPreviousPage: currentPageNumber > 1,
+      },
     };
   });
 };
