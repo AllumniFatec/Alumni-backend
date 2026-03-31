@@ -8,7 +8,10 @@ export const createPost = async (req, res) => {
 
     const post = await postService.createPost(data, user);
 
-    return res.status(201).json({ message: 'Postagem criada com sucesso!' });
+    return res.status(201).json({
+      message: 'Postagem criada com sucesso!',
+      post,
+    });
   } catch (err) {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
@@ -23,9 +26,12 @@ export const updatePost = async (req, res) => {
     const postId = req.params.id;
     const user = req.user;
 
-    const updatedPost = await postService.updatePost(postId, data, user);
+    const post = await postService.updatePost(postId, data, user);
 
-    return res.status(200).json({ message: 'Postagem atualizada com sucesso!' });
+    return res.status(200).json({
+      message: 'Postagem atualizada com sucesso!',
+      post,
+    });
   } catch (err) {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });

@@ -1,6 +1,7 @@
 import { PrismaClient } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
+import { formatPost, postSelectForApi } from './postApiFormatter.js';
 
 const prisma = new PrismaClient();
 
@@ -28,13 +29,17 @@ export const createPost = async (postData, userToken) => {
   }
 
   return authenticateUser(user_id, actions.createPost, async (user) => {
-    const post = await prisma.post.create({
+    const created = await prisma.post.create({
       data: {
         content: post_content,
         author_id: user.user_id,
       },
     });
-    return post;
+    const full = await prisma.post.findUnique({
+      where: { post_id: created.post_id },
+      select: postSelectForApi,
+    });
+    return formatPost(full);
   });
 };
 
@@ -78,7 +83,11 @@ export const updatePost = async (postId, postData, userToken) => {
       },
     });
 
-    return { message: 'Postagem atualizada com sucesso!' };
+    const full = await prisma.post.findUnique({
+      where: { post_id: post_id },
+      select: postSelectForApi,
+    });
+    return formatPost(full);
   });
 };
 

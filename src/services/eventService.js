@@ -96,7 +96,7 @@ export const createEvent = async (userToken, eventData) => {
 
   return authenticateUser(user_id, actions.createEvent, async (user) => {
     if (user.user_type === 'Student' || user.user_type === 'Alumni') {
-      throw new CustomError('Apenas usuários autorizados podem criar eventos', 401);
+      throw new CustomError('Apenas usuários autorizados podem criar eventos', 403);
     }
 
     const formattedTitle = capitalizeWords(title);
@@ -125,15 +125,16 @@ export const getEvents = async (userToken, page = 1) => {
     const currentPageNumber = getPageNumber(page);
     const skip = (currentPageNumber - 1) * limit;
 
+    // Lista apenas Active. Não filtrar por `date_start >= now` aqui: isso
+    // escondia eventos recém-criados quando o horário já tinha passado ou
+    // por diferença de interpretação de data/hora. Quem quiser só “próximos”
+    // pode filtrar no cliente (ou adicionar query param depois).
     const [events, total] = await Promise.all([
       prisma.event.findMany({
         skip: skip,
         take: limit,
         where: {
           status: 'Active',
-          date_start: {
-            gte: new Date(),
-          },
         },
         orderBy: {
           date_start: 'asc',
@@ -149,9 +150,6 @@ export const getEvents = async (userToken, page = 1) => {
       prisma.event.count({
         where: {
           status: 'Active',
-          date_start: {
-            gte: new Date(),
-          },
         },
       }),
     ]);
@@ -208,7 +206,7 @@ export const getEventById = async (userToken, eventId) => {
       throw new CustomError('Evento excluído!', 404);
     }
     if (event.status === 'Closed') {
-      throw new CustomError('Evento finalizado!', 401);
+      throw new CustomError('Evento finalizado!', 404);
     }
 
     return formattedEvent(event);
@@ -223,7 +221,7 @@ export const updateEvent = async (userToken, eventId, eventData) => {
 
   return authenticateUser(user_id, actions.updateEvent, async (user) => {
     if (user.user_type === 'Student' || user.user_type === 'Alumni') {
-      throw new CustomError('Apenas usuários autorizados podem editar eventos', 401);
+      throw new CustomError('Apenas usuários autorizados podem editar eventos', 403);
     }
 
     const formattedTitle = capitalizeWords(title);
@@ -253,7 +251,7 @@ export const deleteEvent = async (userToken, eventId) => {
 
   return authenticateUser(user_id, actions.deleteEvent, async (user) => {
     if (user.user_type === 'Student' || user.user_type === 'Alumni') {
-      throw new CustomError('Apenas usuários autorizados podem excluir eventos', 401);
+      throw new CustomError('Apenas usuários autorizados podem excluir eventos', 403);
     }
 
     const targetEvent = await prisma.event.findUnique({
@@ -267,7 +265,7 @@ export const deleteEvent = async (userToken, eventId) => {
     }
 
     if (targetEvent.status !== 'Active') {
-      throw new CustomError('Evento já encerrado ou excluído', 401);
+      throw new CustomError('Evento já encerrado ou excluído', 409);
     }
 
     await prisma.event.update({
@@ -290,7 +288,7 @@ export const closeEvent = async (userToken, eventId) => {
 
   return authenticateUser(user_id, actions.closeEvent, async (user) => {
     if (user.user_type === 'Student' || user.user_type === 'Alumni') {
-      throw new CustomError('Apenas usuários autorizados podem encerrar eventos', 401);
+      throw new CustomError('Apenas usuários autorizados podem encerrar eventos', 403);
     }
 
     const targetEvent = await prisma.event.findUnique({
@@ -304,7 +302,7 @@ export const closeEvent = async (userToken, eventId) => {
     }
 
     if (targetEvent.status !== 'Active') {
-      throw new CustomError('Evento já encerrado ou excluído', 401);
+      throw new CustomError('Evento já encerrado ou excluído', 409);
     }
 
     await prisma.event.update({

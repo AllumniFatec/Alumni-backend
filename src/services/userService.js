@@ -1,12 +1,7 @@
 import { PrismaClient, UserGender, SocialMediaType } from '../generated/prisma/index.js';
 import { findOrCreateWorkplace, formatJobListItem } from './jobService.js';
-import { formattedEvent } from './eventService.js';
-import {
-  normalizeText,
-  capitalizeWords,
-  isValidHttpUrl,
-  getPageNumber,
-} from '../utils/validations.js';
+import { formatPost, postSelectForApi } from './postApiFormatter.js';
+import { normalizeText, capitalizeWords, isValidHttpUrl } from '../utils/validations.js';
 import CustomError from '../utils/CustomError.js';
 import levenshtein from 'fast-levenshtein';
 import cloudinary from '../config/cloudinary.js';
@@ -494,10 +489,21 @@ export const getUsers = async (userToken, page = 1) => {
           select: {
             course_name: true,
             enrollmentYear: true,
+            abbreviation: true,
           },
         },
         perfil_photo: true,
         user_type: true,
+        skills: {
+          select: {
+            user_skill_id: true,
+            skill: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
         workplace_history: {
           orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
           select: {
@@ -528,15 +534,223 @@ export const getUserById = async (userToken, userId, pageEvent = 1, pageJob = 1,
   const user_id = userToken.id;
 
   return authenticateUser(user_id, actions.getUsers, async (user) => {
-    return _getUserProfileData(userId, pageEvent, pageJob, pagePost);
+    const userData = await prisma.user.findUnique({
+      where: {
+        user_id: userId,
+      },
+      select: {
+        user_id: true,
+        perfil_photo: true,
+        name: true,
+        biography: true,
+        user_type: true,
+        courses: {
+          select: {
+            course_name: true,
+            enrollmentYear: true,
+            abbreviation: true,
+          },
+        },
+        workplace_history: {
+          orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
+          select: {
+            workplace_user_id: true,
+            position: true,
+            function: true,
+            workplace: {
+              select: {
+                company: true,
+              },
+            },
+            start_date: true,
+            end_date: true,
+          },
+        },
+        social_media: {
+          select: {
+            id: true,
+            type: true,
+            url: true,
+          },
+        },
+        skills: {
+          select: {
+            user_skill_id: true,
+            skill: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        events: {
+          select: {
+            title: true,
+            event_id: true,
+            status: true,
+          },
+        },
+        jobs: {
+          where: {
+            status: { not: 'Deleted' },
+          },
+          orderBy: { create_date: 'desc' },
+          select: {
+            job_id: true,
+            title: true,
+            author_id: true,
+            workplace: {
+              select: {
+                company: true,
+              },
+            },
+            location: {
+              select: {
+                city: true,
+                state: true,
+              },
+            },
+            employment_type: true,
+            work_model: true,
+            status: true,
+            create_date: true,
+          },
+        },
+        posts: {
+          where: {
+            status: 'Active',
+          },
+          orderBy: {
+            create_date: 'desc',
+          },
+          select: postSelectForApi,
+        },
+        gender: true,
+      },
+    });
+
+    if (!userData) {
+      throw new CustomError('Usuário não econtrado!', 404);
+    }
+
+    return {
+      ...userData,
+      jobs: userData.jobs.map(formatJobListItem),
+      posts: userData.posts.map(formatPost),
+    };
   });
 };
 
 export const getMyProfile = async (userToken, pageEvent = 1, pageJob = 1, pagePost = 1) => {
   const user_id = userToken.id;
 
-  return authenticateUser(user_id, actions.getProfile, async (user) => {
-    return _getUserProfileData(user.user_id, pageEvent, pageJob, pagePost);
+  return authenticateUser(user_id, actions.getMyProfile, async (user) => {
+    const userData = await prisma.user.findUnique({
+      where: {
+        user_id: user.user_id,
+      },
+      select: {
+        user_id: true,
+        perfil_photo: true,
+        name: true,
+        biography: true,
+        user_type: true,
+        courses: {
+          select: {
+            course_name: true,
+            enrollmentYear: true,
+          },
+        },
+        workplace_history: {
+          orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
+          select: {
+            workplace_user_id: true,
+            position: true,
+            function: true,
+            workplace: {
+              select: {
+                company: true,
+              },
+            },
+            start_date: true,
+            end_date: true,
+          },
+        },
+        social_media: {
+          select: {
+            id: true,
+            type: true,
+            url: true,
+          },
+        },
+        skills: {
+          select: {
+            user_skill_id: true,
+            skill: {
+              select: {
+                name: true,
+                skill_id: true,
+              },
+            },
+          },
+        },
+        events: {
+          select: {
+            title: true,
+            event_id: true,
+            status: true,
+          },
+        },
+        jobs: {
+          where: {
+            status: { not: 'Deleted' },
+          },
+          orderBy: { create_date: 'desc' },
+          select: {
+            job_id: true,
+            title: true,
+            author_id: true,
+            workplace: {
+              select: {
+                company: true,
+              },
+            },
+            location: {
+              select: {
+                city: true,
+                state: true,
+              },
+            },
+            employment_type: true,
+            work_model: true,
+            status: true,
+            create_date: true,
+          },
+        },
+        posts: {
+          where: {
+            status: 'Active',
+          },
+          orderBy: {
+            create_date: 'desc',
+          },
+          select: postSelectForApi,
+        },
+        gender: true,
+        email: true,
+        receive_notifications: true,
+      },
+    });
+
+    if (!userData) {
+      throw new CustomError('Usuário não econtrado!', 404);
+    }
+
+    return {
+      ...userData,
+      jobs: userData.jobs.map(formatJobListItem),
+      posts: userData.posts.map(formatPost),
+    };
   });
 };
 
