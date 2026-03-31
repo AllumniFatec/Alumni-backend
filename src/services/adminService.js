@@ -66,10 +66,10 @@ export const getDashboard = async (userToken) => {
 export const listAllUsersInAnalysis = async (userToken, page = 1) => {
   const user_id = userToken.id;
 
-  const pageNumber = getPageNumber(page);
+  const currentPageNumber = getPageNumber(page);
 
   const limit = 30;
-  const skip = (pageNumber - 1) * limit;
+  const skip = (currentPageNumber - 1) * limit;
 
   return authenticateUser(user_id, actions.listAllUsersInAnalysis, async (user) => {
     verifyAdminUser(user, actions.listAllUsersInAnalysis);

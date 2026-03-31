@@ -148,8 +148,8 @@ export const getJobs = async (userToken, page = 1) => {
   const user_id = userToken.id;
 
   const limit = 20;
-  const pageNumber = getPageNumber(page);
-  const skip = (pageNumber - 1) * limit;
+  const currentPageNumber = getPageNumber(page);
+  const skip = (currentPageNumber - 1) * limit;
 
   return authenticateUser(user_id, actions.getJobs, async (user) => {
     const [jobs, total] = await Promise.all([
@@ -205,12 +205,12 @@ export const getJobs = async (userToken, page = 1) => {
     return {
       jobs: jobs.map(formatJobListItem),
       pagination: {
-        page: pageNumber,
+        page: currentPageNumber,
         limit: limit,
         totalItems: total,
         totalPages: totalPages,
-        hasNextPage: pageNumber < totalPages,
-        hasPreviousPage: pageNumber > 1,
+        hasNextPage: currentPageNumber < totalPages,
+        hasPreviousPage: currentPageNumber > 1,
       },
     };
   });

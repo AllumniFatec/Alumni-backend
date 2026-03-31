@@ -1,6 +1,5 @@
 import * as adminService from '../services/adminService.js';
 import CustomError from '../utils/CustomError.js';
-import { isValidObjectId } from '../utils/validations.js';
 
 export const dashboard = async (req, res) => {
   try {
@@ -38,10 +37,6 @@ export const approveUser = async (req, res) => {
     const user = req.user;
     const alumniId = req.params.userId;
 
-    if (!isValidObjectId(alumniId)) {
-      throw new CustomError('Id inválido', 400);
-    }
-
     await adminService.approveUser(user, alumniId, req.protocol, req.get('host'));
 
     return res.status(200).json({ message: 'Usuário aprovado com sucesso!' });
@@ -57,10 +52,6 @@ export const refuseUser = async (req, res) => {
   try {
     const user = req.user;
     const alumniId = req.params.userId;
-
-    if (!isValidObjectId(alumniId)) {
-      throw new CustomError('Id inválido', 400);
-    }
 
     await adminService.refuseUser(user, alumniId, req.protocol, req.get('host'));
 

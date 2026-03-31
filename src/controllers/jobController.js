@@ -1,6 +1,5 @@
 import * as jobService from '../services/jobService.js';
 import CustomError from '../utils/CustomError.js';
-import { isValidObjectId } from '../utils/validations.js';
 
 export const createJob = async (req, res) => {
   try {
@@ -39,10 +38,6 @@ export const getJobById = async (req, res) => {
     const jobId = req.params.id;
     const user = req.user;
 
-    if (!isValidObjectId(jobId)) {
-      throw new CustomError('Id inválido', 400);
-    }
-
     const job = await jobService.getJobById(user, jobId);
 
     return res.status(200).json(job);
@@ -60,10 +55,6 @@ export const updateJob = async (req, res) => {
     const data = req.body;
     const user = req.user;
 
-    if (!isValidObjectId(jobId)) {
-      throw new CustomError('Id inválido', 400);
-    }
-
     const updatedJob = await jobService.updateJob(jobId, data, user);
 
     return res.status(200).json({ message: 'Vaga atualizada com sucesso!' });
@@ -79,10 +70,6 @@ export const deleteJob = async (req, res) => {
   try {
     const jobId = req.params.id;
     const user = req.user;
-
-    if (!isValidObjectId(jobId)) {
-      throw new CustomError('Id inválido', 400);
-    }
 
     const deletedJob = await jobService.deleteJob(jobId, user);
 

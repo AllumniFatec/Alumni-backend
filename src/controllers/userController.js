@@ -1,6 +1,5 @@
 import * as userService from '../services/userService.js';
 import CustomError from '../utils/CustomError.js';
-import { isValidObjectId } from '../utils/validations.js';
 
 export const getUsers = async (req, res) => {
   try {
@@ -23,10 +22,6 @@ export const getUserById = async (req, res) => {
     const user = req.user;
     const userId = req.params.id;
     const { pageEvent, pageJob, pagePost } = req.query;
-
-    if (!isValidObjectId(userId)) {
-      throw new CustomError('Id inválido', 400);
-    }
 
     const userData = await userService.getUserById(user, userId, pageEvent, pageJob, pagePost);
 
@@ -123,10 +118,6 @@ export const updateWorkplace = async (req, res) => {
     const user = req.user;
     const data = req.body;
 
-    if (!isValidObjectId(data.jobUserId)) {
-      throw new CustomError('Id inválido', 400);
-    }
-
     const userJob = await userService.updateWorkplace(user, data);
 
     return res.status(200).json({ message: 'Trabalho atualizado com sucesso!' });
@@ -142,10 +133,6 @@ export const deleteWorkplace = async (req, res) => {
   try {
     const user = req.user;
     const userJobId = req.body.jobUserId;
-
-    if (!isValidObjectId(userJobId)) {
-      throw new CustomError('Id inválido', 400);
-    }
 
     const deletedJob = await userService.deleteWorkplace(user, userJobId);
 
@@ -178,10 +165,6 @@ export const deleteSkill = async (req, res) => {
   try {
     const user = req.user;
     const skill = req.body;
-
-    if (!isValidObjectId(skill.user_skill_id)) {
-      throw new CustomError('Id inválido', 400);
-    }
 
     const deletedSkill = await userService.deleteUserSkill(user, skill);
 

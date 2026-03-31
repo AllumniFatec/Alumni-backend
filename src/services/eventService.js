@@ -122,8 +122,8 @@ export const getEvents = async (userToken, page = 1) => {
 
   return authenticateUser(user_id, actions.getEvents, async (user) => {
     const limit = 20;
-    const pageNumber = getPageNumber(page);
-    const skip = (pageNumber - 1) * limit;
+    const currentPageNumber = getPageNumber(page);
+    const skip = (currentPageNumber - 1) * limit;
 
     const [events, total] = await Promise.all([
       prisma.event.findMany({
@@ -161,12 +161,12 @@ export const getEvents = async (userToken, page = 1) => {
     return {
       data: events.map((event) => formattedEvent(event)),
       pagination: {
-        page: pageNumber,
+        page: currentPageNumber,
         limit,
         totalItems: total,
         totalPages,
-        hasNextPage: pageNumber < totalPages,
-        hasPreviousPage: pageNumber > 1,
+        hasNextPage: currentPageNumber < totalPages,
+        hasPreviousPage: currentPageNumber > 1,
       },
     };
   });

@@ -1,5 +1,6 @@
 import express from 'express';
 import auth from '../middlewares/authMiddleware.js';
+import authId from '../middlewares/authIdMiddleware.js';
 import upload from '../config/multer.js';
 import * as userController from '../controllers/userController.js';
 
@@ -9,7 +10,7 @@ const MAX_FILES_COUNT = 1;
 
 router.get('/user/search', auth, userController.searchUser);
 router.get('/user', auth, userController.getUsers);
-router.get('/user/:id', auth, userController.getUserById);
+router.get('/user/:id', auth, authId, userController.getUserById);
 
 router.get('/my-profile', auth, userController.getMyProfile);
 router.patch(

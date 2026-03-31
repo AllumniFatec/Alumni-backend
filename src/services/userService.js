@@ -40,13 +40,13 @@ const _getUserProfileData = async (targetUserId, pageEvent = 1, pageJob = 1, pag
   const limitJobs = PROFILE_PAGE_JOBS_LIMIT;
   const limitPosts = PROFILE_PAGE_POSTS_LIMIT;
 
-  const pageEventNumber = getPageNumber(pageEvent);
-  const pageJobNumber = getPageNumber(pageJob);
-  const pagePostNumber = getPageNumber(pagePost);
+  const currentPageEventNumber = getPageNumber(pageEvent);
+  const currentPageJobNumber = getPageNumber(pageJob);
+  const currentPagePostNumber = getPageNumber(pagePost);
 
-  const skipEvents = (pageEventNumber - 1) * limitEvents;
-  const skipJobs = (pageJobNumber - 1) * limitJobs;
-  const skipPosts = (pagePostNumber - 1) * limitPosts;
+  const skipEvents = (currentPageEventNumber - 1) * limitEvents;
+  const skipJobs = (currentPageJobNumber - 1) * limitJobs;
+  const skipPosts = (currentPagePostNumber - 1) * limitPosts;
 
   const userData = await prisma.user.findUnique({
     where: {
@@ -265,28 +265,28 @@ const _getUserProfileData = async (targetUserId, pageEvent = 1, pageJob = 1, pag
     events: eventsUserData.map((event) => formattedEvent(event)),
     posts: postsUserData,
     paginationEvents: {
-      page: pageEventNumber,
+      page: currentPageEventNumber,
       limit: limitEvents,
       totalItems: totalEvents,
       totalPages: totalPagesEvents,
-      hasNextPage: pageEventNumber < totalPagesEvents,
-      hasPreviousPage: pageEventNumber > 1,
+      hasNextPage: currentPageEventNumber < totalPagesEvents,
+      hasPreviousPage: currentPageEventNumber > 1,
     },
     paginationJobs: {
-      page: pageJobNumber,
+      page: currentPageJobNumber,
       limit: limitJobs,
       totalItems: totalJobs,
       totalPages: totalPagesJobs,
-      hasNextPage: pageJobNumber < totalPagesJobs,
-      hasPreviousPage: pageJobNumber > 1,
+      hasNextPage: currentPageJobNumber < totalPagesJobs,
+      hasPreviousPage: currentPageJobNumber > 1,
     },
     paginationPosts: {
-      page: pagePostNumber,
+      page: currentPagePostNumber,
       limit: limitPosts,
       totalItems: totalPosts,
       totalPages: totalPagesPosts,
-      hasNextPage: pagePostNumber < totalPagesPosts,
-      hasPreviousPage: pagePostNumber > 1,
+      hasNextPage: currentPagePostNumber < totalPagesPosts,
+      hasPreviousPage: currentPagePostNumber > 1,
     },
   };
 };

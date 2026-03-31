@@ -24,9 +24,9 @@ export const loadFeed = async (page = 1, userToken) => {
 
     const limit = 20;
 
-    const pageNumber = getPageNumber(page);
+    const currentPageNumber = getPageNumber(page);
 
-    const skip = (pageNumber - 1) * limit;
+    const skip = (currentPageNumber - 1) * limit;
 
     const [posts, totalPosts, users, events, jobs] = await Promise.all([
       prisma.post.findMany({
@@ -259,12 +259,12 @@ export const loadFeed = async (page = 1, userToken) => {
       latestEvents: formattedEvents,
       latestJobs: formattedJobs,
       pagination: {
-        page: pageNumber,
+        page: currentPageNumber,
         limit: limit,
         totalItems: totalPosts,
         totalPages: totalPages,
-        hasNextPage: pageNumber < totalPages,
-        hasPreviousPage: pageNumber > 1,
+        hasNextPage: currentPageNumber < totalPages,
+        hasPreviousPage: currentPageNumber > 1,
       },
     };
   });

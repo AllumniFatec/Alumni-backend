@@ -50,10 +50,6 @@ export function isValidHttpUrl(url) {
   }
 }
 
-export function isValidObjectId(id) {
-  return ObjectId.isValid(id);
-}
-
 export function getPageNumber(page) {
   return Math.max(1, Number(page) || 1);
 }

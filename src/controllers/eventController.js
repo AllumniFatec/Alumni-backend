@@ -1,6 +1,5 @@
 import * as eventService from '../services/eventService.js';
 import CustomError from '../utils/CustomError.js';
-import { isValidObjectId } from '../utils/validations.js';
 
 export const createEvent = async (req, res) => {
   try {
@@ -39,10 +38,6 @@ export const getEventById = async (req, res) => {
     const user = req.user;
     const eventId = req.params.id;
 
-    if (!isValidObjectId(eventId)) {
-      throw new CustomError('Id inválido', 400);
-    }
-
     const event = await eventService.getEventById(user, eventId);
 
     return res.status(200).json(event);
@@ -60,10 +55,6 @@ export const updateEvent = async (req, res) => {
     const eventId = req.params.id;
     const data = req.body;
 
-    if (!isValidObjectId(eventId)) {
-      throw new CustomError('Id inválido', 400);
-    }
-
     const updatedEvent = await eventService.updateEvent(user, eventId, data);
 
     return res.status(200).json(updatedEvent);
@@ -80,10 +71,6 @@ export const deleteEvent = async (req, res) => {
     const user = req.user;
     const eventId = req.params.id;
 
-    if (!isValidObjectId(eventId)) {
-      throw new CustomError('Id inválido', 400);
-    }
-
     const deletedEvent = await eventService.deleteEvent(user, eventId);
 
     return res.status(200).json(deletedEvent);
@@ -99,10 +86,6 @@ export const closeEvent = async (req, res) => {
   try {
     const user = req.user;
     const eventId = req.params.id;
-
-    if (!isValidObjectId(eventId)) {
-      throw new CustomError('Id inválido', 400);
-    }
 
     const closedEvent = await eventService.closeEvent(user, eventId);
 
