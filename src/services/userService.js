@@ -229,10 +229,21 @@ export const getUsers = async (userToken, page = 1) => {
           select: {
             course_name: true,
             enrollmentYear: true,
+            abbreviation: true,
           },
         },
         perfil_photo: true,
         user_type: true,
+        skills: {
+          select: {
+            user_skill_id: true,
+            skill: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
         workplace_history: {
           orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
           select: {
@@ -277,6 +288,7 @@ export const getUserById = async (userToken, userId) => {
           select: {
             course_name: true,
             enrollmentYear: true,
+            abbreviation: true,
           },
         },
         workplace_history: {
@@ -296,12 +308,14 @@ export const getUserById = async (userToken, userId) => {
         },
         social_media: {
           select: {
+            id: true,
             type: true,
             url: true,
           },
         },
         skills: {
           select: {
+            user_skill_id: true,
             skill: {
               select: {
                 name: true,
