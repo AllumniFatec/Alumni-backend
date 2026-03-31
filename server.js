@@ -13,7 +13,7 @@ import eventRoutes from './src/routes/eventRouter.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { env } from './src/config/env.js';
-import './src/queues/emailWorker.js';
+import './src/workers/emailWorker.js';
 
 const app = express();
 

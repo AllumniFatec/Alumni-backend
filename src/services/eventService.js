@@ -121,7 +121,7 @@ export const getEvents = async (userToken, page = 1) => {
   const user_id = userToken.id;
 
   return authenticateUser(user_id, actions.getEvents, async (user) => {
-    const limit = 20;
+    const limit = 10;
     const currentPageNumber = getPageNumber(page);
     const skip = (currentPageNumber - 1) * limit;
 

@@ -1,7 +1,7 @@
 import { PrismaClient } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
-import { formatPost, postSelectForApi } from './postApiFormatter.js';
+import { formatPost, postSelectForApi } from '../utils/postApiFormatter.js';
 
 const prisma = new PrismaClient();
 

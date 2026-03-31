@@ -1,7 +1,12 @@
 import { PrismaClient, UserGender, SocialMediaType } from '../generated/prisma/index.js';
 import { findOrCreateWorkplace, formatJobListItem } from './jobService.js';
-import { formatPost, postSelectForApi } from './postApiFormatter.js';
-import { normalizeText, capitalizeWords, isValidHttpUrl } from '../utils/validations.js';
+import { formatPost, postSelectForApi } from '../utils/postApiFormatter.js';
+import {
+  normalizeText,
+  capitalizeWords,
+  isValidHttpUrl,
+  getPageNumber,
+} from '../utils/validations.js';
 import CustomError from '../utils/CustomError.js';
 import levenshtein from 'fast-levenshtein';
 import cloudinary from '../config/cloudinary.js';
@@ -1176,13 +1181,6 @@ export const searchUsers = async (userToken, search) => {
           // ✅ apenas usuários ativos
           {
             user_status: 'Active',
-          },
-
-          // ✅ excluir admins
-          {
-            user_type: {
-              not: 'Admin',
-            },
           },
 
           // ✅ lógica de busca
