@@ -1,7 +1,7 @@
 import { PrismaClient } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
-import { capitalizeWords } from '../utils/validations.js';
+import { capitalizeWords, getPageNumber } from '../utils/validations.js';
 import { parse } from 'date-fns';
 
 const prisma = new PrismaClient();
@@ -121,9 +121,9 @@ export const getEvents = async (userToken, page = 1) => {
   const user_id = userToken.id;
 
   return authenticateUser(user_id, actions.getEvents, async (user) => {
-    const limit = 10;
-    const pageNumber = Math.max(1, Number(page) || 1);
-    const skip = (pageNumber - 1) * limit;
+    const limit = 20;
+    const currentPageNumber = getPageNumber(page);
+    const skip = (currentPageNumber - 1) * limit;
 
     // Lista apenas Active. Não filtrar por `date_start >= now` aqui: isso
     // escondia eventos recém-criados quando o horário já tinha passado ou
@@ -159,12 +159,12 @@ export const getEvents = async (userToken, page = 1) => {
     return {
       data: events.map((event) => formattedEvent(event)),
       pagination: {
-        page: pageNumber,
+        page: currentPageNumber,
         limit,
         totalItems: total,
         totalPages,
-        hasNextPage: pageNumber < totalPages,
-        hasPreviousPage: pageNumber > 1,
+        hasNextPage: currentPageNumber < totalPages,
+        hasPreviousPage: currentPageNumber > 1,
       },
     };
   });

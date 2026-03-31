@@ -1,4 +1,5 @@
 import CustomError from './CustomError.js';
+import { ObjectId } from 'mongodb';
 
 export function validatePassword(password) {
   const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
@@ -47,4 +48,8 @@ export function isValidHttpUrl(url) {
   } else {
     throw new CustomError('URL informada inválida', 400);
   }
+}
+
+export function getPageNumber(page) {
+  return Math.max(1, Number(page) || 1);
 }
