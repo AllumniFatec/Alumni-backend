@@ -1,5 +1,11 @@
 import * as userService from '../services/userService.js';
 import CustomError from '../utils/CustomError.js';
+import { logUserAction } from '../modules/auditLog/auditLog.helper.js';
+import {
+  PROFILE_UPDATED,
+  PROFILE_DELETED,
+  WORKPLACE_CREATED,
+} from '../common/enums/auditActions.js';
 
 export const getUsers = async (req, res) => {
   try {
@@ -57,6 +63,18 @@ export const insertWorkplace = async (req, res) => {
 
     const userJob = await userService.insertWorkplace(user, data);
 
+    await logUserAction(req, {
+      action: WORKPLACE_CREATED,
+      entity: 'WORKPLACE',
+      description: 'Workplace adicionado ao histórico profissional',
+      metadata: {
+        company: data?.company ?? data?.workplace_name ?? undefined,
+        position: data?.position,
+        start_date: data?.start_date,
+        end_date: data?.end_date,
+      },
+    });
+
     return res.status(201).json({ message: 'Trabalho inserido com sucesso!' });
   } catch (err) {
     if (err instanceof CustomError) {
@@ -72,6 +90,14 @@ export const updateProfilePhoto = async (req, res) => {
     const image = req.file.buffer;
 
     const upload = await userService.updateProfilePhoto(user, image);
+
+    await logUserAction(req, {
+      action: PROFILE_UPDATED,
+      entity: 'PROFILE',
+      entityId: user?.id,
+      description: 'Foto de perfil atualizada',
+      metadata: undefined,
+    });
 
     return res.status(200).json({ message: 'Foto de perfil atualizada com sucesso!' });
   } catch (err) {
@@ -89,6 +115,16 @@ export const updateMyProfile = async (req, res) => {
 
     const updatedProfile = await userService.updateMyProfile(user, data);
 
+    await logUserAction(req, {
+      action: PROFILE_UPDATED,
+      entity: 'PROFILE',
+      entityId: user?.id,
+      description: 'Perfil atualizado',
+      metadata: {
+        updated_fields: Object.keys(data || {}),
+      },
+    });
+
     return res.status(200).json({ message: 'Perfil atualizado com sucesso!' });
   } catch (err) {
     if (err instanceof CustomError) {
@@ -103,6 +139,14 @@ export const deleteMyProfile = async (req, res) => {
     const user = req.user;
 
     const deletedProfile = await userService.deleteMyProfile(user);
+
+    await logUserAction(req, {
+      action: PROFILE_DELETED,
+      entity: 'PROFILE',
+      entityId: user?.id,
+      description: 'Perfil excluído',
+      metadata: undefined,
+    });
 
     return res.status(200).json({ message: 'Perfil excluído com sucesso!' });
   } catch (err) {
@@ -120,6 +164,14 @@ export const updateWorkplace = async (req, res) => {
 
     const userJob = await userService.updateWorkplace(user, data);
 
+    await logUserAction(req, {
+      action: PROFILE_UPDATED,
+      entity: 'PROFILE',
+      entityId: user?.id,
+      description: 'Histórico profissional atualizado',
+      metadata: { updated_fields: Object.keys(data || {}) },
+    });
+
     return res.status(200).json({ message: 'Trabalho atualizado com sucesso!' });
   } catch (err) {
     if (err instanceof CustomError) {
@@ -135,6 +187,14 @@ export const deleteWorkplace = async (req, res) => {
     const userJobId = req.body.jobUserId;
 
     const deletedJob = await userService.deleteWorkplace(user, userJobId);
+
+    await logUserAction(req, {
+      action: PROFILE_UPDATED,
+      entity: 'PROFILE',
+      entityId: user?.id,
+      description: 'Histórico profissional removido',
+      metadata: { workplace_user_id: userJobId },
+    });
 
     return res.status(200).json({ message: 'Trabalho excluído com sucesso!' });
   } catch (err) {
@@ -152,6 +212,14 @@ export const insertSkill = async (req, res) => {
 
     const insertSkill = await userService.insertUserSkill(user, skill);
 
+    await logUserAction(req, {
+      action: PROFILE_UPDATED,
+      entity: 'PROFILE',
+      entityId: user?.id,
+      description: 'Skill adicionada ao perfil',
+      metadata: { skill },
+    });
+
     return res.status(201).json({ message: 'Habilidade inserida com sucesso!' });
   } catch (err) {
     if (err instanceof CustomError) {
@@ -167,6 +235,14 @@ export const deleteSkill = async (req, res) => {
     const skill = req.body;
 
     const deletedSkill = await userService.deleteUserSkill(user, skill);
+
+    await logUserAction(req, {
+      action: PROFILE_UPDATED,
+      entity: 'PROFILE',
+      entityId: user?.id,
+      description: 'Skill removida do perfil',
+      metadata: { skill },
+    });
 
     return res.status(200).json({ message: 'Habilidade excluída com sucesso!' });
   } catch (err) {

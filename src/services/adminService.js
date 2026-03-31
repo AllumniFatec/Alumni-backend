@@ -109,7 +109,11 @@ export const approveUser = async (userToken, alumniId, protocol, host) => {
   return authenticateUser(user_id, actions.approveUser, async (user) => {
     verifyAdminUser(user, actions.approveUser);
 
-    const targetUser = await prisma.user.findUnique({
+    if (!alumni_id) {
+      throw new CustomError('Usuário alvo inválido!', 400);
+    }
+
+    const targetUser = await prisma.user.findFirst({
       where: {
         user_id: alumni_id,
         user_status: 'InAnalysis',
@@ -125,7 +129,7 @@ export const approveUser = async (userToken, alumniId, protocol, host) => {
     }
 
     try {
-      await prisma.user.update({
+      const { count } = await prisma.user.updateMany({
         where: {
           user_id: alumni_id,
           user_status: 'InAnalysis',
@@ -134,6 +138,10 @@ export const approveUser = async (userToken, alumniId, protocol, host) => {
           user_status: 'Active',
         },
       });
+
+      if (count === 0) {
+        throw new CustomError('Usuário já processado!', 404);
+      }
 
       const urlPlatform = `${protocol}://${host}/sign-in`;
       const message = messageApproveUser(targetUser.name, urlPlatform);
@@ -158,7 +166,11 @@ export const refuseUser = async (userToken, alumniId, protocol, host) => {
   return authenticateUser(user_id, actions.refuseUser, async (user) => {
     verifyAdminUser(user, actions.refuseUser);
 
-    const targetUser = await prisma.user.findUnique({
+    if (!alumni_id) {
+      throw new CustomError('Usuário alvo inválido!', 400);
+    }
+
+    const targetUser = await prisma.user.findFirst({
       where: {
         user_id: alumni_id,
         user_status: 'InAnalysis',
@@ -174,7 +186,7 @@ export const refuseUser = async (userToken, alumniId, protocol, host) => {
     }
 
     try {
-      await prisma.user.update({
+      const { count } = await prisma.user.updateMany({
         where: {
           user_id: alumni_id,
           user_status: 'InAnalysis',
@@ -183,6 +195,10 @@ export const refuseUser = async (userToken, alumniId, protocol, host) => {
           user_status: 'Refused',
         },
       });
+
+      if (count === 0) {
+        throw new CustomError('Usuário já processado!', 404);
+      }
 
       const urlPlatform = `${protocol}://${host}/sign-up`;
       const message = messageRefuseUser(targetUser.name, urlPlatform);

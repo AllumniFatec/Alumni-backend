@@ -1,5 +1,7 @@
 import * as jobService from '../services/jobService.js';
 import CustomError from '../utils/CustomError.js';
+import { logUserAction } from '../modules/auditLog/auditLog.helper.js';
+import { JOB_CREATED, JOB_UPDATED, JOB_DELETED } from '../common/enums/auditActions.js';
 
 export const createJob = async (req, res) => {
   try {
@@ -7,6 +9,16 @@ export const createJob = async (req, res) => {
     const data = req.body;
 
     const job = await jobService.createJob(data, user);
+
+    await logUserAction(req, {
+      action: JOB_CREATED,
+      entity: 'JOB',
+      description: 'Vaga criada',
+      metadata: {
+        title: data?.title,
+        workplace_name: data?.workplace_name,
+      },
+    });
 
     return res.status(201).json({ message: 'Vaga criada com sucesso!' });
   } catch (err) {
@@ -57,6 +69,14 @@ export const updateJob = async (req, res) => {
 
     const updatedJob = await jobService.updateJob(jobId, data, user);
 
+    await logUserAction(req, {
+      action: JOB_UPDATED,
+      entity: 'JOB',
+      entityId: jobId,
+      description: 'Vaga atualizada',
+      metadata: { updated_fields: Object.keys(data || {}) },
+    });
+
     return res.status(200).json({ message: 'Vaga atualizada com sucesso!' });
   } catch (err) {
     if (err instanceof CustomError) {
@@ -72,6 +92,14 @@ export const deleteJob = async (req, res) => {
     const user = req.user;
 
     const deletedJob = await jobService.deleteJob(jobId, user);
+
+    await logUserAction(req, {
+      action: JOB_DELETED,
+      entity: 'JOB',
+      entityId: jobId,
+      description: 'Vaga excluída',
+      metadata: undefined,
+    });
 
     return res.status(200).json({ message: 'Vaga excluída com sucesso!' });
   } catch (err) {

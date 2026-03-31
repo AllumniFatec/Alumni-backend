@@ -144,3 +144,43 @@ export const loginUser = async (userInfo) => {
   );
   return token;
 };
+
+/**
+ * Variante do login que também retorna o userId para auditoria.
+ * Mantém o `loginUser` existente para não quebrar usos atuais.
+ */
+export const loginUserWithUserId = async (userInfo) => {
+  validations.validateEmail(userInfo.email);
+
+  const user = await prisma.user.findUnique({
+    where: { email: userInfo.email },
+  });
+
+  if (!user) {
+    throw new CustomError('Usuário não encontrado!', 404);
+  }
+
+  if (user.user_status !== 'Active') {
+    throw new CustomError('Usuário não autorizado!', 403);
+  }
+
+  validations.validatePassword(userInfo.password);
+  const isMatch = await bcrypt.compare(userInfo.password, user.password);
+
+  if (!isMatch) {
+    throw new CustomError('Senha incorreta!', 401);
+  }
+
+  const isAdmin = user.user_type == 'Admin';
+
+  const token = jwt.sign(
+    {
+      id: user.user_id,
+      admin: isAdmin,
+    },
+    env.jwtSecret,
+    { expiresIn: '5d' }
+  );
+
+  return { token, userId: user.user_id };
+};

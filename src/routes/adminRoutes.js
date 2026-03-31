@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get('/admin/dashboard', auth, adminController.dashboard);
 router.get('/admin/usersInAnalysis', auth, adminController.listAllUsersInAnalysis);
-router.post('/admin/approve/:userId', auth, authId, adminController.approveUser);
-router.post('/admin/refuse/:userId', auth, authId, adminController.refuseUser);
+router.post('/admin/approve/:id', auth, authId, adminController.approveUser);
+router.post('/admin/refuse/:id', auth, authId, adminController.refuseUser);
 
 export default router;

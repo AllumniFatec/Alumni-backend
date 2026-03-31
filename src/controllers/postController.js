@@ -1,5 +1,7 @@
 import * as postService from '../services/postService.js';
 import CustomError from '../utils/CustomError.js';
+import { logUserAction } from '../modules/auditLog/auditLog.helper.js';
+import { POST_CREATED, POST_UPDATED, POST_DELETED } from '../common/enums/auditActions.js';
 
 export const createPost = async (req, res) => {
   try {
@@ -7,6 +9,14 @@ export const createPost = async (req, res) => {
     const data = req.body;
 
     const post = await postService.createPost(data, user);
+
+    await logUserAction(req, {
+      action: POST_CREATED,
+      entity: 'POST',
+      entityId: post?.post_id ?? post?.id,
+      description: 'Post criado',
+      metadata: undefined,
+    });
 
     return res.status(201).json({
       message: 'Postagem criada com sucesso!',
@@ -28,6 +38,14 @@ export const updatePost = async (req, res) => {
 
     const post = await postService.updatePost(postId, data, user);
 
+    await logUserAction(req, {
+      action: POST_UPDATED,
+      entity: 'POST',
+      entityId: postId,
+      description: 'Post atualizado',
+      metadata: { updated_fields: Object.keys(data || {}) },
+    });
+
     return res.status(200).json({
       message: 'Postagem atualizada com sucesso!',
       post,
@@ -46,6 +64,14 @@ export const deletePost = async (req, res) => {
     const user = req.user;
 
     const updatedPost = await postService.deletePost(postId, user);
+
+    await logUserAction(req, {
+      action: POST_DELETED,
+      entity: 'POST',
+      entityId: postId,
+      description: 'Post excluído',
+      metadata: undefined,
+    });
 
     return res.status(200).json({ message: 'Postagem deletada com sucesso!' });
   } catch (err) {
