@@ -55,6 +55,9 @@ const prepareUserData = async (userData) => {
 //Cadastro
 export const registerUser = async (data) => {
   const email = data.email;
+
+  validations.validateEmail(email);
+
   const existingUser = await prisma.user.findUnique({
     where: { email: email },
   });
