@@ -37,7 +37,7 @@ const prepareUserData = async (userData) => {
     password: hashPassword,
     gender: userData.gender,
     user_type: userData.userType,
-    student_id: userData.student_id,
+    student_id: userData.studentId,
     courses: {
       set: [
         {
