@@ -41,6 +41,7 @@ export const getDashboard = async (userToken) => {
         user_id: true,
         name: true,
         email: true,
+        student_id: true,
         courses: {
           select: {
             course_name: true,
@@ -85,6 +86,7 @@ export const listAllUsersInAnalysis = async (userToken, page = 1) => {
         user_id: true,
         name: true,
         email: true,
+        student_id: true,
         courses: {
           select: {
             course_name: true,

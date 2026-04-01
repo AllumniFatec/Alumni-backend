@@ -7,36 +7,37 @@ import { env } from '../config/env.js';
 
 const prisma = new PrismaClient();
 
-const prepareUserData = async (userInfo) => {
-  validations.validateEmail(userInfo.email);
+const prepareUserData = async (userData) => {
+  validations.validateEmail(userData.email);
 
-  if (!Object.values(UserType).includes(userInfo.userType)) {
+  if (!Object.values(UserType).includes(userData.userType)) {
     throw new CustomError('Tipo de usuário inválido!', 422);
   }
 
-  if (!Object.values(UserGender).includes(userInfo.gender)) {
+  if (!Object.values(UserGender).includes(userData.gender)) {
     throw new CustomError('Gênero de usuário inválido!', 422);
   }
 
   const course = await prisma.course.findUnique({
-    where: { name: userInfo.course },
+    where: { name: userData.course },
   });
 
   if (!course) {
     throw new CustomError('Curso informado inválido!', 422);
   }
 
-  validations.validatePassword(userInfo.password);
+  validations.validatePassword(userData.password);
 
   const salt = await bcrypt.genSalt(10);
-  const hashPassword = await bcrypt.hash(userInfo.password, salt);
+  const hashPassword = await bcrypt.hash(userData.password, salt);
 
   return {
-    name: userInfo.name,
-    email: userInfo.email,
+    name: userData.name,
+    email: userData.email,
     password: hashPassword,
-    gender: userInfo.gender,
-    user_type: userInfo.userType,
+    gender: userData.gender,
+    user_type: userData.userType,
+    student_id: userData.student_id,
     courses: {
       set: [
         {
@@ -44,7 +45,7 @@ const prepareUserData = async (userInfo) => {
           course_name: course.name,
           course_search: course.normalize_name,
           abbreviation: course.abbreviation,
-          enrollmentYear: Number(userInfo.enrollmentYear),
+          enrollmentYear: Number(userData.enrollmentYear),
         },
       ],
     },
@@ -52,12 +53,13 @@ const prepareUserData = async (userInfo) => {
 };
 
 //Cadastro
-export const registerUser = async (userInfo) => {
+export const registerUser = async (data) => {
+  const email = data.email;
   const existingUser = await prisma.user.findUnique({
-    where: { email: userInfo.email },
+    where: { email: email },
   });
 
-  const userData = await prepareUserData(userInfo);
+  const userData = await prepareUserData(data);
 
   if (existingUser?.user_status === 'Refused') {
     await prisma.user.update({
@@ -110,11 +112,11 @@ export const getMe = async (userId) => {
 };
 
 //Login
-export const loginUser = async (userInfo) => {
-  validations.validateEmail(userInfo.email);
+export const loginUser = async (userData) => {
+  validations.validateEmail(userData.email);
 
   const user = await prisma.user.findUnique({
-    where: { email: userInfo.email },
+    where: { email: userData.email },
   });
 
   if (!user) {
@@ -125,8 +127,8 @@ export const loginUser = async (userInfo) => {
     throw new CustomError('Usuário não autorizado!', 403);
   }
 
-  validations.validatePassword(userInfo.password);
-  const isMatch = await bcrypt.compare(userInfo.password, user.password);
+  validations.validatePassword(userData.password);
+  const isMatch = await bcrypt.compare(userData.password, user.password);
 
   if (!isMatch) {
     throw new CustomError('Senha incorreta!', 401);
