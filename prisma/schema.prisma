@@ -14,6 +14,7 @@ model User {
   email                  String @unique
   password               String
   gender                 UserGender
+  student_id             String?
   biography              String?
   perfil_photo           Json?
   receive_notifications  Boolean @default(true)
