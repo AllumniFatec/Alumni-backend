@@ -95,7 +95,11 @@ export const createJob = async (data, userToken) => {
     url,
   } = data;
 
-  if (Object.values(data).some((value) => !value)) {
+  if (
+    Object.entries(data)
+      .filter(([key]) => key !== 'url')
+      .some(([, value]) => !value)
+  ) {
     throw new CustomError('Todos os campos são obrigatórios', 400);
   }
 
@@ -319,7 +323,11 @@ export const updateJob = async (jobId, data, userToken) => {
   } = data;
   const job_id = jobId;
 
-  if (Object.values(data).some((value) => !value)) {
+  if (
+    Object.entries(data)
+      .filter(([key]) => key !== 'url')
+      .some(([, value]) => !value)
+  ) {
     throw new CustomError('Todos os campos são obrigatórios', 400);
   }
 
