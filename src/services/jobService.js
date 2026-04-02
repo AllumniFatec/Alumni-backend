@@ -115,7 +115,9 @@ export const createJob = async (data, userToken) => {
     throw new CustomError('A descrição da vaga deve conter no máximo 3500 caracteres', 400);
   }
 
-  isValidHttpUrl(url);
+  if (url) {
+    isValidHttpUrl(url);
+  }
 
   return authenticateUser(user_id, actions.createJob, async (user) => {
     const company = capitalizeWords(workplace_name.trim());
@@ -313,6 +315,7 @@ export const updateJob = async (jobId, data, userToken) => {
     seniority_level,
     work_model,
     workplace_name,
+    url,
   } = data;
   const job_id = jobId;
 
@@ -334,6 +337,10 @@ export const updateJob = async (jobId, data, userToken) => {
 
   if (description.length > 3500) {
     throw new CustomError('A descrição da vaga deve conter no máximo 3500 caracteres', 400);
+  }
+
+  if (url) {
+    isValidHttpUrl(url);
   }
 
   return authenticateUser(user_id, actions.updateJob, async (user) => {
@@ -367,6 +374,7 @@ export const updateJob = async (jobId, data, userToken) => {
           state: state,
           country: country,
         },
+        url: url,
         employment_type: employment_type,
         seniority_level: seniority_level,
         work_model: work_model,

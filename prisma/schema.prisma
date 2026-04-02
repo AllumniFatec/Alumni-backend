@@ -112,7 +112,7 @@ model Job {
   employment_type EmploymentType
   seniority_level SeniorityLevel
   work_model      WorkModel
-  url             String
+  url             String?
 
   workplace_id    String @db.ObjectId
   workplace       Workplace @relation(fields: [workplace_id], references: [workplace_id])
