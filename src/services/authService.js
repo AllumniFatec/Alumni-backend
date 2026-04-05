@@ -56,8 +56,6 @@ const prepareUserData = async (userData) => {
 export const registerUser = async (data) => {
   const email = data.email;
 
-  validations.validateEmail(email);
-
   const existingUser = await prisma.user.findUnique({
     where: { email: email },
   });
