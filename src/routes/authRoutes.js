@@ -7,13 +7,13 @@ const router = express.Router();
 
 const registerRateLimit = createRateLimit({
   keyPrefix: 'auth-register',
-  windowSeconds: 60 * 15, //5 minutos
+  windowSeconds: 60 * 5, //5 minutos
   maxRequests: 5,
 });
 
 const loginRateLimit = createRateLimit({
   keyPrefix: 'auth-login',
-  windowSeconds: 60 * 15, //5 minutos
+  windowSeconds: 60 * 5, //5 minutos
   maxRequests: 5,
 });
 

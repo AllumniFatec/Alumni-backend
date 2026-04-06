@@ -23,12 +23,12 @@ export const createRateLimit = ({
     const redisKey = `ratelimit:${keyPrefix}:${identifier}`;
 
     try {
-      const requestCount = await redisClient.incr(redisKey);
-      if (requestCount === 1) {
-        await redisClient.expire(redisKey, windowSeconds);
-      }
-
-      const ttl = await redisClient.ttl(redisKey);
+      const [requestCount, ttl] = await redisClient.eval(
+        "local c = redis.call('INCR', KEYS[1]) if c == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end return {c, redis.call('TTL', KEYS[1])}",
+        1,
+        redisKey,
+        windowSeconds
+      );
       const retryAfterSeconds = Math.max(ttl, 0);
       const remaining = Math.max(maxRequests - requestCount, 0);
 

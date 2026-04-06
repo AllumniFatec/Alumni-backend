@@ -6,13 +6,13 @@ const router = express.Router();
 
 const forgotPasswordRateLimit = createRateLimit({
   keyPrefix: 'password-forgot',
-  windowSeconds: 60 * 15, //5 minutos
+  windowSeconds: 60 * 5, //5 minutos
   maxRequests: 3,
 });
 
 const resetPasswordRateLimit = createRateLimit({
   keyPrefix: 'password-reset',
-  windowSeconds: 60 * 15, //5 minutos
+  windowSeconds: 60 * 5, //5 minutos
   maxRequests: 5,
 });
 
