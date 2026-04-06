@@ -9,7 +9,7 @@ const router = express.Router();
 const adminMutationsRateLimit = createRateLimit({
   keyPrefix: 'admin-mutations',
   windowSeconds: 60,
-  maxRequests: 20,
+  maxRequests: 10,
   getIdentifier: (req) => req.user?.id || req.user?.userId,
 });
 

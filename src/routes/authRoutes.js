@@ -7,14 +7,14 @@ const router = express.Router();
 
 const registerRateLimit = createRateLimit({
   keyPrefix: 'auth-register',
-  windowSeconds: 60 * 10,
+  windowSeconds: 60 * 15, //5 minutos
   maxRequests: 5,
 });
 
 const loginRateLimit = createRateLimit({
   keyPrefix: 'auth-login',
-  windowSeconds: 60 * 10,
-  maxRequests: 10,
+  windowSeconds: 60 * 15, //5 minutos
+  maxRequests: 5,
 });
 
 router.post('/auth/register', registerRateLimit, authController.register);

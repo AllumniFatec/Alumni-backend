@@ -34,10 +34,7 @@ export const createRateLimit = ({
 
       res.setHeader('X-RateLimit-Limit', String(maxRequests));
       res.setHeader('X-RateLimit-Remaining', String(remaining));
-      res.setHeader(
-        'X-RateLimit-Reset',
-        String(Math.floor(now / 1000) + retryAfterSeconds)
-      );
+      res.setHeader('X-RateLimit-Reset', String(Math.floor(now / 1000) + retryAfterSeconds));
 
       if (requestCount > maxRequests) {
         res.setHeader('Retry-After', String(retryAfterSeconds));
@@ -54,4 +51,3 @@ export const createRateLimit = ({
     }
   };
 };
-
