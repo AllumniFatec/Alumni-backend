@@ -6,7 +6,7 @@ import {
 } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
-import { capitalizeWords } from '../utils/validations.js';
+import { capitalizeWords, isValidHttpUrl, getPageNumber } from '../utils/validations.js';
 import levenshtein from 'fast-levenshtein';
 
 const actions = {
@@ -18,6 +18,20 @@ const actions = {
 };
 
 const prisma = new PrismaClient();
+
+/** Mesmo shape retornado por GET /job (listagem / feed). Reutilizado em getMyProfile. */
+export const formatJobListItem = (job) => ({
+  id: job.job_id,
+  title: job.title,
+  author_id: job.author_id,
+  workplace: job.workplace.company,
+  city: job.location.city,
+  state: job.location.state,
+  employment_type: job.employment_type,
+  work_model: job.work_model,
+  status: job.status,
+  create_date: job.create_date,
+});
 
 export const findOrCreateWorkplace = async (company) => {
   let companyData;
@@ -78,9 +92,14 @@ export const createJob = async (data, userToken) => {
     seniority_level,
     work_model,
     workplace_name,
+    url,
   } = data;
 
-  if (Object.values(data).some((value) => !value)) {
+  if (
+    Object.entries(data)
+      .filter(([key]) => key !== 'url')
+      .some(([, value]) => !value)
+  ) {
     throw new CustomError('Todos os campos são obrigatórios', 400);
   }
 
@@ -98,6 +117,10 @@ export const createJob = async (data, userToken) => {
 
   if (description.length > 3500) {
     throw new CustomError('A descrição da vaga deve conter no máximo 3500 caracteres', 400);
+  }
+
+  if (url) {
+    isValidHttpUrl(url);
   }
 
   return authenticateUser(user_id, actions.createJob, async (user) => {
@@ -119,6 +142,7 @@ export const createJob = async (data, userToken) => {
         work_model: work_model,
         workplace_id: company_id,
         author_id: user.user_id,
+        url: url,
       },
     });
 
@@ -130,61 +154,71 @@ export const getJobs = async (userToken, page = 1) => {
   const user_id = userToken.id;
 
   const limit = 20;
-  const skip = (page - 1) * limit;
+  const currentPageNumber = getPageNumber(page);
+  const skip = (currentPageNumber - 1) * limit;
 
   return authenticateUser(user_id, actions.getJobs, async (user) => {
-    const jobs = await prisma.job.findMany({
-      take: limit,
-      skip: skip,
-      where: {
-        status: {
-          not: 'Deleted',
-        },
-      },
-      orderBy: {
-        create_date: 'desc',
-      },
-      select: {
-        job_id: true,
-        title: true,
-        author_id: true,
-        workplace: {
-          select: {
-            company: true,
+    const [jobs, total] = await Promise.all([
+      prisma.job.findMany({
+        take: limit,
+        skip: skip,
+        where: {
+          status: {
+            not: 'Deleted',
           },
         },
-        author: {
-          select: {
-            user_id: true,
-          },
+        orderBy: {
+          create_date: 'desc',
         },
-        location: {
-          select: {
-            city: true,
-            state: true,
+        select: {
+          job_id: true,
+          title: true,
+          author_id: true,
+          workplace: {
+            select: {
+              company: true,
+            },
           },
+          author: {
+            select: {
+              user_id: true,
+            },
+          },
+          location: {
+            select: {
+              city: true,
+              state: true,
+            },
+          },
+          employment_type: true,
+          work_model: true,
+          status: true,
+          create_date: true,
         },
-        employment_type: true,
-        work_model: true,
-        status: true,
-        create_date: true,
-      },
-    });
+      }),
 
-    const formattedJobs = jobs.map((job) => ({
-      id: job.job_id,
-      title: job.title,
-      author_id: job.author_id,
-      workplace: job.workplace.company,
-      city: job.location.city,
-      state: job.location.state,
-      employment_type: job.employment_type,
-      work_model: job.work_model,
-      status: job.status,
-      create_date: job.create_date,
-    }));
+      prisma.job.count({
+        where: {
+          status: {
+            not: 'Deleted',
+          },
+        },
+      }),
+    ]);
 
-    return formattedJobs;
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      jobs: jobs.map(formatJobListItem),
+      pagination: {
+        page: currentPageNumber,
+        limit: limit,
+        totalItems: total,
+        totalPages: totalPages,
+        hasNextPage: currentPageNumber < totalPages,
+        hasPreviousPage: currentPageNumber > 1,
+      },
+    };
   });
 };
 
@@ -219,6 +253,7 @@ export const getJobById = async (userToken, jobId) => {
             name: true,
             perfil_photo: true,
             workplace_history: {
+              orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
               select: {
                 workplace: {
                   select: {
@@ -239,6 +274,7 @@ export const getJobById = async (userToken, jobId) => {
         work_model: true,
         status: true,
         create_date: true,
+        //url: true,
       },
     });
 
@@ -264,6 +300,7 @@ export const getJobById = async (userToken, jobId) => {
       work_model: job.work_model,
       status: job.status,
       create_date: job.create_date,
+      url: job.url,
     };
 
     return formattedJob;
@@ -282,10 +319,15 @@ export const updateJob = async (jobId, data, userToken) => {
     seniority_level,
     work_model,
     workplace_name,
+    url,
   } = data;
   const job_id = jobId;
 
-  if (Object.values(data).some((value) => !value)) {
+  if (
+    Object.entries(data)
+      .filter(([key]) => key !== 'url')
+      .some(([, value]) => !value)
+  ) {
     throw new CustomError('Todos os campos são obrigatórios', 400);
   }
 
@@ -303,6 +345,10 @@ export const updateJob = async (jobId, data, userToken) => {
 
   if (description.length > 3500) {
     throw new CustomError('A descrição da vaga deve conter no máximo 3500 caracteres', 400);
+  }
+
+  if (url) {
+    isValidHttpUrl(url);
   }
 
   return authenticateUser(user_id, actions.updateJob, async (user) => {
@@ -336,6 +382,7 @@ export const updateJob = async (jobId, data, userToken) => {
           state: state,
           country: country,
         },
+        url: url,
         employment_type: employment_type,
         seniority_level: seniority_level,
         work_model: work_model,

@@ -21,8 +21,9 @@ export const getUserById = async (req, res) => {
   try {
     const user = req.user;
     const userId = req.params.id;
+    const { pageEvent, pageJob, pagePost } = req.query;
 
-    const userData = await userService.getUserById(user, userId);
+    const userData = await userService.getUserById(user, userId, pageEvent, pageJob, pagePost);
 
     return res.status(200).json(userData);
   } catch (err) {
@@ -36,8 +37,9 @@ export const getUserById = async (req, res) => {
 export const getMyProfile = async (req, res) => {
   try {
     const user = req.user;
+    const { pageEvent, pageJob, pagePost } = req.query;
 
-    const userData = await userService.getMyProfile(user);
+    const userData = await userService.getMyProfile(user, pageEvent, pageJob, pagePost);
 
     return res.status(200).json(userData);
   } catch (err) {
@@ -48,12 +50,12 @@ export const getMyProfile = async (req, res) => {
   }
 };
 
-export const insertJob = async (req, res) => {
+export const insertWorkplace = async (req, res) => {
   try {
     const user = req.user;
     const data = req.body;
 
-    const userJob = await userService.insertJob(user, data);
+    const userJob = await userService.insertWorkplace(user, data);
 
     return res.status(201).json({ message: 'Trabalho inserido com sucesso!' });
   } catch (err) {
@@ -111,12 +113,12 @@ export const deleteMyProfile = async (req, res) => {
   }
 };
 
-export const updateJob = async (req, res) => {
+export const updateWorkplace = async (req, res) => {
   try {
     const user = req.user;
     const data = req.body;
 
-    const userJob = await userService.updateJob(user, data);
+    const userJob = await userService.updateWorkplace(user, data);
 
     return res.status(200).json({ message: 'Trabalho atualizado com sucesso!' });
   } catch (err) {
@@ -127,12 +129,12 @@ export const updateJob = async (req, res) => {
   }
 };
 
-export const deleteJob = async (req, res) => {
+export const deleteWorkplace = async (req, res) => {
   try {
     const user = req.user;
     const userJobId = req.body.jobUserId;
 
-    const deletedJob = await userService.deleteJob(user, userJobId);
+    const deletedJob = await userService.deleteWorkplace(user, userJobId);
 
     return res.status(200).json({ message: 'Trabalho excluído com sucesso!' });
   } catch (err) {

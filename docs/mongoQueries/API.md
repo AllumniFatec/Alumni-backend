@@ -1,4 +1,6 @@
-# 📚 Alumni Backend API
+<a id="doc-top"></a>
+
+# 📚 Alumni Backend API · [⬆️ topo](#doc-top)
 
 Documentação oficial da API do sistema **Alumni**.
 
@@ -6,14 +8,207 @@ Esta API fornece funcionalidades para:
 
 - autenticação de usuários
 - gerenciamento de cursos
+- criação de vagas
+- criação de eventos
 - criação de posts
 - comentários
 - likes
 - feed da aplicação
+- pesquisa de usuário
+- painel administrador
 
 ---
 
-# 🌐 Base URL
+# ⏱️ Timeline e índice · [⬆️ topo](#doc-top)
+
+<a id="whats-new"></a>
+
+### O que é novo nesta atualização
+
+**Novos endpoints (🆕)** — clique para abrir a spec:
+
+| Método | Endpoint                                                      |
+| ------ | ------------------------------------------------------------- |
+| POST   | [/post/like/:postId](#ep-post-post-like-postid)               |
+| GET    | [/user](#ep-get-user)                                         |
+| GET    | [/user/:userId](#ep-get-user-userid)🔄                        |
+| GET    | [/user/search](#ep-get-user-search)                           |
+| GET    | [/my-profile](#ep-get-myprofile)                              |
+| PUT    | [/my-profile](#ep-put-myprofile)                              |
+| PATCH  | [/my-profile/profile-photo](#ep-patch-myprofile-profilephoto) |
+| DELETE | [/my-profile](#ep-delete-myprofile)                           |
+| POST   | [/my-profile/workplace](#ep-post-myprofile-workplace)         |
+| PUT    | [/my-profile/workplace](#ep-put-myprofile-workplace)          |
+| DELETE | [/my-profile/workplace](#ep-delete-myprofile-workplace)       |
+| POST   | [/my-profile/skill](#ep-post-myprofile-skill)                 |
+| DELETE | [/my-profile/skill](#ep-delete-myprofile-skill)               |
+| POST   | [/my-profile/social-media](#ep-post-myprofile-socialmedia)    |
+| PATCH  | [/my-profile/social-media](#ep-patch-myprofile-socialmedia)   |
+| DELETE | [/my-profile/social-media](#ep-delete-myprofile-socialmedia)  |
+| GET    | [/admin/dashboard](#ep-get-admin-dashboard)                   |
+| GET    | [/admin/usersInAnalysis](#ep-get-admin-usersInAnalysis)       |
+| POST   | [/admin/approve/:userId](#ep-post-admin-approve-userId)       |
+| POST   | [/admin/refuse/:userId](#ep-post-admin-refuse-userId)         |
+| GET    | [/event](#ep-get-event) 🆕                                    |
+| GET    | [/event/:eventId](#ep-get-event-by-id) 🆕                     |
+| POST   | [/event](#ep-post-event) 🆕                                   |
+| PUT    | [/event/:eventId](#ep-put-event) 🆕                           |
+| DELETE | [/event/:eventId](#ep-delete-event) 🆕                        |
+| PATCH  | [/event/:eventId](#ep-patch-event) 🆕                         |
+
+**Núcleo original (sem 🆕)** — spec completa:
+
+| Módulo   | Endpoints                                                                                                                                                                                              |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Auth     | [POST /auth/register](#ep-post-auth-register) · [POST /auth/login](#ep-post-auth-login) · [POST /auth/logout](#ep-post-auth-logout) · [GET /auth/me](#ep-get-auth-me)                                  |
+| Courses  | [POST /course](#ep-post-course)                                                                                                                                                                        |
+| Feed     | [GET /feed](#ep-get-feed)                                                                                                                                                                              |
+| Posts    | [POST /post](#ep-post-post) · [PATCH /post/:postId](#ep-patch-post-postid) · [DELETE /post/:postId](#ep-delete-post-postid)                                                                            |
+| Comments | [POST /post/comment/:postId](#ep-post-post-comment-postid) · [PATCH /post/comment/:commentId](#ep-patch-post-comment-commentid) · [DELETE /post/comment/:commentId](#ep-delete-post-comment-commentid) |
+| Jobs     | [POST /job](#ep-post-job) · [GET /job](#ep-get-job) · [GET /job/:jobId](#ep-get-job-jobid) · [PATCH /job/:jobId](#ep-patch-job-jobid) · [DELETE /job/:jobId](#ep-delete-job-jobid)                     |
+| Password | [POST /password/forgot-password](#ep-post-password-forgot-password)                                                                                                                                    |
+
+**🔄 Alterado nesta doc** — revisar o corpo da seção:
+
+| Método | Endpoint                                                                   |
+| ------ | -------------------------------------------------------------------------- |
+| PATCH  | [/password/reset-password/:token](#ep-patch-password-reset-password-token) |
+| GET    | [/job](#ep-get-job)                                                        |
+| GET    | [/user/:userId](#ep-get-user-userid)                                       |
+| GET    | [/myProfile](#ep-get-myprofile)                                            |
+
+---
+
+Navegação rápida por **módulo** (clique para ir à seção). Endpoints marcados com 🆕 entraram em versões recentes da API; 🔄 indica alteração de contrato. **[Resumo: o que é novo](#whats-new)**
+
+|       Base       |           Auth           |        Courses        |        Feed        |        Posts        |        Comments        |        Likes        |        Jobs        |        Events        |        Users        |        Password        |        Admin        |            Ref.             |
+| :--------------: | :----------------------: | :-------------------: | :----------------: | :-----------------: | :--------------------: | :-----------------: | :----------------: | :------------------: | :-----------------: | :--------------------: | :-----------------: | :-------------------------: |
+| [URL](#base-url) | [JWT](#autenticacao-jwt) | [🎓](#modulo-courses) | [📰](#modulo-feed) | [📝](#modulo-posts) | [💬](#modulo-comments) | [❤️](#modulo-likes) | [📢](#modulo-jobs) | [📅](#modulo-events) | [👤](#modulo-users) | [🔑](#modulo-password) | [💻](#modulo-admin) | [Status](#ref-status-codes) |
+
+[⬆️ Voltar ao topo](#doc-top)
+
+**[Versionamento na documentação](#versionamento-doc)** · **[Estrutura dos módulos](#estrutura-api)**
+
+---
+
+### Auth
+
+| Método | Endpoint                                 |
+| ------ | ---------------------------------------- |
+| POST   | [/auth/register](#ep-post-auth-register) |
+| POST   | [/auth/login](#ep-post-auth-login)       |
+| POST   | [/auth/logout](#ep-post-auth-logout)     |
+| GET    | [/auth/me](#ep-get-auth-me)              |
+
+### Courses
+
+| Método | Endpoint                   |
+| ------ | -------------------------- |
+| POST   | [/course](#ep-post-course) |
+
+### Feed
+
+| Método | Endpoint              |
+| ------ | --------------------- |
+| GET    | [/feed](#ep-get-feed) |
+
+### Posts
+
+| Método | Endpoint                                |
+| ------ | --------------------------------------- |
+| POST   | [/post](#ep-post-post)                  |
+| PATCH  | [/post/:postId](#ep-patch-post-postid)  |
+| DELETE | [/post/:postId](#ep-delete-post-postid) |
+
+### Comments
+
+| Método | Endpoint                                                      |
+| ------ | ------------------------------------------------------------- |
+| POST   | [/post/comment/:postId](#ep-post-post-comment-postid)         |
+| PATCH  | [/post/comment/:commentId](#ep-patch-post-comment-commentid)  |
+| DELETE | [/post/comment/:commentId](#ep-delete-post-comment-commentid) |
+
+### Likes
+
+| Método | Endpoint                                        |
+| ------ | ----------------------------------------------- |
+| POST   | [/post/like/:postId](#ep-post-post-like-postid) |
+
+### Jobs
+
+| Método | Endpoint                            |
+| ------ | ----------------------------------- |
+| POST   | [/job](#ep-post-job)                |
+| GET    | [/job](#ep-get-job)                 |
+| GET    | [/job/:jobId](#ep-get-job-jobid)    |
+| PATCH  | [/job/:jobId](#ep-patch-job-jobid)  |
+| DELETE | [/job/:jobId](#ep-delete-job-jobid) |
+
+### Events
+
+| Método | Endpoint                               |
+| ------ | -------------------------------------- |
+| GET    | [/event](#ep-get-event)                |
+| GET    | [/event/:eventId](#ep-get-event-by-id) |
+| POST   | [/event](#ep-post-event)               |
+| PUT    | [/event/:eventId](#ep-put-event)       |
+| DELETE | [/event/:eventId](#ep-delete-event)    |
+| PATCH  | [/event/:eventId](#ep-patch-event)     |
+
+### Users
+
+| Método | Endpoint                                                      |
+| ------ | ------------------------------------------------------------- |
+| GET    | [/user](#ep-get-user)                                         |
+| GET    | [/user/:userId](#ep-get-user-userid)                          |
+| GET    | [/user/search](#ep-get-user-search)                           |
+| GET    | [/my-profile](#ep-get-myprofile)                              |
+| PUT    | [/my-profile](#ep-put-myprofile)                              |
+| PATCH  | [/my-profile/profile-photo](#ep-patch-myprofile-profilephoto) |
+| DELETE | [/my-profile](#ep-delete-myprofile)                           |
+| POST   | [/my-profile/workplace](#ep-post-myprofile-workplace)         |
+| PUT    | [/my-profile/workplace](#ep-put-myprofile-workplace)          |
+| DELETE | [/my-profile/workplace](#ep-delete-myprofile-workplace)       |
+| POST   | [/my-profile/skill](#ep-post-myprofile-skill)                 |
+| DELETE | [/my-profile/skill](#ep-delete-myprofile-skill)               |
+| POST   | [/my-profile/social-media](#ep-post-myprofile-socialmedia)    |
+| PATCH  | [/my-profile/social-media](#ep-patch-myprofile-socialmedia)   |
+| DELETE | [/my-profile/social-media](#ep-delete-myprofile-socialmedia)  |
+
+### Password
+
+| Método | Endpoint                                                                   |
+| ------ | -------------------------------------------------------------------------- |
+| POST   | [/password/forgot-password](#ep-post-password-forgot-password)             |
+| PATCH  | [/password/reset-password/:token](#ep-patch-password-reset-password-token) |
+
+### Admin
+
+| Método | Endpoint                                                |
+| ------ | ------------------------------------------------------- |
+| GET    | [/admin/dashboard](#ep-get-admin-dashboard)             |
+| GET    | [/admin/usersInAnalysis](#ep-get-admin-usersInAnalysis) |
+| POST   | [/admin/approve/:userId](#ep-post-admin-approve-userId) |
+| POST   | [/admin/refuse/:userId](#ep-post-admin-refuse-userId)   |
+
+---
+
+<a id="versionamento-doc"></a>
+
+### Versionamento na documentação
+
+| Símbolo | Significado                                                                             |
+| ------- | --------------------------------------------------------------------------------------- |
+| 🆕      | Endpoint ou módulo documentado como adição recente em relação ao núcleo inicial da API. |
+| 🔄      | Contrato ou rota alterada em relação a uma versão anterior (consulte o corpo da seção). |
+
+_A API em si não usa prefixo de versão na URL (ex.: `/v1`); evoluções são descritas neste arquivo._
+
+---
+
+<a id="base-url"></a>
+
+# 🌐 Base URL · [⬆️ topo](#doc-top)
 
 ```
 http://localhost:3001
@@ -21,7 +216,9 @@ http://localhost:3001
 
 ---
 
-# 🔐 Autenticação
+<a id="autenticacao-jwt"></a>
+
+# 🔐 Autenticação · [⬆️ topo](#doc-top)
 
 A API utiliza **JWT armazenado em Cookie** para autenticação.
 
@@ -41,7 +238,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-# 📦 Estrutura da API
+<a id="estrutura-api"></a>
+
+# 📦 Estrutura da API · [⬆️ topo](#doc-top)
 
 A API está dividida nos seguintes módulos:
 
@@ -52,14 +251,20 @@ Feed
 Posts
 Comments
 Likes
+Jobs
+Events
 Users
 ```
 
 ---
 
-# 🔐 Auth
+<a id="modulo-auth"></a>
 
-## POST /auth/register
+# 🔐 Auth · [⬆️ topo](#doc-top)
+
+<a id="ep-post-auth-register"></a>
+
+## POST /auth/register · [⬆️ topo](#doc-top)
 
 Realiza o cadastro de um novo usuário.
 
@@ -99,7 +304,9 @@ Realiza o cadastro de um novo usuário.
 
 ---
 
-## POST /auth/login
+<a id="ep-post-auth-login"></a>
+
+## POST /auth/login · [⬆️ topo](#doc-top)
 
 Realiza o login do usuário.
 
@@ -128,7 +335,9 @@ access_token=JWT_TOKEN
 
 ---
 
-## POST /auth/logout
+<a id="ep-post-auth-logout"></a>
+
+## POST /auth/logout · [⬆️ topo](#doc-top)
 
 Realiza o logout do usuário.
 
@@ -148,7 +357,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## GET /auth/me
+<a id="ep-get-auth-me"></a>
+
+## GET /auth/me · [⬆️ topo](#doc-top)
 
 Retorna os dados do usuário logado.
 
@@ -175,9 +386,13 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-# 🎓 Courses
+<a id="modulo-courses"></a>
 
-## POST /course
+# 🎓 Courses · [⬆️ topo](#doc-top)
+
+<a id="ep-post-course"></a>
+
+## POST /course · [⬆️ topo](#doc-top)
 
 Cria um novo curso.
 
@@ -207,9 +422,13 @@ Cria um novo curso.
 
 ---
 
-# 📰 Feed
+<a id="modulo-feed"></a>
 
-## GET /feed
+# 📰 Feed · [⬆️ topo](#doc-top)
+
+<a id="ep-get-feed"></a>
+
+## GET /feed · [⬆️ topo](#doc-top)
 
 Retorna as informações do feed da aplicação.
 
@@ -393,9 +612,13 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-# 📝 Posts
+<a id="modulo-posts"></a>
 
-## POST /post
+# 📝 Posts · [⬆️ topo](#doc-top)
+
+<a id="ep-post-post"></a>
+
+## POST /post · [⬆️ topo](#doc-top)
 
 Cria uma nova postagem.
 
@@ -429,7 +652,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## PATCH /post/:postId
+<a id="ep-patch-post-postid"></a>
+
+## PATCH /post/:postId · [⬆️ topo](#doc-top)
 
 Editar o conteúdo de uma postagem.
 
@@ -469,7 +694,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## DELETE /post/:postId
+<a id="ep-delete-post-postid"></a>
+
+## DELETE /post/:postId · [⬆️ topo](#doc-top)
 
 Remove uma postagem.
 
@@ -501,9 +728,13 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-# 💬 Comments
+<a id="modulo-comments"></a>
 
-## POST /post/comment/:postId
+# 💬 Comments · [⬆️ topo](#doc-top)
+
+<a id="ep-post-post-comment-postid"></a>
+
+## POST /post/comment/:postId · [⬆️ topo](#doc-top)
 
 Cria um comentário em uma postagem.
 
@@ -544,7 +775,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## PATCH /post/comment/:commentId
+<a id="ep-patch-post-comment-commentid"></a>
+
+## PATCH /post/comment/:commentId · [⬆️ topo](#doc-top)
 
 Edita um comentário existente.
 
@@ -585,7 +818,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## DELETE /post/comment/:commentId
+<a id="ep-delete-post-comment-commentid"></a>
+
+## DELETE /post/comment/:commentId · [⬆️ topo](#doc-top)
 
 Remove um comentário.
 
@@ -617,9 +852,13 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-# ❤️ Likes
+<a id="modulo-likes"></a>
 
-## POST /post/like/:postId 🆕
+# ❤️ Likes · [⬆️ topo](#doc-top)
+
+<a id="ep-post-post-like-postid"></a>
+
+## POST /post/like/:postId 🆕 · [⬆️ topo](#doc-top)
 
 Adiciona ou remove um like em uma postagem.
 
@@ -657,9 +896,13 @@ OR
 
 ---
 
-# 📢 Jobs
+<a id="modulo-jobs"></a>
 
-## POST /job 🆕
+# 📢 Jobs · [⬆️ topo](#doc-top)
+
+<a id="ep-post-job"></a>
+
+## POST /job · [⬆️ topo](#doc-top)
 
 Cria uma nova vaga de emprego.
 
@@ -709,7 +952,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## GET /job 🆕
+<a id="ep-get-job"></a>
+
+## GET /job · [⬆️ topo](#doc-top)
 
 Retorna uma lista com 20 vagas de emprego de acordo com a páginação via query params.
 
@@ -728,61 +973,73 @@ Cookie: access_token=JWT_TOKEN
 ### Response (200)
 
 ```json
-[
-  {
-    "id": "69bbfc52b2d03171e1c439ef",
-    "title": "BRBRBRBRBRBR",
-    "author_id": "69a864f5e704caa8ff079520",
-    "workplace": "Fatec Sorocaba",
-    "city": "Pirituba",
-    "state": "SP",
-    "employment_type": "CLT",
-    "work_model": "Remote",
-    "status": "Active",
-    "create_date": "2026-03-19T13:38:26.830Z"
-  },
-  {
-    "id": "69bb41c937aeab5317860cc7",
-    "title": "dddd",
-    "author_id": "69b59d073dfcbf4d5b46b90f",
-    "workplace": "ddddd",
-    "city": "Sorocaba",
-    "state": "SP",
-    "employment_type": "Trainee",
-    "work_model": "OnSite",
-    "status": "Active",
-    "create_date": "2026-03-19T00:22:33.760Z"
-  },
-  {
-    "id": "69bb260844dbded927373944",
-    "title": "blablalbalba",
-    "author_id": "69a864f5e704caa8ff079520",
-    "workplace": "Apple",
-    "city": "Xique Xique",
-    "state": "BA",
-    "employment_type": "CLT",
-    "work_model": "Remote",
-    "status": "Active",
-    "create_date": "2026-03-18T22:24:08.344Z"
-  },
-  {
-    "id": "69b09f3aa6fd5dbeab23474b",
-    "title": "Desenvolvedor FullStack JavaScript",
-    "author_id": "69a864f5e704caa8ff079520",
-    "workplace": "Google",
-    "city": "Sorocaba",
-    "state": "SP",
-    "employment_type": "CLT",
-    "work_model": "OnSite",
-    "status": "Active",
-    "create_date": "2026-03-10T22:46:18.168Z"
+{
+  "jobs": [
+    {
+      "id": "69c3140a1684ceeb5944650f",
+      "title": "eweweq",
+      "author_id": "69b59d073dfcbf4d5b46b90f",
+      "workplace": "Ewewewew",
+      "city": "Sorocaba",
+      "state": "SP",
+      "employment_type": "Trainee",
+      "work_model": "OnSite",
+      "status": "Active",
+      "create_date": "2026-03-24T22:45:30.029Z"
+    },
+    {
+      "id": "69bbfc52b2d03171e1c439ef",
+      "title": "BRBRBRBRBRBR",
+      "author_id": "69a864f5e704caa8ff079520",
+      "workplace": "Fatec Sorocaba",
+      "city": "Pirituba",
+      "state": "SP",
+      "employment_type": "CLT",
+      "work_model": "Remote",
+      "status": "Active",
+      "create_date": "2026-03-19T13:38:26.830Z"
+    },
+    {
+      "id": "69bb260844dbded927373944",
+      "title": "blablalbalba",
+      "author_id": "69a864f5e704caa8ff079520",
+      "workplace": "Apple",
+      "city": "Xique Xique",
+      "state": "BA",
+      "employment_type": "CLT",
+      "work_model": "Remote",
+      "status": "Active",
+      "create_date": "2026-03-18T22:24:08.344Z"
+    },
+    {
+      "id": "69b09f3aa6fd5dbeab23474b",
+      "title": "Desenvolvedor FullStack JavaScript",
+      "author_id": "69a864f5e704caa8ff079520",
+      "workplace": "Google",
+      "city": "Sorocaba",
+      "state": "SP",
+      "employment_type": "CLT",
+      "work_model": "OnSite",
+      "status": "Active",
+      "create_date": "2026-03-10T22:46:18.168Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "totalItems": 4,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
   }
-]
+}
 ```
 
 ---
 
-## GET /job/:jobId 🆕
+<a id="ep-get-job-jobid"></a>
+
+## GET /job/:jobId · [⬆️ topo](#doc-top)
 
 Retorna todos os campos de uma vaga de acordo com o ID.
 
@@ -835,7 +1092,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## PATCH /job/:jobId 🆕
+<a id="ep-patch-job-jobid"></a>
+
+## PATCH /job/:jobId · [⬆️ topo](#doc-top)
 
 Edita o conteúdo de uma vaga (somente Admin ou Criador da vaga)
 
@@ -891,7 +1150,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## DELETE /job/:jobId 🆕
+<a id="ep-delete-job-jobid"></a>
+
+## DELETE /job/:jobId · [⬆️ topo](#doc-top)
 
 Exclui uma vaga de trabalho postada (somente Admin ou Criador da vaga)
 
@@ -923,11 +1184,297 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-# 📅 Events (In Progress)
+<a id="modulo-events"></a>
 
-# 👤 Users
+# 📅 Events · [⬆️ topo](#doc-top)
 
-## GET /user 🆕
+<a id="ep-get-events"></a>
+
+## GET /event
+
+Retorna uma lista dos próximos 20 eventos
+
+### Example
+
+```
+GET /event?page=1
+```
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Response (200)
+
+```json
+{
+  "data": [
+    {
+      "id": "69c58874b49bfd4fb7b9a99d",
+      "title": "Evento Teste",
+      "local": "Auditório 1",
+      "date_start": "2026-03-26T22:30:00.000Z"
+    },
+    {
+      "id": "69b7056d8affb46c728583e3",
+      "title": "Palestra: Carreira em Cibersegurança",
+      "local": "Online — Google Meet",
+      "date_start": "2026-03-28T19:00:00.000Z"
+    },
+    {
+      "id": "69b7056d8affb46c728583e0",
+      "title": "Workshop de Inteligência Artificial na Prática",
+      "local": "Fatec Sorocaba — Lab 3",
+      "date_start": "2026-04-05T09:00:00.000Z"
+    },
+    {
+      "id": "69b7056d8affb46c728583e1",
+      "title": "Alumni Connect — Networking & Mentoria",
+      "local": "Fatec Sorocaba — Auditório",
+      "date_start": "2026-04-18T14:00:00.000Z"
+    },
+    {
+      "id": "69b7056d8affb46c728583e2",
+      "title": "Semana da Computação 2026",
+      "local": "Fatec Sorocaba — Campus completo",
+      "date_start": "2026-05-11T08:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "totalItems": 5,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  }
+}
+```
+
+---
+
+<a id="ep-get-event-by-id"></a>
+
+## GET /event/:eventId
+
+Retorna os dados de um evento pelo ID.
+
+### Example
+
+```
+GET /event/69b7056d8affb46c728583e3
+```
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Parâmetros
+
+| Parâmetro | Tipo   | Descrição    |
+| --------- | ------ | ------------ |
+| eventId   | string | ID do evento |
+
+### Response (200)
+
+```json
+{
+  "id": "69c58874b49bfd4fb7b9a99d",
+  "author_id": "69a864f5e704caa8ff079520",
+  "author_name": "Leonardo Barbosa da Silva",
+  "title": "Evento Teste",
+  "description": "primeiro evento criado. editei aqui",
+  "local": "Auditório 1",
+  "date_start": "2026-03-26T22:30:00.000Z",
+  "date_end": "2026-03-27T01:30:00.000Z",
+  "status": "Active",
+  "images": []
+}
+```
+
+---
+
+<a id="ep-create-event"></a>
+
+## POST /event
+
+Cria um novo evento.
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Request Body
+
+```json
+{
+  "title": "evento téste",
+  "description": "primeiro evento criado",
+  "local": "Auditório 1",
+  "date_start": "26/03/2026",
+  "time_start": "19:30",
+  "date_end": "26/03/2026",
+  "time_end": "22:30"
+}
+```
+
+### Parâmetros
+
+| Parâmetro   | Tipo   | Descrição           |
+| ----------- | ------ | ------------------- |
+| title       | string | Título do evento    |
+| description | string | Descrição do evento |
+| local       | string | Local de realização |
+| date_start  | string | Data de início      |
+| time_start  | string | Hora de início      |
+| date_end    | string | Data de término     |
+| time_end    | string | Hora de término     |
+
+### Response (200)
+
+```json
+{
+  "message": "Evento criado com sucesso!"
+}
+```
+
+---
+
+<a id="ep-put-event"></a>
+
+## PUT /event/:eventId
+
+Edita os dados do evento
+
+### Example
+
+```
+PUT /event/69aa02beef85f8d0cb38ca66
+```
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Request Body
+
+```json
+{
+  "title": "evento téste",
+  "description": "primeiro evento criado. editei esse evento",
+  "local": "Auditório 1",
+  "date_start": "26/03/2026",
+  "time_start": "19:30",
+  "date_end": "26/03/2026",
+  "time_end": "22:30"
+}
+```
+
+### Parâmetros
+
+| Parâmetro   | Tipo   | Descrição           |
+| ----------- | ------ | ------------------- |
+| title       | string | Título do evento    |
+| description | string | Descrição do evento |
+| local       | string | Local de realização |
+| date_start  | string | Data de início      |
+| time_start  | string | Hora de início      |
+| date_end    | string | Data de término     |
+| time_end    | string | Hora de término     |
+
+### Response (200)
+
+```json
+{
+  "message": "Evento editado com sucesso!"
+}
+```
+
+---
+
+<a id="ep-delete-event"></a>
+
+## DELETE /event/:eventId
+
+Deleta um evento.
+
+### Example
+
+```
+DELETE /event/69aa02beef85f8d0cb38ca66
+```
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Parâmetros
+
+| Parâmetro | Tipo   | Descrição    |
+| --------- | ------ | ------------ |
+| eventId   | string | ID do evento |
+
+### Response (200)
+
+```json
+{
+  "message": "Evento excluído com sucesso!"
+}
+```
+
+---
+
+<a id="ep-patch-event"></a>
+
+## PATCH /event/:eventId
+
+Encerra um evento.
+
+### Example
+
+```
+PATCH /event/69aa02beef85f8d0cb38ca66
+```
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Parâmetros
+
+| Parâmetro | Tipo   | Descrição    |
+| --------- | ------ | ------------ |
+| eventId   | string | ID do evento |
+
+### Response (200)
+
+```json
+{
+  "message": "Evento encerrado com sucesso!"
+}
+```
+
+---
+
+<a id="modulo-users"></a>
+
+# 👤 Users · [⬆️ topo](#doc-top)
+
+<a id="ep-get-user"></a>
+
+## GET /user 🆕 · [⬆️ topo](#doc-top)
 
 Retorna uma lista com 40 usuários de acordo com a páginação via query params.
 
@@ -1049,14 +1596,16 @@ Cookie: access_token=JWT_TOKEN
 ]
 ```
 
-## GET /user/:userId 🆕
+<a id="ep-get-user-userid"></a>
+
+## GET /user/:userId 🆕 · [⬆️ topo](#doc-top)
 
 Retorna os dados de apenas 1 usuário pelo ID.
 
 ### Example
 
 ```
-GET /user/69a864f5e704caa8ff079520
+GET /user/69a864f5e704caa8ff079520?pageEvent=2&pageJob=1&pagePost=1
 ```
 
 ### Headers
@@ -1075,91 +1624,126 @@ Cookie: access_token=JWT_TOKEN
 
 ```json
 {
-  "user_id": "69a864f5e704caa8ff079520",
-  "perfil_photo": {
-    "url": "https://res.cloudinary.com/alumni-fatecso/image/upload/v1773520519/images/69a864f5e704caa8ff079520_1773520517438.jpg",
-    "public_id": "images/69a864f5e704caa8ff079520_1773520517438"
+  "user": {
+    "user_id": "69a864f5e704caa8ff079520",
+    "perfil_photo": {
+      "url": "https://res.cloudinary.com/alumni-fatecso/image/upload/v1773520519/images/69a864f5e704caa8ff079520_1773520517438.jpg",
+      "public_id": "images/69a864f5e704caa8ff079520_1773520517438"
+    },
+    "name": "Leonardo Barbosa da Silva",
+    "biography": "Estudante da FATEC e desenvolvedor C#",
+    "user_type": "Student",
+    "courses": [
+      {
+        "course_name": "Análise e Desenvolvimento de Sistemas",
+        "enrollmentYear": 2025
+      }
+    ],
+    "workplace_history": [
+      {
+        "workplace_user_id": "69b453af6739721bd34e54ff",
+        "position": "Gerente de Banco de Dados",
+        "function": "Quase todas possíveis",
+        "workplace": {
+          "company": "Google"
+        },
+        "start_date": "2026-01-29T03:00:00.000Z",
+        "end_date": "2026-02-28T03:00:00.000Z"
+      },
+      {
+        "workplace_user_id": "69b45168826012b4d65a4e23",
+        "position": "Engenheiro de Software",
+        "function": "Desenvolver novidades para o software IOS",
+        "workplace": {
+          "company": "Valid"
+        },
+        "start_date": "2022-03-01T03:00:00.000Z",
+        "end_date": "2023-12-31T03:00:00.000Z"
+      }
+    ],
+    "social_media": [
+      {
+        "id": "4cb1cfa5-0f4a-40ae-bee7-2881d4a66a96",
+        "type": "Github",
+        "url": "https://github.com/leeo-s"
+      }
+    ],
+    "skills": [
+      {
+        "skill": {
+          "name": "Node Js"
+        }
+      }
+    ],
+    "gender": "Male",
+    "email": "leo_bs97@hotmail.com.br",
+    "receive_notifications": true
   },
-  "name": "Leonardo Barbosa da Silva",
-  "biography": "Estudante da FATEC e desenvolvedor C# na Apple",
-  "user_type": "Student",
-  "courses": [
-    {
-      "course_name": "Análise e Desenvolvimento de Sistemas",
-      "enrollmentYear": 2025
-    }
-  ],
-  "workplace_history": [
-    {
-      "workplace_user_id": "69b453af6739721bd34e54ff",
-      "position": "Gerente de Banco de Dados",
-      "function": "Quase todas possíveis",
-      "workplace": {
-        "company": "Google"
-      },
-      "start_date": "2026-01-29T03:00:00.000Z",
-      "end_date": "2026-02-28T03:00:00.000Z"
-    },
-    {
-      "workplace_user_id": "69b45168826012b4d65a4e23",
-      "position": "Desenvolvedor Full-Stack JavaScript",
-      "function": "Quase todas possíveis",
-      "workplace": {
-        "company": "Google"
-      },
-      "start_date": "2026-01-01T00:00:00.000Z",
-      "end_date": null
-    },
-    {
-      "workplace_user_id": "69bb0097c7b407a5f1bad4e8",
-      "position": "Engenheiro de Software",
-      "function": "Desenvolver novidades para o software IOS",
-      "workplace": {
-        "company": "Apple"
-      },
-      "start_date": "2022-03-01T03:00:00.000Z",
-      "end_date": "2022-12-31T03:00:00.000Z"
-    }
-  ],
-  "social_media": [],
-  "skills": [],
-  "events": [
-    {
-      "title": "Workshop de Inteligência Artificial na Prática",
-      "event_id": "69b7056d8affb46c728583e0",
-      "status": "Active"
-    },
-    {
-      "title": "Visita Técnica — Google São Paulo",
-      "event_id": "69b7056d8affb46c728583e4",
-      "status": "Active"
-    }
-  ],
   "jobs": [
     {
-      "job_id": "69bbfc52b2d03171e1c439ef",
+      "id": "69bbfc52b2d03171e1c439ef",
       "title": "BRBRBRBRBRBR",
-      "status": "Active"
+      "author_id": "69a864f5e704caa8ff079520",
+      "workplace": "Fatec Sorocaba",
+      "city": "Pirituba",
+      "state": "SP",
+      "employment_type": "CLT",
+      "work_model": "Remote",
+      "status": "Active",
+      "create_date": "2026-03-19T13:38:26.830Z"
     },
     {
-      "job_id": "69bb27ce4cc35d687dffae2d",
-      "title": "BRBRBRBRBRBR",
-      "status": "Deleted"
-    },
-    {
-      "job_id": "69bb260844dbded927373944",
+      "id": "69bb260844dbded927373944",
       "title": "blablalbalba",
-      "status": "Active"
+      "author_id": "69a864f5e704caa8ff079520",
+      "workplace": "Apple",
+      "city": "Xique Xique",
+      "state": "BA",
+      "employment_type": "CLT",
+      "work_model": "Remote",
+      "status": "Active",
+      "create_date": "2026-03-18T22:24:08.344Z"
     },
     {
-      "job_id": "69b09f3aa6fd5dbeab23474b",
+      "id": "69b09f3aa6fd5dbeab23474b",
       "title": "Desenvolvedor FullStack JavaScript",
+      "author_id": "69a864f5e704caa8ff079520",
+      "workplace": "Google",
+      "city": "Sorocaba",
+      "state": "SP",
+      "employment_type": "CLT",
+      "work_model": "OnSite",
+      "status": "Active",
+      "create_date": "2026-03-10T22:46:18.168Z"
+    }
+  ],
+  "events": [
+    {
+      "id": "69c6740f8aa67110322448ea",
+      "title": "Evento Teste",
+      "description": "primeiro evento criado",
+      "local": "Auditório 1",
+      "date_start": "2026-02-28T22:30:00.000Z",
+      "date_end": "2026-03-01T21:30:00.000Z",
       "status": "Active"
     },
     {
-      "job_id": "69b03e5eabddec4a70674167",
-      "title": "Desenvolvedor Full Stack TypeScript",
-      "status": "Deleted"
+      "id": "69b7056d8affb46c728583e0",
+      "title": "Workshop de Inteligência Artificial na Prática",
+      "description": "Workshop hands-on explorando as principais ferramentas de IA generativa aplicadas ao mercado de trabalho. Traga seu notebook!",
+      "local": "Fatec Sorocaba — Lab 3",
+      "date_start": "2026-04-05T09:00:00.000Z",
+      "date_end": "2026-04-05T13:00:00.000Z",
+      "status": "Active"
+    },
+    {
+      "id": "69b7056d8affb46c728583e4",
+      "title": "Visita Técnica — Google São Paulo",
+      "description": "Visita guiada ao escritório do Google Brasil com apresentação das equipes de engenharia e produto. Vagas limitadas.",
+      "local": "Google Brasil — São Paulo, SP",
+      "date_start": "2026-04-25T10:00:00.000Z",
+      "date_end": "2026-04-25T16:00:00.000Z",
+      "status": "Closed"
     }
   ],
   "posts": [
@@ -1168,20 +1752,96 @@ Cookie: access_token=JWT_TOKEN
       "content": "Agora eu editei so de sacanagem",
       "create_date": "2026-03-18T19:51:23.486Z",
       "images": [],
-      "comments_count": 0,
-      "comments": [],
-      "likes_count": 0,
-      "likes": []
-    },
-    {
-      "post_id": "69aa02beef85f8d0cb38ca66",
-      "content": "Tentei editar",
-      "create_date": "2026-03-05T22:25:02.904Z",
-      "images": [],
-      "comments_count": 0,
-      "comments": [],
-      "likes_count": 0,
-      "likes": []
+      "comments_count": 4,
+      "comments": [
+        {
+          "content": "ddddddd",
+          "comment_id": "69c062472c8cfe901f452ef9",
+          "create_date": "2026-03-22T21:42:31.917Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        },
+        {
+          "content": "invariantes",
+          "comment_id": "69c050052c8cfe901f452ef8",
+          "create_date": "2026-03-22T20:24:37.192Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        },
+        {
+          "content": "safadao",
+          "comment_id": "69c04f902c8cfe901f452ef7",
+          "create_date": "2026-03-22T20:22:40.998Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        },
+        {
+          "content": "o leo é muito sacana",
+          "comment_id": "69c04f502c8cfe901f452ef3",
+          "create_date": "2026-03-22T20:21:36.475Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        }
+      ],
+      "likes_count": 1,
+      "likes": [
+        {
+          "like_id": "69c04b362c8cfe901f452eed",
+          "create_date": "2026-03-22T20:04:06.710Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        }
+      ]
     },
     {
       "post_id": "69a9d4cfb755a17cd7967c72",
@@ -1249,15 +1909,46 @@ Cookie: access_token=JWT_TOKEN
       "likes": []
     }
   ],
-  "gender": "Male"
+  "paginationEvents": {
+    "page": 1,
+    "limit": 3,
+    "totalItems": 3,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  },
+  "paginationJobs": {
+    "page": 1,
+    "limit": 3,
+    "totalItems": 3,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  },
+  "paginationPosts": {
+    "page": 1,
+    "limit": 10,
+    "totalItems": 4,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  }
 }
 ```
 
 ---
 
-## GET /myProfile 🆕
+<a id="ep-get-myprofile"></a>
+
+## GET /my-profile 🆕 · [⬆️ topo](#doc-top)
 
 Retorna o perfil do usuário logado
+
+### Example
+
+```
+GET /myProfile?pageEvent=2&pageJob=1&pagePost=1
+```
 
 ### Headers
 
@@ -1269,93 +1960,126 @@ Cookie: access_token=JWT_TOKEN
 
 ```json
 {
-  "user_id": "69a864f5e704caa8ff079520",
-  "perfil_photo": {
-    "url": "https://res.cloudinary.com/alumni-fatecso/image/upload/v1773520519/images/69a864f5e704caa8ff079520_1773520517438.jpg",
-    "public_id": "images/69a864f5e704caa8ff079520_1773520517438"
-  },
-  "name": "Leonardo Barbosa da Silva",
-  "biography": "Estudante da FATEC e desenvolvedor C# na Apple",
-  "user_type": "Student",
-  "courses": [
-    {
-      "course_name": "Análise e Desenvolvimento de Sistemas",
-      "enrollmentYear": 2025
-    }
-  ],
-  "workplace_history": [
-    {
-      "workplace_user_id": "69b453af6739721bd34e54ff",
-      "position": "Gerente de Banco de Dados",
-      "function": "Quase todas possíveis",
-      "workplace": {
-        "company": "Google"
+  "user": {
+    "user_id": "69a864f5e704caa8ff079520",
+    "perfil_photo": {
+      "url": "https://res.cloudinary.com/alumni-fatecso/image/upload/v1773520519/images/69a864f5e704caa8ff079520_1773520517438.jpg",
+      "public_id": "images/69a864f5e704caa8ff079520_1773520517438"
+    },
+    "name": "Leonardo Barbosa da Silva",
+    "biography": "Estudante da FATEC e desenvolvedor C#",
+    "user_type": "Student",
+    "courses": [
+      {
+        "course_name": "Análise e Desenvolvimento de Sistemas",
+        "enrollmentYear": 2025
+      }
+    ],
+    "workplace_history": [
+      {
+        "workplace_user_id": "69b453af6739721bd34e54ff",
+        "position": "Gerente de Banco de Dados",
+        "function": "Quase todas possíveis",
+        "workplace": {
+          "company": "Google"
+        },
+        "start_date": "2026-01-29T03:00:00.000Z",
+        "end_date": "2026-02-28T03:00:00.000Z"
       },
-      "start_date": "2026-01-29T03:00:00.000Z",
-      "end_date": "2026-02-28T03:00:00.000Z"
+      {
+        "workplace_user_id": "69b45168826012b4d65a4e23",
+        "position": "Engenheiro de Software",
+        "function": "Desenvolver novidades para o software IOS",
+        "workplace": {
+          "company": "Valid"
+        },
+        "start_date": "2022-03-01T03:00:00.000Z",
+        "end_date": "2023-12-31T03:00:00.000Z"
+      }
+    ],
+    "social_media": [
+      {
+        "id": "4cb1cfa5-0f4a-40ae-bee7-2881d4a66a96",
+        "type": "Github",
+        "url": "https://github.com/leeo-s"
+      }
+    ],
+    "skills": [
+      {
+        "skill": {
+          "name": "Node Js"
+        }
+      }
+    ],
+    "gender": "Male",
+    "email": "leo_bs97@hotmail.com.br",
+    "receive_notifications": true
+  },
+  "jobs": [
+    {
+      "id": "69bbfc52b2d03171e1c439ef",
+      "title": "BRBRBRBRBRBR",
+      "author_id": "69a864f5e704caa8ff079520",
+      "workplace": "Fatec Sorocaba",
+      "city": "Pirituba",
+      "state": "SP",
+      "employment_type": "CLT",
+      "work_model": "Remote",
+      "status": "Active",
+      "create_date": "2026-03-19T13:38:26.830Z"
     },
     {
-      "workplace_user_id": "69b45168826012b4d65a4e23",
-      "position": "Engenheiro de Software",
-      "function": "Desenvolver novidades para o software IOS",
-      "workplace": {
-        "company": "Valid"
-      },
-      "start_date": "2022-03-01T03:00:00.000Z",
-      "end_date": "2023-12-31T03:00:00.000Z"
-    }
-  ],
-  "social_media": [
+      "id": "69bb260844dbded927373944",
+      "title": "blablalbalba",
+      "author_id": "69a864f5e704caa8ff079520",
+      "workplace": "Apple",
+      "city": "Xique Xique",
+      "state": "BA",
+      "employment_type": "CLT",
+      "work_model": "Remote",
+      "status": "Active",
+      "create_date": "2026-03-18T22:24:08.344Z"
+    },
     {
-      "id": "f138dd72-d838-4fbe-b897-bdb8d058f890",
-      "type": "Github",
-      "url": "https://github.com/NicolasAFerro"
-    }
-  ],
-  "skills": [
-    {
-      "skill": {
-        "name": "Node Js"
-      }
+      "id": "69b09f3aa6fd5dbeab23474b",
+      "title": "Desenvolvedor FullStack JavaScript",
+      "author_id": "69a864f5e704caa8ff079520",
+      "workplace": "Google",
+      "city": "Sorocaba",
+      "state": "SP",
+      "employment_type": "CLT",
+      "work_model": "OnSite",
+      "status": "Active",
+      "create_date": "2026-03-10T22:46:18.168Z"
     }
   ],
   "events": [
     {
+      "id": "69c6740f8aa67110322448ea",
+      "title": "Evento Teste",
+      "description": "primeiro evento criado",
+      "local": "Auditório 1",
+      "date_start": "2026-02-28T22:30:00.000Z",
+      "date_end": "2026-03-01T21:30:00.000Z",
+      "status": "Active"
+    },
+    {
+      "id": "69b7056d8affb46c728583e0",
       "title": "Workshop de Inteligência Artificial na Prática",
-      "event_id": "69b7056d8affb46c728583e0",
+      "description": "Workshop hands-on explorando as principais ferramentas de IA generativa aplicadas ao mercado de trabalho. Traga seu notebook!",
+      "local": "Fatec Sorocaba — Lab 3",
+      "date_start": "2026-04-05T09:00:00.000Z",
+      "date_end": "2026-04-05T13:00:00.000Z",
       "status": "Active"
     },
     {
+      "id": "69b7056d8affb46c728583e4",
       "title": "Visita Técnica — Google São Paulo",
-      "event_id": "69b7056d8affb46c728583e4",
-      "status": "Active"
-    }
-  ],
-  "jobs": [
-    {
-      "job_id": "69bbfc52b2d03171e1c439ef",
-      "title": "BRBRBRBRBRBR",
-      "status": "Active"
-    },
-    {
-      "job_id": "69bb27ce4cc35d687dffae2d",
-      "title": "BRBRBRBRBRBR",
-      "status": "Deleted"
-    },
-    {
-      "job_id": "69bb260844dbded927373944",
-      "title": "blablalbalba",
-      "status": "Active"
-    },
-    {
-      "job_id": "69b09f3aa6fd5dbeab23474b",
-      "title": "Desenvolvedor FullStack JavaScript",
-      "status": "Active"
-    },
-    {
-      "job_id": "69b03e5eabddec4a70674167",
-      "title": "Desenvolvedor Full Stack TypeScript",
-      "status": "Deleted"
+      "description": "Visita guiada ao escritório do Google Brasil com apresentação das equipes de engenharia e produto. Vagas limitadas.",
+      "local": "Google Brasil — São Paulo, SP",
+      "date_start": "2026-04-25T10:00:00.000Z",
+      "date_end": "2026-04-25T16:00:00.000Z",
+      "status": "Closed"
     }
   ],
   "posts": [
@@ -1364,20 +2088,96 @@ Cookie: access_token=JWT_TOKEN
       "content": "Agora eu editei so de sacanagem",
       "create_date": "2026-03-18T19:51:23.486Z",
       "images": [],
-      "comments_count": 0,
-      "comments": [],
-      "likes_count": 0,
-      "likes": []
-    },
-    {
-      "post_id": "69aa02beef85f8d0cb38ca66",
-      "content": "Tentei editar",
-      "create_date": "2026-03-05T22:25:02.904Z",
-      "images": [],
-      "comments_count": 0,
-      "comments": [],
-      "likes_count": 0,
-      "likes": []
+      "comments_count": 4,
+      "comments": [
+        {
+          "content": "ddddddd",
+          "comment_id": "69c062472c8cfe901f452ef9",
+          "create_date": "2026-03-22T21:42:31.917Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        },
+        {
+          "content": "invariantes",
+          "comment_id": "69c050052c8cfe901f452ef8",
+          "create_date": "2026-03-22T20:24:37.192Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        },
+        {
+          "content": "safadao",
+          "comment_id": "69c04f902c8cfe901f452ef7",
+          "create_date": "2026-03-22T20:22:40.998Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        },
+        {
+          "content": "o leo é muito sacana",
+          "comment_id": "69c04f502c8cfe901f452ef3",
+          "create_date": "2026-03-22T20:21:36.475Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        }
+      ],
+      "likes_count": 1,
+      "likes": [
+        {
+          "like_id": "69c04b362c8cfe901f452eed",
+          "create_date": "2026-03-22T20:04:06.710Z",
+          "author": {
+            "user_id": "69b59d073dfcbf4d5b46b90f",
+            "name": "nicolas",
+            "perfil_photo": null,
+            "user_status": "Active",
+            "courses": [
+              {
+                "abbreviation": "ADS",
+                "enrollmentYear": 2023
+              }
+            ]
+          }
+        }
+      ]
     },
     {
       "post_id": "69a9d4cfb755a17cd7967c72",
@@ -1445,15 +2245,38 @@ Cookie: access_token=JWT_TOKEN
       "likes": []
     }
   ],
-  "gender": "Male",
-  "email": "leo@email.com",
-  "receive_notifications": true
+  "paginationEvents": {
+    "page": 1,
+    "limit": 3,
+    "totalItems": 3,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  },
+  "paginationJobs": {
+    "page": 1,
+    "limit": 3,
+    "totalItems": 3,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  },
+  "paginationPosts": {
+    "page": 1,
+    "limit": 10,
+    "totalItems": 4,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  }
 }
 ```
 
 ---
 
-## PUT /myProfile 🆕
+<a id="ep-put-myprofile"></a>
+
+## PUT /my-profile 🆕 · [⬆️ topo](#doc-top)
 
 Edita uma parte dos dados de perfil do usuário
 
@@ -1493,7 +2316,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## PATCH /myProfile/profilePhoto 🆕
+<a id="ep-patch-myprofile-profilephoto"></a>
+
+## PATCH /my-profile/profile-photo 🆕 · [⬆️ topo](#doc-top)
 
 Atualiza a foto de perfil do usuário logado.
 
@@ -1524,7 +2349,9 @@ Value: image.jpg
 
 ---
 
-## DELETE /myProfile 🆕
+<a id="ep-delete-myprofile"></a>
+
+## DELETE /my-profile 🆕 · [⬆️ topo](#doc-top)
 
 Exclui (soft delete) o perfil do usuário logado.
 
@@ -1544,7 +2371,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## POST /myProfile/job 🆕
+<a id="ep-post-myprofile-workplace"></a>
+
+## POST /my-profile/workplace 🆕 · [⬆️ topo](#doc-top)
 
 Insere um novo emprego ao histórico de trabalho do usuário logado.
 
@@ -1586,7 +2415,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## PUT /myProfile/job 🆕
+<a id="ep-put-myprofile-workplace"></a>
+
+## PUT /my-profile/workplace 🆕 · [⬆️ topo](#doc-top)
 
 Edita um emprego já inserido no histórico de trabalho do usuário logado.
 
@@ -1630,7 +2461,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## DELETE /myProfile/job 🆕
+<a id="ep-delete-myprofile-workplace"></a>
+
+## DELETE /my-profile/workplace 🆕 · [⬆️ topo](#doc-top)
 
 Exclui um emprego já inserido no histórico de trabalho do usuário logado.
 
@@ -1664,7 +2497,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## POST /myProfile/skill 🆕
+<a id="ep-post-myprofile-skill"></a>
+
+## POST /my-profile/skill 🆕 · [⬆️ topo](#doc-top)
 
 Insere uma habilidade no perfil do usuário logado.
 
@@ -1698,7 +2533,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## DELETE /myProfile/skill 🆕
+<a id="ep-delete-myprofile-skill"></a>
+
+## DELETE /my-profile/skill 🆕 · [⬆️ topo](#doc-top)
 
 Exclui uma habilidade do perfil do usuário.
 
@@ -1732,7 +2569,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## POST /myProfile/socialMedia 🆕
+<a id="ep-post-myprofile-socialmedia"></a>
+
+## POST /my-profile/social-media 🆕 · [⬆️ topo](#doc-top)
 
 Insere uma rede social no perfil do usuário logado
 
@@ -1768,7 +2607,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## PATCH /myProfile/socialMedia 🆕
+<a id="ep-patch-myprofile-socialmedia"></a>
+
+## PATCH /my-profile/social-media 🆕 · [⬆️ topo](#doc-top)
 
 Editar o link de uma rede social no perfil do usuário logado.
 
@@ -1806,7 +2647,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## DELETE /myProfile/socialMedia 🆕
+<a id="ep-delete-myprofile-socialmedia"></a>
+
+## DELETE /my-profile/social-media 🆕 · [⬆️ topo](#doc-top)
 
 Exclui uma rede social do perfil do usuário logado.
 
@@ -1840,7 +2683,9 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-## GET /user/search 🆕
+<a id="ep-get-user-search"></a>
+
+## GET /user/search 🆕 · [⬆️ topo](#doc-top)
 
 Realiza a pesquisa de usuários pelos campos: nome, curso, habilidades ou trabalhos.
 
@@ -1937,9 +2782,13 @@ Cookie: access_token=JWT_TOKEN
 
 ---
 
-# 🔑 Password
+<a id="modulo-password"></a>
 
-## POST /password/forgot-password
+# 🔑 Password · [⬆️ topo](#doc-top)
+
+<a id="ep-post-password-forgot-password"></a>
+
+## POST /password/forgot-password · [⬆️ topo](#doc-top)
 
 Envia o email para redefinição de senha do usuário informado.
 
@@ -1967,7 +2816,9 @@ Envia o email para redefinição de senha do usuário informado.
 
 ---
 
-## PATCH /password/reset-password/:token 🔄
+<a id="ep-patch-password-reset-password-token"></a>
+
+## PATCH /password/reset-password/:token 🔄 · [⬆️ topo](#doc-top)
 
 Atualiza a senha alterada do usuário no banco de dados
 
@@ -2003,7 +2854,176 @@ PATCH /password/reset-password/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5
 
 ---
 
-# 📊 Status Codes
+<a id="modulo-admin"></a>
+
+# 💻 Admin · [⬆️ topo](#doc-top)
+
+<a id="ep-get-admin-dashboard"></a>
+
+## GET /admin/dashboard
+
+Recebe os dados da dashboard inicial do sistema (usuários a serem aprovados, contagens de: usuarios ativos, usuário para aprovação e vagas criadas).
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Response (200)
+
+```json
+{
+  "usersInAnalysis": [
+    {
+      "user_id": "69a86c171cb9a26b750064a5",
+      "name": "Gabriela Martins",
+      "email": "gabi@email.com",
+      "courses": [
+        {
+          "course_name": "Polímeros",
+          "enrollmentYear": 2020
+        }
+      ],
+      "gender": "Female",
+      "user_type": "Student"
+    },
+    {
+      "user_id": "69b347f4169b76edb5dade06",
+      "name": "Teste",
+      "email": "teste@email.com",
+      "courses": [
+        {
+          "course_name": "Análise e Desenvolvimento de Sistemas",
+          "enrollmentYear": 2025
+        }
+      ],
+      "gender": "Male",
+      "user_type": "Student"
+    }
+  ],
+  "countJobsActive": 3,
+  "countUsersActive": 5,
+  "countUsersInAnalysis": 2
+}
+```
+
+---
+
+<a id="ep-get-admin-usersInAnalysis"></a>
+
+## GET /admin/usersInAnalysis
+
+Recebe uma lista de todos os usuários em análise para aprovação.
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Response (200)
+
+```json
+[
+  {
+    "user_id": "69a86c171cb9a26b750064a5",
+    "name": "Gabriela Martins",
+    "email": "gabi@email.com",
+    "courses": [
+      {
+        "course_name": "Polímeros",
+        "enrollmentYear": 2020
+      }
+    ],
+    "gender": "Female",
+    "user_type": "Student"
+  },
+  {
+    "user_id": "69b347f4169b76edb5dade06",
+    "name": "Teste",
+    "email": "teste@email.com",
+    "courses": [
+      {
+        "course_name": "Análise e Desenvolvimento de Sistemas",
+        "enrollmentYear": 2025
+      }
+    ],
+    "gender": "Male",
+    "user_type": "Student"
+  }
+]
+```
+
+---
+
+<a id="ep-post-admin-approve-userId"></a>
+
+## POST /admin/approve/:userId
+
+Realiza a aprovação do cadastro de um usuário no sistema.
+
+### Example
+
+```
+POST /admin/approve/69aa02beef85f8d0cb38ca66
+```
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Parâmetros
+
+| Parâmetro | Tipo   | Descrição     |
+| --------- | ------ | ------------- |
+| userId    | string | ID do usuário |
+
+```json
+{
+  "message": "Usuário aprovado com sucesso!"
+}
+```
+
+---
+
+<a id="ep-post-admin-refuse-userId"></a>
+
+## POST /admin/refuse/:userId
+
+Realiza a recusa do cadastro de um usuário no sistema.
+
+### Example
+
+```
+POST /admin/refuse/69aa02beef85f8d0cb38ca66
+```
+
+### Headers
+
+```
+Cookie: access_token=JWT_TOKEN
+```
+
+### Parâmetros
+
+| Parâmetro | Tipo   | Descrição     |
+| --------- | ------ | ------------- |
+| userId    | string | ID do usuário |
+
+```json
+{
+  "message": "Usuário recusado com sucesso!"
+}
+```
+
+---
+
+<a id="ref-status-codes"></a>
+
+# 📊 Status Codes · [⬆️ topo](#doc-top)
 
 | Código | Significado              |
 | ------ | ------------------------ |
@@ -2017,7 +3037,9 @@ PATCH /password/reset-password/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5
 
 ---
 
-# 🚀 Tecnologias Utilizadas
+<a id="ref-tecnologias"></a>
+
+# 🚀 Tecnologias Utilizadas · [⬆️ topo](#doc-top)
 
 Backend desenvolvido utilizando:
 
@@ -2029,7 +3051,9 @@ Backend desenvolvido utilizando:
 
 ---
 
-# 👨‍💻 Projeto
+<a id="ref-projeto"></a>
+
+# 👨‍💻 Projeto · [⬆️ topo](#doc-top)
 
 Sistema desenvolvido para gerenciamento e interação entre **ex-alunos (Alumni)** de instituições de ensino.
 
@@ -2044,14 +3068,14 @@ Funcionalidades principais:
 
 ---
 
-# 📌 Observações
+<a id="ref-observacoes"></a>
+
+# 📌 Observações · [⬆️ topo](#doc-top)
 
 - Algumas rotas exigem autenticação via **JWT Cookie**
 - IDs utilizados nas rotas são gerados automaticamente pelo banco de dados
 - A API pode evoluir com novos módulos como:
 
 ```
-Eventos (In Progress)
-Admin (In Progress)
 Chat (In Progress)
 ```

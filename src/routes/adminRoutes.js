@@ -1,5 +1,6 @@
 import express from 'express';
 import auth from '../middlewares/authMiddleware.js';
+import authId from '../middlewares/authIdMiddleware.js';
 import * as adminController from '../controllers/adminController.js';
 import { createRateLimit } from '../middlewares/rateLimitMiddleware.js';
 
@@ -14,7 +15,19 @@ const adminMutationsRateLimit = createRateLimit({
 
 router.get('/admin/dashboard', auth, adminController.dashboard);
 router.get('/admin/usersInAnalysis', auth, adminController.listAllUsersInAnalysis);
-router.post('/admin/approve/:userId', auth, adminMutationsRateLimit, adminController.approveUser);
-router.post('/admin/refuse/:userId', auth, adminMutationsRateLimit, adminController.refuseUser);
+router.post(
+  '/admin/approve/:userId',
+  auth,
+  adminMutationsRateLimit,
+  authId,
+  adminController.approveUser
+);
+router.post(
+  '/admin/refuse/:userId',
+  auth,
+  adminMutationsRateLimit,
+  authId,
+  adminController.refuseUser
+);
 
 export default router;

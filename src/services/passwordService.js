@@ -5,6 +5,7 @@ import { enqueueEmail } from '../utils/emailQueue.js';
 import * as validations from '../utils/validations.js';
 import { env } from '../config/env.js';
 import CustomError from '../utils/CustomError.js';
+import { messagePasswordRecovery } from '../utils/emailMessages.js';
 
 const prisma = new PrismaClient();
 
@@ -32,31 +33,7 @@ export const sendRecovery = async (userInfo, req) => {
 
   //enviar email
   const urlRecovery = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
-  const message = `<div style="width: 100%; text-align: center; font-family: Arial, sans-serif; background-color: #f6f6f6; padding: 30px 0;">
-  <table align="center" cellpadding="0" cellspacing="0" width="100%" style="max-width: 500px; background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-    <tr>
-      <td align="center" style="color: #333333; font-size: 18px;">
-        <h3 style="margin-top: 0;">Olá, ${user.name}</h3>
-        <p style="margin: 10px 0 20px 0;">Você solicitou a redefinição de sua senha. Clique no botão abaixo para criar uma nova senha:</p>
-
-        <a href="${urlRecovery}" 
-           style="background-color: #AE0C0D;
-                  color: white;
-                  padding: 12px 30px;
-                  text-decoration: none;
-                  border-radius: 8px;
-                  display: inline-block;
-                  font-weight: bold;
-                  margin: 20px 0;">
-          REDEFINIR SENHA
-        </a>
-
-        <p style="margin-top: 20px; color: #555555;">Este link irá expirar em 10 minutos.</p>
-        <p style="margin-top: 10px; color: #777777; font-size: 14px;">Se você não reconhece esta solicitação, apenas ignore este e-mail.</p>
-      </td>
-    </tr>
-  </table>
-</div>`;
+  const message = messagePasswordRecovery(user.name, urlRecovery);
 
   // Mesmo padrão do admin: enfileira e não bloqueia o fluxo da rota.
   enqueueEmail({

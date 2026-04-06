@@ -1,5 +1,6 @@
 import express from 'express';
 import auth from '../middlewares/authMiddleware.js';
+import authId from '../middlewares/authIdMiddleware.js';
 import upload from '../config/multer.js';
 import * as userController from '../controllers/userController.js';
 import { createRateLimit } from '../middlewares/rateLimitMiddleware.js';
@@ -16,28 +17,28 @@ const profilePhotoRateLimit = createRateLimit({
 
 router.get('/user/search', auth, userController.searchUser);
 router.get('/user', auth, userController.getUsers);
-router.get('/user/:id', auth, userController.getUserById);
+router.get('/user/:id', auth, authId, userController.getUserById);
 
-router.get('/myProfile', auth, userController.getMyProfile);
+router.get('/my-profile', auth, userController.getMyProfile);
 router.patch(
-  '/myProfile/profilePhoto',
+  '/my-profile/profile-photo',
   auth,
   profilePhotoRateLimit,
   upload.single('image', MAX_FILES_COUNT),
   userController.updateProfilePhoto
 );
-router.put('/myProfile', auth, userController.updateMyProfile);
-router.delete('/myProfile', auth, userController.deleteMyProfile);
+router.put('/my-profile', auth, userController.updateMyProfile);
+router.delete('/my-profile', auth, userController.deleteMyProfile);
 
-router.post('/myProfile/job', auth, userController.insertJob);
-router.put('/myProfile/job', auth, userController.updateJob);
-router.delete('/myProfile/job', auth, userController.deleteJob);
+router.post('/my-profile/workplace', auth, userController.insertWorkplace);
+router.put('/my-profile/workplace', auth, userController.updateWorkplace);
+router.delete('/my-profile/workplace', auth, userController.deleteWorkplace);
 
-router.post('/myProfile/skill', auth, userController.insertSkill);
-router.delete('/myProfile/skill', auth, userController.deleteSkill);
+router.post('/my-profile/skill', auth, userController.insertSkill);
+router.delete('/my-profile/skill', auth, userController.deleteSkill);
 
-router.post('/myProfile/socialMedia', auth, userController.insertSocialMedia);
-router.patch('/myProfile/socialMedia', auth, userController.updateSocialMedia);
-router.delete('/myProfile/socialMedia', auth, userController.deleteSocialMedia);
+router.post('/my-profile/social-media', auth, userController.insertSocialMedia);
+router.patch('/my-profile/social-media', auth, userController.updateSocialMedia);
+router.delete('/my-profile/social-media', auth, userController.deleteSocialMedia);
 
 export default router;

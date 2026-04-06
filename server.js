@@ -9,10 +9,11 @@ import imageRoutes from './src/routes/imageRoutes.js';
 import jobRoutes from './src/routes/jobRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
 import adminRoutes from './src/routes/adminRoutes.js';
+import eventRoutes from './src/routes/eventRouter.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { env } from './src/config/env.js';
-import './src/queues/emailWorker.js';
+import './src/workers/emailWorker.js';
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.use('/', jobRoutes);
 app.use('/', imageRoutes);
 app.use('/', userRoutes);
 app.use('/', adminRoutes);
+app.use('/', eventRoutes);
 
 app.listen(env.port, () => {
   console.log(`Servidor rodando na porta ${env.port}!`);

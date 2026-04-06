@@ -1,6 +1,7 @@
 import { PrismaClient } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
+import { formatPost, postSelectForApi } from '../utils/postApiFormatter.js';
 
 const prisma = new PrismaClient();
 
@@ -28,13 +29,17 @@ export const createPost = async (postData, userToken) => {
   }
 
   return authenticateUser(user_id, actions.createPost, async (user) => {
-    const post = await prisma.post.create({
+    const created = await prisma.post.create({
       data: {
         content: post_content,
         author_id: user.user_id,
       },
     });
-    return post;
+    const full = await prisma.post.findUnique({
+      where: { post_id: created.post_id },
+      select: postSelectForApi,
+    });
+    return formatPost(full);
   });
 };
 
@@ -78,7 +83,11 @@ export const updatePost = async (postId, postData, userToken) => {
       },
     });
 
-    return { message: 'Postagem atualizada com sucesso!' };
+    const full = await prisma.post.findUnique({
+      where: { post_id: post_id },
+      select: postSelectForApi,
+    });
+    return formatPost(full);
   });
 };
 
@@ -263,81 +272,88 @@ export const createLikePost = async (postId, userToken) => {
       throw new CustomError('Postagem não encontrada', 404);
     }
 
-    const existingLike = await prisma.postLikes.findFirst({
-      where: {
-        post_id: post.post_id,
-        author_id: user.user_id,
-      },
-    });
-
-    if (existingLike === null) {
-      await prisma.postLikes.create({
-        data: {
+    // Usar transação para garantir atomicidade e evitar race conditions
+    const result = await prisma.$transaction(async (tx) => {
+      const existingLike = await tx.postLikes.findFirst({
+        where: {
           post_id: post.post_id,
           author_id: user.user_id,
         },
       });
 
-      await prisma.post.update({
-        where: {
-          post_id: post_id,
-        },
-        data: {
-          likes_count: { increment: 1 },
-        },
-      });
+      if (!existingLike) {
+        // Criar novo like
+        await tx.postLikes.create({
+          data: {
+            post_id: post.post_id,
+            author_id: user.user_id,
+          },
+        });
 
-      return { message: 'Postagem curtida com sucesso!' };
-    }
+        await tx.post.update({
+          where: {
+            post_id: post_id,
+          },
+          data: {
+            likes_count: { increment: 1 },
+          },
+        });
 
-    if (existingLike.status === 'Active') {
-      await prisma.postLikes.update({
-        where: {
-          like_id: existingLike.like_id,
-        },
-        data: {
-          status: 'Inactive',
-          create_date: new Date(),
-        },
-      });
+        return { message: 'Postagem curtida com sucesso!' };
+      }
 
-      await prisma.post.update({
-        where: {
-          post_id: post_id,
-        },
-        data: {
-          likes_count: { decrement: 1 },
-        },
-      });
+      if (existingLike.status === 'Active') {
+        await tx.postLikes.update({
+          where: {
+            like_id: existingLike.like_id,
+          },
+          data: {
+            status: 'Inactive',
+            create_date: new Date(),
+          },
+        });
 
-      return { message: 'Curtida removida com sucesso!' };
-    }
+        await tx.post.update({
+          where: {
+            post_id: post_id,
+          },
+          data: {
+            likes_count: { decrement: 1 },
+          },
+        });
 
-    if (existingLike.status === 'Inactive') {
-      await prisma.postLikes.update({
-        where: {
-          like_id: existingLike.like_id,
-        },
-        data: {
-          status: 'Active',
-          create_date: new Date(),
-        },
-      });
+        return { message: 'Curtida removida com sucesso!' };
+      }
 
-      await prisma.post.update({
-        where: {
-          post_id: post_id,
-        },
-        data: {
-          likes_count: { increment: 1 },
-        },
-      });
-    }
+      if (existingLike.status === 'Inactive') {
+        await tx.postLikes.update({
+          where: {
+            like_id: existingLike.like_id,
+          },
+          data: {
+            status: 'Active',
+            create_date: new Date(),
+          },
+        });
 
-    return { message: 'Postagem curtida com sucesso!' };
+        await tx.post.update({
+          where: {
+            post_id: post_id,
+          },
+          data: {
+            likes_count: { increment: 1 },
+          },
+        });
+
+        return { message: 'Postagem curtida com sucesso!' };
+      }
+    });
+
+    return result;
   });
 };
 
+/*
 export const deleteLikePost = async (postId, userToken) => {
   const user_id = userToken.id;
   const post_id = postId;
@@ -353,35 +369,41 @@ export const deleteLikePost = async (postId, userToken) => {
       throw new CustomError('Postagem não encontrada', 404);
     }
 
-    const existingLike = await prisma.postLikes.findFirst({
-      where: {
-        post_id: post_id,
-        author_id: user_id,
-      },
+    // Usar transação para garantir atomicidade e evitar race conditions
+    const result = await prisma.$transaction(async (tx) => {
+      const existingLike = await tx.postLikes.findFirst({
+        where: {
+          post_id: post_id,
+          author_id: user_id,
+        },
+      });
+
+      if (!existingLike || existingLike.status === 'Deleted') {
+        throw new CustomError('Usuário não curtiu esta postagem', 400);
+      }
+
+      await tx.postLikes.update({
+        where: {
+          like_id: existingLike.like_id,
+        },
+        data: {
+          status: 'Deleted',
+        },
+      });
+
+      await tx.post.update({
+        where: {
+          post_id: post_id,
+        },
+        data: {
+          likes_count: { decrement: 1 },
+        },
+      });
+
+      return { message: 'Curtida removida com sucesso!' };
     });
 
-    if (!existingLike || existingLike.status === 'Deleted') {
-      throw new CustomError('Usuário não curtiu esta postagem', 400);
-    }
-
-    await prisma.postLikes.update({
-      where: {
-        like_id: existingLike.like_id,
-      },
-      data: {
-        status: 'Deleted',
-      },
-    });
-
-    await prisma.post.update({
-      where: {
-        post_id: post_id,
-      },
-      data: {
-        likes_count: { decrement: 1 },
-      },
-    });
-
-    return { message: 'Curtida removida com sucesso!' };
+    return result;
   });
 };
+*/
