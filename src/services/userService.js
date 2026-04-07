@@ -368,17 +368,33 @@ const fuzzyMatch = (search, target, tolerance = 2) => {
   );
 };
 
+function parseEnrollmentYearCandidate(value) {
+  if (value === null || value === undefined) return null;
+
+  const str = String(value).trim();
+  if (!/^\d{4}$/.test(str)) return null;
+
+  const year = Number(str);
+  // faixa conservadora para evitar ruído (ex: ids, telefones etc)
+  if (year < 1900 || year > 2100) return null;
+
+  return year;
+}
+
 function scoreUser(user, tokens, fullSearch) {
   let score = 0;
 
   const name = normalizeText(user.name);
 
   const courses = user.courses.map((c) => normalizeText(c.course_search || c.course_name));
+  const enrollmentYears = user.courses.map((c) => c.enrollmentYear).filter((y) => Number.isInteger(y));
 
   const workplaces =
     user.workplace_history?.map((wh) => normalizeText(wh.workplace?.company || '')) || [];
 
   const skills = user.skills.map((s) => normalizeText(s.skill.name));
+
+  const fullSearchYear = parseEnrollmentYearCandidate(fullSearch);
 
   // =========================
   // ⭐ MATCH COMPLETO (BOOST)
@@ -391,6 +407,10 @@ function scoreUser(user, tokens, fullSearch) {
     if (course.includes(fullSearch)) score += 45;
     else if (fuzzyMatch(fullSearch, course)) score += 30;
   });
+
+  if (fullSearchYear !== null && enrollmentYears.includes(fullSearchYear)) {
+    score += 60;
+  }
 
   workplaces.forEach((work) => {
     if (work.includes(fullSearch)) score += 35;
@@ -407,6 +427,8 @@ function scoreUser(user, tokens, fullSearch) {
   // =========================
 
   tokens.forEach((token) => {
+    const tokenYear = parseEnrollmentYearCandidate(token);
+
     // ---- NAME ----
     if (name.includes(token)) score += 15;
     else if (fuzzyMatch(token, name)) score += 8;
@@ -416,6 +438,10 @@ function scoreUser(user, tokens, fullSearch) {
       if (course.includes(token)) score += 10;
       else if (fuzzyMatch(token, course)) score += 6;
     });
+
+    if (tokenYear !== null && enrollmentYears.includes(tokenYear)) {
+      score += 25;
+    }
 
     // ---- WORKPLACE ----
     workplaces.forEach((work) => {
@@ -1174,6 +1200,10 @@ export const searchUsers = async (userToken, search) => {
 
     const normalizedSearch = normalizeText(rawSearch.replace('%', ' '));
     const tokens = tokenize(normalizedSearch);
+    const enrollmentYearCandidate =
+      parseEnrollmentYearCandidate(normalizedSearch) ??
+      tokens.map(parseEnrollmentYearCandidate).find((y) => y !== null) ??
+      null;
 
     const users = await prisma.user.findMany({
       where: {
@@ -1203,6 +1233,18 @@ export const searchUsers = async (userToken, search) => {
                   },
                 },
               },
+
+              ...(enrollmentYearCandidate !== null
+                ? [
+                    {
+                      courses: {
+                        some: {
+                          enrollmentYear: enrollmentYearCandidate,
+                        },
+                      },
+                    },
+                  ]
+                : []),
 
               ...tokens.flatMap((token) => [
                 {
