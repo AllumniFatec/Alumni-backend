@@ -198,9 +198,7 @@ export const getJobs = async (userToken, page = 1) => {
 
       prisma.job.count({
         where: {
-          status: {
-            not: 'Deleted',
-          },
+          status: 'Active',
         },
       }),
     ]);
@@ -427,7 +425,7 @@ export const closeJob = async (userToken, jobId) => {
   const user_id = userToken.id;
   const job_id = jobId;
 
-  return authenticateUser(user_id, actions.closeEvent, async (user) => {
+  return authenticateUser(user_id, actions.closeJob, async (user) => {
     const targetJob = await prisma.job.findUnique({
       where: {
         job_id: job_id,
@@ -442,7 +440,7 @@ export const closeJob = async (userToken, jobId) => {
       throw new CustomError('Vaga já encerrada ou excluída', 409);
     }
 
-    if (user.user_id !== targetJob.author_id) {
+    if (user.user_type !== 'Admin' && user.user_id !== targetJob.author_id) {
       throw new CustomError('Usuário não autorizado a encerrar esta vaga', 403);
     }
 
