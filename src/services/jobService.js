@@ -7,6 +7,8 @@ import {
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
 import { capitalizeWords, isValidHttpUrl, getPageNumber } from '../utils/validations.js';
+import { notifyManyUsers } from './notificationService.js';
+import { notificationTypes } from '../utils/notificationTypes.js';
 import levenshtein from 'fast-levenshtein';
 
 const actions = {
@@ -128,7 +130,7 @@ export const createJob = async (data, userToken) => {
 
     const company_id = await findOrCreateWorkplace(company);
 
-    await prisma.job.create({
+    const newJob = await prisma.job.create({
       data: {
         title: title,
         description: description,
@@ -145,6 +147,27 @@ export const createJob = async (data, userToken) => {
         url: url,
       },
     });
+
+    if (newJob) {
+      const notifyUsers = await prisma.user.findMany({
+        where: {
+          receive_notifications: true,
+          user_id: {
+            not: user.user_id,
+          },
+          user_status: 'Active',
+        },
+      });
+
+      if (notifyUsers.length > 0) {
+        await notifyManyUsers(notifyUsers, {
+          type: notificationTypes.JOB_CREATED,
+          title: 'Nova vaga de emprego criada',
+          message: `Vaga de ${newJob.title} foi publicada por ${user.name}`,
+          link: `${req.protocol}://${req.get('host')}/jobs/${newJob.job_id}`,
+        });
+      }
+    }
 
     return { message: 'Vaga criada com sucesso!' };
   });

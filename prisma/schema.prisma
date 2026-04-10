@@ -8,6 +8,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Notification {
+  notification_id  String @id @default(auto()) @map("_id") @db.ObjectId
+  user_id          String @db.ObjectId
+  user             User @relation(fields: [user_id], references: [user_id])
+  type             String
+  title            String
+  message          String
+  link             String
+  is_read          Boolean @default(false)
+  create_date      DateTime @default(now())
+}
+
 model User {
   user_id                String @id @default(auto()) @map("_id") @db.ObjectId
   name                   String
@@ -22,6 +34,7 @@ model User {
 
   user_type              UserType
 
+  notifications          Notification[]
   social_media           SocialMedia[]
   courses                UserCourse[]
   events                 Event[]
