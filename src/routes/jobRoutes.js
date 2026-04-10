@@ -27,6 +27,13 @@ const deleteJobRateLimit = createRateLimit({
   getIdentifier: (req) => req.user?.id || req.user?.userId,
 });
 
+const closeJobRateLimit = createRateLimit({
+  keyPrefix: 'job-close',
+  windowSeconds: 60, //1 minuto
+  maxRequests: 5,
+  getIdentifier: (req) => req.user?.id || req.user?.userId,
+});
+
 const listJobsRateLimit = createRateLimit({
   keyPrefix: 'job-list',
   windowSeconds: 60, //1 minuto
@@ -44,7 +51,8 @@ const getJobIdRateLimit = createRateLimit({
 router.post('/job', auth, createJobRateLimit, jobController.createJob);
 router.get('/job', auth, listJobsRateLimit, jobController.getJobs);
 router.get('/job/:id', auth, getJobIdRateLimit, authId, jobController.getJobById);
-router.patch('/job/:id', auth, updateJobRateLimit, authId, jobController.updateJob);
+router.put('/job/:id', auth, updateJobRateLimit, authId, jobController.updateJob);
 router.delete('/job/:id', auth, deleteJobRateLimit, authId, jobController.deleteJob);
+router.patch('/job/:id', auth, closeJobRateLimit, authId, jobController.closeJob);
 
 export default router;
