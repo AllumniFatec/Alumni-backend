@@ -57,6 +57,13 @@ export const getNotifications = async (userToken, page = 1) => {
         where: {
           user_id: user_id,
         },
+        select: {
+          notification_id: true,
+          title: true,
+          message: true,
+          link: true,
+          is_read: true,
+        },
       }),
 
       prisma.notification.count({
