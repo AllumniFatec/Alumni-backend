@@ -274,7 +274,7 @@ export const getJobById = async (userToken, jobId) => {
         work_model: true,
         status: true,
         create_date: true,
-        //url: true,
+        url: true,
       },
     });
 
