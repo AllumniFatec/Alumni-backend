@@ -6,4 +6,6 @@ import * as notificationController from '../controllers/notificationController.j
 const router = express.Router();
 
 router.get('/notification', auth, notificationController.getNotifications);
-router.patch('notification/:id', auth, authId, notificationController.readNotification);
+router.patch('/notification/:id', auth, authId, notificationController.readNotification);
+
+export default router;

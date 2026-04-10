@@ -2,6 +2,8 @@ import { PrismaClient } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
 import { formatPost, postSelectForApi } from '../utils/postApiFormatter.js';
+import { createNotification } from './notificationService.js';
+import { notificationTypes } from '../utils/notificationTypes.js';
 
 const prisma = new PrismaClient();
 
@@ -149,7 +151,7 @@ export const createCommentPost = async (postId, commentData, userToken) => {
       throw new CustomError('Postagem não encontrada', 404);
     }
 
-    await prisma.postComments.create({
+    const newComment = await prisma.postComments.create({
       data: {
         content: comment_content,
         author_id: user.user_id,
@@ -165,6 +167,26 @@ export const createCommentPost = async (postId, commentData, userToken) => {
         comments_count: { increment: 1 },
       },
     });
+
+    if (newComment) {
+      const notifyUser = await prisma.user.findMany({
+        where: {
+          receive_notifications: true,
+          user_id: post.author_id,
+          user_status: 'Active',
+        },
+      });
+
+      if (notifyUser) {
+        await createNotification({
+          userId: post.author_id,
+          type: notificationTypes.POST_COMMENTED,
+          title: 'Postagem comentada',
+          message: `${user.name} comentou em sua postagem`,
+          //link: `${protocol}://${host}/posts/${post.post_id}`,
+        });
+      }
+    }
 
     return { message: 'Comentário adicionado com sucesso!' };
   });
@@ -283,7 +305,7 @@ export const createLikePost = async (postId, userToken) => {
 
       if (!existingLike) {
         // Criar novo like
-        await tx.postLikes.create({
+        const newLike = await tx.postLikes.create({
           data: {
             post_id: post.post_id,
             author_id: user.user_id,
@@ -299,7 +321,7 @@ export const createLikePost = async (postId, userToken) => {
           },
         });
 
-        return { message: 'Postagem curtida com sucesso!' };
+        return { message: 'Postagem curtida com sucesso!', data: newLike };
       }
 
       if (existingLike.status === 'Active') {
@@ -326,7 +348,7 @@ export const createLikePost = async (postId, userToken) => {
       }
 
       if (existingLike.status === 'Inactive') {
-        await tx.postLikes.update({
+        const likedPost = await tx.postLikes.update({
           where: {
             like_id: existingLike.like_id,
           },
@@ -345,11 +367,40 @@ export const createLikePost = async (postId, userToken) => {
           },
         });
 
-        return { message: 'Postagem curtida com sucesso!' };
+        return { message: 'Postagem curtida com sucesso!', data: likedPost };
       }
     });
 
-    return result;
+    if (result.data) {
+      const postLiked = await prisma.post.findUnique({
+        where: {
+          post_id: result.data.post_id,
+        },
+        select: {
+          author_id: true,
+        },
+      });
+
+      const notifyUser = await prisma.user.findMany({
+        where: {
+          receive_notifications: true,
+          user_id: postLiked.author_id,
+          user_status: 'Active',
+        },
+      });
+
+      if (notifyUser) {
+        await createNotification({
+          userId: postLiked.author_id,
+          type: notificationTypes.POST_LIKED,
+          title: 'Postagem curtida',
+          message: `${user.name} curtiu sua postagem`,
+          //link: `${protocol}://${host}/posts/${post.post_id}`,
+        });
+      }
+    }
+
+    return result.message;
   });
 };
 

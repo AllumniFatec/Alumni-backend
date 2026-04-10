@@ -83,7 +83,7 @@ export const findOrCreateWorkplace = async (company) => {
   return work_id;
 };
 
-export const createJob = async (data, userToken) => {
+export const createJob = async (data, userToken, host) => {
   const user_id = userToken.id;
   const {
     title,
@@ -165,7 +165,7 @@ export const createJob = async (data, userToken) => {
           type: notificationTypes.JOB_CREATED,
           title: 'Nova vaga de emprego criada',
           message: `Vaga de ${newJob.title} foi publicada por ${user.name}`,
-          link: `${req.protocol}://${req.get('host')}/jobs/${newJob.job_id}`,
+          link: `${host}jobs/${newJob.job_id}`,
         });
       }
     }
@@ -444,7 +444,7 @@ export const deleteJob = async (jobId, userToken) => {
   });
 };
 
-export const closeJob = async (userToken, jobId) => {
+export const closeJob = async (userToken, jobId, host) => {
   const user_id = userToken.id;
   const job_id = jobId;
 
@@ -467,7 +467,7 @@ export const closeJob = async (userToken, jobId) => {
       throw new CustomError('Usuário não autorizado a encerrar esta vaga', 403);
     }
 
-    await prisma.job.update({
+    const closedJob = await prisma.job.update({
       where: {
         job_id: job_id,
       },
@@ -476,6 +476,27 @@ export const closeJob = async (userToken, jobId) => {
         updated_at: new Date(),
       },
     });
+
+    if (closedJob) {
+      const notifyUsers = await prisma.user.findMany({
+        where: {
+          receive_notifications: true,
+          user_id: {
+            not: user.user_id,
+          },
+          user_status: 'Active',
+        },
+      });
+
+      if (notifyUsers.length > 0) {
+        await notifyManyUsers(notifyUsers, {
+          type: notificationTypes.JOB_CLOSED,
+          title: 'Vaga de emprego encerrada',
+          message: `Vaga de ${closedJob.title} foi encerrada por ${user.name}`,
+          link: `${host}jobs/${closedJob.job_id}`,
+        });
+      }
+    }
 
     return { message: 'Vaga encerrada com sucesso!' };
   });

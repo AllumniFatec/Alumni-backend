@@ -15,7 +15,7 @@ model Notification {
   type             String
   title            String
   message          String
-  link             String
+  link             String?
   is_read          Boolean @default(false)
   create_date      DateTime @default(now())
 }

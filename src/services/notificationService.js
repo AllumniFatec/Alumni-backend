@@ -17,7 +17,7 @@ export const createNotification = async ({ userId, type, title, message, link })
       type: type,
       title: title,
       message: message,
-      link: link,
+      link: link ?? null,
     },
   });
 
@@ -54,6 +54,12 @@ export const getNotifications = async (userToken, page = 1) => {
       prisma.notification.findMany({
         skip: skip,
         take: limit,
+        where: {
+          user_id: user_id,
+        },
+      }),
+
+      prisma.notification.count({
         where: {
           user_id: user_id,
         },
