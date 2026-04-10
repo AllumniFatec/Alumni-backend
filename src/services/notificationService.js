@@ -34,12 +34,7 @@ export const createNotification = async ({ userId, type, title, message, link })
 };
 
 export const notifyManyUsers = async (users, payload) => {
-  for (const user of users) {
-    await createNotification({
-      userId: user.user_id,
-      ...payload,
-    });
-  }
+  await Promise.all(users.map((user) => createNotification({ userId: user.user_id, ...payload })));
 };
 
 export const getNotifications = async (userToken, page = 1) => {
@@ -63,6 +58,9 @@ export const getNotifications = async (userToken, page = 1) => {
           message: true,
           link: true,
           is_read: true,
+        },
+        orderBy: {
+          create_date: 'desc',
         },
       }),
 
