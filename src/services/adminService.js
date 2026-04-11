@@ -243,8 +243,6 @@ export const changeUserType = async (userToken, userTargetId, type) => {
   const user_id = userToken.id;
   const user_target_id = userTargetId;
 
-  console.log(user_target_id);
-
   if (!Object.values(UserType).includes(type)) {
     throw new CustomError('Tipo de usuário inválido!', 422);
   }
@@ -263,11 +261,11 @@ export const changeUserType = async (userToken, userTargetId, type) => {
     }
 
     if (targetUser.user_status !== 'Active') {
-      throw new CustomError('Usuário não pode ser alterado!', 401);
+      throw new CustomError('Usuário não pode ser alterado!', 400);
     }
 
     if (targetUser.user_type === type) {
-      throw new CustomError('Tipo de usuário já é o mesmo!', 401);
+      throw new CustomError('Tipo de usuário já é o mesmo!', 409);
     }
 
     const updatedUser = await prisma.user.update({
