@@ -228,11 +228,11 @@ export const deleteSocialMedia = async (req, res) => {
 export const searchUser = async (req, res) => {
   try {
     const user = req.user;
-    const search = req.query.search;
+    const { search, page } = req.query;
 
-    const users = await userService.searchUsers(user, search);
+    const result = await userService.searchUsers(user, search, page);
 
-    return res.status(200).json(users);
+    return res.status(200).json(result);
   } catch (err) {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });

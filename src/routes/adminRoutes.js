@@ -30,4 +30,8 @@ router.post(
   adminController.refuseUser
 );
 
+router.get('/admin/users', auth, adminController.getUsers);
+router.get('/admin/users/search', auth, adminController.searchUsers);
+router.get('/admin/users/changeType/:id', auth, authId, adminController.changeUserType);
+
 export default router;
