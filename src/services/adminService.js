@@ -4,6 +4,8 @@ import { authenticateUser } from './userService.js';
 import { enqueueEmail } from '../utils/emailQueue.js';
 import { messageApproveUser, messageRefuseUser } from '../utils/emailMessages.js';
 import { getPageNumber } from '../utils/validations.js';
+import { UserType } from '../generated/prisma/index.js';
+import * as userService from './userService.js';
 
 const prisma = new PrismaClient();
 
@@ -12,6 +14,9 @@ const actions = {
   listAllUsersInAnalysis: 'listar usuários para aprovação',
   approveUser: 'aprovar usuário',
   refuseUser: 'recusar usuário',
+  getUsers: 'listar usuários',
+  searchUsers: 'buscar usuários',
+  changeUserType: 'alterar tipo de usuário',
 };
 
 function verifyAdminUser(user, action) {
@@ -199,5 +204,80 @@ export const refuseUser = async (userToken, alumniId, protocol, host) => {
     } catch (err) {
       throw new CustomError('Algo de errado aconteceu. Por favor, tente novamente mais tarde', 500);
     }
+  });
+};
+
+export const getUsers = async (userToken, page = 1) => {
+  const user_id = userToken.id;
+
+  return authenticateUser(user_id, actions.getUsers, async (user) => {
+    verifyAdminUser(user, actions.getUsers);
+
+    const currentPageNumber = getPageNumber(page);
+
+    const { users, pagination } = await userService.getUsers(userToken, currentPageNumber);
+
+    return { users, pagination };
+  });
+};
+
+export const searchUsers = async (userToken, search, page = 1) => {
+  const user_id = userToken.id;
+
+  return authenticateUser(user_id, actions.searchUsers, async (user) => {
+    verifyAdminUser(user, actions.searchUsers);
+
+    const currentPageNumber = getPageNumber(page);
+
+    const { users, pagination } = await userService.searchUsers(
+      userToken,
+      search,
+      currentPageNumber
+    );
+
+    return { users, pagination };
+  });
+};
+
+export const changeUserType = async (userToken, userTargetId, type) => {
+  const user_id = userToken.id;
+  const user_target_id = userTargetId;
+
+  if (!Object.values(UserType).includes(type)) {
+    throw new CustomError('Tipo de usuário inválido!', 422);
+  }
+
+  return authenticateUser(user_id, actions.changeUserType, async (user) => {
+    verifyAdminUser(user, actions.changeUserType);
+
+    const targetUser = await prisma.user.findUnique({
+      where: {
+        user_id: user_target_id,
+      },
+    });
+
+    if (!targetUser) {
+      throw new CustomError('Usuário não encontrado!', 404);
+    }
+
+    if (targetUser.user_status !== 'Active') {
+      throw new CustomError('Usuário não pode ser alterado!', 400);
+    }
+
+    if (targetUser.user_type === type) {
+      throw new CustomError('Tipo de usuário já é o mesmo!', 409);
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        user_id: user_target_id,
+      },
+      data: {
+        user_type: type,
+        updated_at: new Date(),
+      },
+    });
+
+    return { message: 'Tipo de usuário alterado com sucesso!' };
   });
 };
