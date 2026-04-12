@@ -35,7 +35,7 @@ export const listAllUsersInAnalysis = async (req, res) => {
 export const approveUser = async (req, res) => {
   try {
     const user = req.user;
-    const alumniId = req.params.userId;
+    const alumniId = req.params.id;
 
     await adminService.approveUser(user, alumniId, req.protocol, req.get('host'));
 
@@ -51,7 +51,7 @@ export const approveUser = async (req, res) => {
 export const refuseUser = async (req, res) => {
   try {
     const user = req.user;
-    const alumniId = req.params.userId;
+    const alumniId = req.params.id;
 
     await adminService.refuseUser(user, alumniId, req.protocol, req.get('host'));
 
