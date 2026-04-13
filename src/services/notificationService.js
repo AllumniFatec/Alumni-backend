@@ -1,5 +1,5 @@
 import { PrismaClient } from '../generated/prisma/index.js';
-import { getIo, getConnectedUsers } from '../config/socket.js';
+import { getIo, getConnectedUsers } from '../../server.js';
 import { authenticateUser } from './userService.js';
 import { getPageNumber } from '../utils/validations.js';
 

@@ -21,7 +21,9 @@ export const initSocket = (server) => {
       }
     });
   });
+
+  return io;
 };
 
-export const getIo = () => io;
+export const getIo = () => initSocket();
 export const getConnectedUsers = () => connectedUsers;
