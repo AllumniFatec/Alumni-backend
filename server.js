@@ -15,8 +15,8 @@ import notificationRoutes from './src/routes/notificationRoutes.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { env } from './src/config/env.js';
-import { Server } from 'socket.io';
 import http from 'http';
+import { initSocket } from './src/config/socket.js';
 import './src/workers/emailWorker.js';
 
 const app = express();
@@ -43,9 +43,7 @@ if (env.isDevelopment) {
 }
 
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: corsOptions },
-});
+initSocket(server, corsOptions);
 
 app.use(cors(corsOptions));
 
@@ -61,25 +59,6 @@ app.use('/', userRoutes);
 app.use('/', adminRoutes);
 app.use('/', eventRoutes);
 app.use('/', notificationRoutes);
-
-const connectedUsers = new Map();
-
-io.on('connection', (socket) => {
-  socket.on('register-user', (userId) => {
-    connectedUsers.set(userId, socket.id);
-  });
-
-  socket.on('disconnect', () => {
-    for (const [userId, socketId] of connectedUsers.entries()) {
-      if (socketId === socket.id) {
-        connectedUsers.delete(userId);
-      }
-    }
-  });
-});
-
-export const getIo = () => io;
-export const getConnectedUsers = () => connectedUsers;
 
 server.listen(env.port, () => {
   console.log(`Servidor rodando na porta ${env.port}!`);

@@ -3,9 +3,9 @@ import { Server } from 'socket.io';
 let io;
 const connectedUsers = new Map();
 
-export const initSocket = (server) => {
+export const initSocket = (server, corsOptions) => {
   io = new Server(server, {
-    cors: { origin: '*' },
+    cors: { origin: corsOptions },
   });
 
   io.on('connection', (socket) => {
@@ -21,9 +21,7 @@ export const initSocket = (server) => {
       }
     });
   });
-
-  return io;
 };
 
-export const getIo = () => initSocket();
+export const getIo = () => io;
 export const getConnectedUsers = () => connectedUsers;
