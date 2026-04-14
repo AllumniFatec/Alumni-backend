@@ -137,3 +137,29 @@ export const readNotification = async (userToken, notificationId) => {
     return { message: 'Notificação lida com sucesso!' };
   });
 };
+
+export const getCreatedNotifications = async (users, message, type) => {
+  const createdNotifications = await prisma.notification.findMany({
+    where: {
+      user_id: { in: users },
+      message,
+      type,
+    },
+    orderBy: {
+      create_date: 'desc',
+    },
+    take: cleanedUserIds.length,
+    select: {
+      notification_id: true,
+      user_id: true,
+      type: true,
+      title: true,
+      message: true,
+      link: true,
+      is_read: true,
+      create_date: true,
+    },
+  });
+
+  return createdNotifications;
+};

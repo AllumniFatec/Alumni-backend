@@ -6,6 +6,7 @@ import {
   NOTIFICATION_DELIVERY_QUEUE_NAME,
 } from '../queues/notificationDeliveryQueue.js';
 import { NOTIFICATION_DISPATCHER_QUEUE_NAME } from '../queues/notificationDispatcherQueue.js';
+import { getUsersNotifications } from '../services/userService.js';
 
 const prisma = new PrismaClient();
 const BATCH_SIZE = 500;
@@ -36,20 +37,7 @@ const dispatchToFixedUsers = async (payload) => {
   const requestedUserIds = Array.isArray(payload.userIds) ? payload.userIds : [];
   if (requestedUserIds.length === 0) return;
 
-  const eligibleUsers = await prisma.user.findMany({
-    where: {
-      user_id: {
-        in: requestedUserIds,
-      },
-      receive_notifications: true,
-      user_status: 'Active',
-    },
-    select: {
-      user_id: true,
-    },
-  });
-
-  const userIds = eligibleUsers.map((user) => user.user_id);
+  const userIds = await getUsersNotifications();
 
   for (let index = 0; index < userIds.length; index += BATCH_SIZE) {
     const batch = userIds.slice(index, index + BATCH_SIZE);
@@ -60,7 +48,7 @@ const dispatchToFixedUsers = async (payload) => {
 const dispatchToAllEligibleUsers = async (payload) => {
   let cursorId;
 
-  for (;;) {
+  while (true) {
     const users = await prisma.user.findMany({
       where: {
         receive_notifications: true,

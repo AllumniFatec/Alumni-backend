@@ -3,6 +3,7 @@ import { PrismaClient } from '../generated/prisma/index.js';
 import { env } from '../config/env.js';
 import { getIo } from '../config/socket.js';
 import { NOTIFICATION_DELIVERY_QUEUE_NAME } from '../queues/notificationDeliveryQueue.js';
+import { getCreatedNotifications } from '../services/notificationService.js';
 
 const prisma = new PrismaClient();
 
@@ -44,27 +45,7 @@ export const notificationDeliveryWorker = new Worker(
       data: rows,
     });
 
-    const createdNotifications = await prisma.notification.findMany({
-      where: {
-        user_id: { in: cleanedUserIds },
-        message,
-        type,
-      },
-      orderBy: {
-        create_date: 'desc',
-      },
-      take: cleanedUserIds.length,
-      select: {
-        notification_id: true,
-        user_id: true,
-        type: true,
-        title: true,
-        message: true,
-        link: true,
-        is_read: true,
-        create_date: true,
-      },
-    });
+    const createdNotifications = await getCreatedNotifications(cleanedUserIds, message, type);
 
     const notificationByUserId = new Map();
     for (const notification of createdNotifications) {
