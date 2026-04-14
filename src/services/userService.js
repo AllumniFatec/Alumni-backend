@@ -1550,3 +1550,22 @@ export const searchUsers = async (userToken, search, page = 1) => {
     };
   });
 };
+
+export const getUsersNotifications = async () => {
+  const eligibleUsers = await prisma.user.findMany({
+    where: {
+      user_id: {
+        in: requestedUserIds,
+      },
+      receive_notifications: true,
+      user_status: 'Active',
+    },
+    select: {
+      user_id: true,
+    },
+  });
+
+  const userIds = eligibleUsers.map((user) => user.user_id);
+
+  return userIds;
+};

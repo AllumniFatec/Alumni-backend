@@ -2,7 +2,7 @@ import { PrismaClient } from '../generated/prisma/index.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
 import { formatPost, postSelectForApi } from '../utils/postApiFormatter.js';
-import { createNotification } from './notificationService.js';
+import { enqueueNotificationForAudience } from './notificationService.js';
 import { notificationTypes } from '../utils/notificationTypes.js';
 
 const prisma = new PrismaClient();
@@ -168,24 +168,15 @@ export const createCommentPost = async (postId, commentData, userToken) => {
       },
     });
 
-    if (newComment) {
-      const notifyUser = await prisma.user.findMany({
-        where: {
-          receive_notifications: true,
-          user_id: post.author_id,
-          user_status: 'Active',
-        },
+    if (newComment && post.author_id !== user.user_id) {
+      await enqueueNotificationForAudience({
+        type: notificationTypes.POST_COMMENTED,
+        title: 'Postagem comentada',
+        message: `${user.name} comentou em sua postagem`,
+        authorId: user.user_id,
+        userIds: [post.author_id],
+        postId: post.post_id,
       });
-
-      if (notifyUser) {
-        await createNotification({
-          userId: post.author_id,
-          type: notificationTypes.POST_COMMENTED,
-          title: 'Postagem comentada',
-          message: `${user.name} comentou em sua postagem`,
-          //link: `${protocol}://${host}/posts/${post.post_id}`,
-        });
-      }
     }
 
     return { message: 'Comentário adicionado com sucesso!' };
@@ -381,21 +372,14 @@ export const createLikePost = async (postId, userToken) => {
         },
       });
 
-      const notifyUser = await prisma.user.findMany({
-        where: {
-          receive_notifications: true,
-          user_id: postLiked.author_id,
-          user_status: 'Active',
-        },
-      });
-
-      if (notifyUser) {
-        await createNotification({
-          userId: postLiked.author_id,
+      if (postLiked?.author_id && postLiked.author_id !== user.user_id) {
+        await enqueueNotificationForAudience({
           type: notificationTypes.POST_LIKED,
           title: 'Postagem curtida',
           message: `${user.name} curtiu sua postagem`,
-          //link: `${protocol}://${host}/posts/${post.post_id}`,
+          authorId: user.user_id,
+          userIds: [postLiked.author_id],
+          postId: result.data.post_id,
         });
       }
     }

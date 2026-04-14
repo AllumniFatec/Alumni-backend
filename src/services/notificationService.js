@@ -1,7 +1,8 @@
 import { PrismaClient } from '../generated/prisma/index.js';
-import { getIo, getConnectedUsers } from '../config/socket.js';
 import { authenticateUser } from './userService.js';
 import { getPageNumber } from '../utils/validations.js';
+import CustomError from '../utils/CustomError.js';
+import { enqueueNotificationDispatch } from '../queues/notificationDispatcherQueue.js';
 
 const prisma = new PrismaClient();
 
@@ -10,31 +11,49 @@ const actions = {
   readNotification: 'marcar notificação como lida',
 };
 
-export const createNotification = async ({ userId, type, title, message, link }) => {
-  const notification = await prisma.notification.create({
-    data: {
-      user_id: userId,
-      type: type,
-      title: title,
-      message: message,
-      link: link ?? null,
-    },
+export const createNotification = async ({
+  userId,
+  type,
+  title,
+  message,
+  link,
+  authorId,
+  referenceId,
+  postId,
+  eventId,
+  jobId,
+}) => {
+  await enqueueNotificationDispatch({
+    type,
+    title,
+    message,
+    link: link ?? null,
+    authorId,
+    userIds: [userId],
+    referenceId,
+    postId,
+    eventId,
+    jobId,
   });
 
-  //envio da notificação em tempo real para o usuário
-  const io = getIo();
-  const connectedUsers = getConnectedUsers();
-  const socketId = connectedUsers.get(userId);
-
-  if (socketId && io) {
-    io.to(socketId).emit('new_notification', notification);
-  }
-
-  return notification;
+  return {
+    queued: true,
+    userId,
+  };
 };
 
 export const notifyManyUsers = async (users, payload) => {
-  await Promise.all(users.map((user) => createNotification({ userId: user.user_id, ...payload })));
+  const userIds = users.map((user) => user.user_id).filter(Boolean);
+  if (userIds.length === 0) return;
+
+  await enqueueNotificationDispatch({
+    ...payload,
+    userIds,
+  });
+};
+
+export const enqueueNotificationForAudience = async (payload) => {
+  await enqueueNotificationDispatch(payload);
 };
 
 export const getNotifications = async (userToken, page = 1) => {
@@ -117,4 +136,30 @@ export const readNotification = async (userToken, notificationId) => {
 
     return { message: 'Notificação lida com sucesso!' };
   });
+};
+
+export const getCreatedNotifications = async (users, message, type) => {
+  const createdNotifications = await prisma.notification.findMany({
+    where: {
+      user_id: { in: users },
+      message,
+      type,
+    },
+    orderBy: {
+      create_date: 'desc',
+    },
+    take: cleanedUserIds.length,
+    select: {
+      notification_id: true,
+      user_id: true,
+      type: true,
+      title: true,
+      message: true,
+      link: true,
+      is_read: true,
+      create_date: true,
+    },
+  });
+
+  return createdNotifications;
 };
