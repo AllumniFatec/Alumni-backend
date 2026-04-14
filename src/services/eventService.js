@@ -3,6 +3,8 @@ import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
 import { capitalizeWords, getPageNumber } from '../utils/validations.js';
 import { parse } from 'date-fns';
+import { enqueueNotificationForAudience } from './notificationService.js';
+import { notificationTypes } from '../utils/notificationTypes.js';
 
 const prisma = new PrismaClient();
 
@@ -89,7 +91,7 @@ function validateEventData(eventData) {
   return { title, description, local, startDate, endDate };
 }
 
-export const createEvent = async (userToken, eventData) => {
+export const createEvent = async (userToken, eventData, host) => {
   const user_id = userToken.id;
 
   const { title, description, local, startDate, endDate } = validateEventData(eventData);
@@ -102,7 +104,7 @@ export const createEvent = async (userToken, eventData) => {
     const formattedTitle = capitalizeWords(title);
     const formattedLocal = capitalizeWords(local);
 
-    await prisma.event.create({
+    const newEvent = await prisma.event.create({
       data: {
         title: formattedTitle,
         description,
@@ -112,6 +114,17 @@ export const createEvent = async (userToken, eventData) => {
         author_id: user.user_id,
       },
     });
+
+    if (newEvent) {
+      await enqueueNotificationForAudience({
+        type: notificationTypes.EVENT_CREATED,
+        title: 'Novo evento criado',
+        message: `Evento de ${newEvent.title} foi publicado por ${user.name}`,
+        link: `${host}events/${newEvent.event_id}`,
+        authorId: user.user_id,
+        eventId: newEvent.event_id,
+      });
+    }
 
     return { message: 'Evento criado com sucesso!' };
   });
@@ -282,7 +295,7 @@ export const deleteEvent = async (userToken, eventId) => {
   });
 };
 
-export const closeEvent = async (userToken, eventId) => {
+export const closeEvent = async (userToken, eventId, host) => {
   const user_id = userToken.id;
   const event_id = eventId;
 
@@ -305,7 +318,7 @@ export const closeEvent = async (userToken, eventId) => {
       throw new CustomError('Evento já encerrado ou excluído', 409);
     }
 
-    await prisma.event.update({
+    const closedEvent = await prisma.event.update({
       where: {
         event_id: event_id,
       },
@@ -314,6 +327,17 @@ export const closeEvent = async (userToken, eventId) => {
         updated_at: new Date(),
       },
     });
+
+    if (closedEvent) {
+      await enqueueNotificationForAudience({
+        type: notificationTypes.EVENT_CLOSED,
+        title: 'Evento encerrado',
+        message: `Evento de ${closedEvent.title} foi encerrado por ${user.name}`,
+        link: `${host}events/${closedEvent.event_id}`,
+        authorId: user.user_id,
+        eventId: closedEvent.event_id,
+      });
+    }
 
     return { message: 'Evento encerrado com sucesso!' };
   });

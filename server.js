@@ -11,11 +11,17 @@ import jobRoutes from './src/routes/jobRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
 import adminRoutes from './src/routes/adminRoutes.js';
 import eventRoutes from './src/routes/eventRouter.js';
+import notificationRoutes from './src/routes/notificationRoutes.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { env } from './src/config/env.js';
+import http from 'http';
+import { initSocket } from './src/config/socket.js';
 import './src/workers/emailWorker.js';
-
+import './src/workers/notificationDispatcher.worker.js';
+import './src/workers/notificationDelivery.worker.js';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './src/config/swagger.js';
 const app = express();
 
 app.use(express.json());
@@ -39,6 +45,9 @@ if (env.isDevelopment) {
   };
 }
 
+const server = http.createServer(app);
+initSocket(server, corsOptions);
+
 app.use(cors(corsOptions));
 
 app.use('/', authRoutes);
@@ -52,7 +61,20 @@ app.use('/', imageRoutes);
 app.use('/', userRoutes);
 app.use('/', adminRoutes);
 app.use('/', eventRoutes);
+app.use('/', notificationRoutes);
+app.use(
+  '/docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    swaggerOptions: {
+      persistAuthorization: false,
+      docExpansion: 'list',
+      defaultModelsExpandDepth: 2,
+      defaultModelExpandDepth: 2,
+    },
+  })
+);
 
-app.listen(env.port, () => {
+server.listen(env.port, () => {
   console.log(`Servidor rodando na porta ${env.port}!`);
 });

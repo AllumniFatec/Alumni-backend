@@ -387,7 +387,9 @@ function scoreUser(user, tokens, fullSearch) {
   const name = normalizeText(user.name);
 
   const courses = user.courses.map((c) => normalizeText(c.course_search || c.course_name));
-  const enrollmentYears = user.courses.map((c) => c.enrollmentYear).filter((y) => Number.isInteger(y));
+  const enrollmentYears = user.courses
+    .map((c) => c.enrollmentYear)
+    .filter((y) => Number.isInteger(y));
 
   const workplaces =
     user.workplace_history?.map((wh) => normalizeText(wh.workplace?.company || '')) || [];
@@ -500,64 +502,85 @@ export const authenticateUser = async (userId, action, func) => {
 export const getUsers = async (userToken, page = 1) => {
   const user_id = userToken.id;
 
-  const limit = 40;
-  const skip = (page - 1) * limit;
+  const currentPageNumber = getPageNumber(page);
+  const limit = 30;
+  const skip = (currentPageNumber - 1) * limit;
 
   return authenticateUser(user_id, actions.getUsers, async (user) => {
-    const users = await prisma.user.findMany({
-      take: limit,
-      skip: skip,
-      where: {
-        user_status: 'Active',
-      },
-      orderBy: {
-        name: 'asc',
-      },
-      select: {
-        user_id: true,
-        name: true,
-        courses: {
-          select: {
-            course_name: true,
-            enrollmentYear: true,
-            abbreviation: true,
-          },
+    const [users, totalUsers] = await Promise.all([
+      prisma.user.findMany({
+        take: limit,
+        skip: skip,
+        where: {
+          user_status: 'Active',
         },
-        perfil_photo: true,
-        user_type: true,
-        skills: {
-          select: {
-            user_skill_id: true,
-            skill: {
-              select: {
-                name: true,
+        orderBy: {
+          name: 'asc',
+        },
+        select: {
+          user_id: true,
+          name: true,
+          courses: {
+            select: {
+              course_name: true,
+              enrollmentYear: true,
+              abbreviation: true,
+            },
+          },
+          perfil_photo: true,
+          user_type: true,
+          skills: {
+            select: {
+              user_skill_id: true,
+              skill: {
+                select: {
+                  name: true,
+                },
               },
             },
           },
-        },
-        workplace_history: {
-          orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
-          select: {
-            workplace_user_id: true,
-            position: true,
-            function: true,
-            workplace: {
-              select: {
-                company: true,
+          workplace_history: {
+            orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
+            select: {
+              workplace_user_id: true,
+              position: true,
+              function: true,
+              workplace: {
+                select: {
+                  company: true,
+                },
               },
+              start_date: true,
+              end_date: true,
             },
-            start_date: true,
-            end_date: true,
           },
         },
-      },
-    });
+      }),
+
+      prisma.user.count({
+        where: {
+          user_status: 'Active',
+        },
+      }),
+    ]);
 
     if (!users) {
       throw new CustomError('Nenhum usuário cadastrado', 404);
     }
 
-    return users;
+    const totalPages = Math.ceil(totalUsers / limit);
+
+    return {
+      users: users,
+      pagination: {
+        page: currentPageNumber,
+        limit: limit,
+        totalItems: totalUsers,
+        totalPages: totalPages,
+        hasNextPage: currentPageNumber < totalPages,
+        hasPreviousPage: currentPageNumber > 1,
+      },
+    };
   });
 };
 
@@ -1188,8 +1211,12 @@ export const deleteSocialMedia = async (userToken, socialData) => {
   });
 };
 
-export const searchUsers = async (userToken, search) => {
+export const searchUsers = async (userToken, search, page = 1) => {
   const user_id = userToken.id;
+
+  const currentPageNumber = getPageNumber(page);
+  const limit = 15;
+  const skip = (currentPageNumber - 1) * limit;
 
   return authenticateUser(user_id, actions.searchUser, async () => {
     const rawSearch = Array.isArray(search) ? search[0] : search;
@@ -1205,141 +1232,235 @@ export const searchUsers = async (userToken, search) => {
       tokens.map(parseEnrollmentYearCandidate).find((y) => y !== null) ??
       null;
 
-    const users = await prisma.user.findMany({
-      where: {
-        AND: [
-          // ✅ apenas usuários ativos
-          {
-            user_status: 'Active',
-          },
+    const [users, totalUsers] = await Promise.all([
+      prisma.user.findMany({
+        where: {
+          AND: [
+            // ✅ apenas usuários ativos
+            {
+              user_status: 'Active',
+            },
 
-          // ✅ lógica de busca
-          {
-            OR: [
-              {
-                name: {
-                  contains: normalizedSearch,
-                  mode: 'insensitive',
-                },
-              },
-
-              {
-                courses: {
-                  some: {
-                    course_search: {
-                      contains: normalizedSearch,
-                      mode: 'insensitive',
-                    },
-                  },
-                },
-              },
-
-              ...(enrollmentYearCandidate !== null
-                ? [
-                    {
-                      courses: {
-                        some: {
-                          enrollmentYear: enrollmentYearCandidate,
-                        },
-                      },
-                    },
-                  ]
-                : []),
-
-              ...tokens.flatMap((token) => [
+            // ✅ lógica de busca
+            {
+              OR: [
                 {
                   name: {
-                    contains: token,
+                    contains: normalizedSearch,
                     mode: 'insensitive',
                   },
                 },
-                {
-                  workplace_history: {
-                    some: {
-                      workplace: {
-                        company: {
-                          contains: token,
-                          mode: 'insensitive',
-                        },
-                      },
-                    },
-                  },
-                },
+
                 {
                   courses: {
                     some: {
                       course_search: {
-                        contains: token,
+                        contains: normalizedSearch,
                         mode: 'insensitive',
                       },
                     },
                   },
                 },
-                {
-                  skills: {
-                    some: {
-                      skill: {
-                        name: {
+
+                ...(enrollmentYearCandidate !== null
+                  ? [
+                      {
+                        courses: {
+                          some: {
+                            enrollmentYear: enrollmentYearCandidate,
+                          },
+                        },
+                      },
+                    ]
+                  : []),
+
+                ...tokens.flatMap((token) => [
+                  {
+                    name: {
+                      contains: token,
+                      mode: 'insensitive',
+                    },
+                  },
+                  {
+                    workplace_history: {
+                      some: {
+                        workplace: {
+                          company: {
+                            contains: token,
+                            mode: 'insensitive',
+                          },
+                        },
+                      },
+                    },
+                  },
+                  {
+                    courses: {
+                      some: {
+                        course_search: {
                           contains: token,
                           mode: 'insensitive',
                         },
                       },
                     },
                   },
+                  {
+                    skills: {
+                      some: {
+                        skill: {
+                          name: {
+                            contains: token,
+                            mode: 'insensitive',
+                          },
+                        },
+                      },
+                    },
+                  },
+                ]),
+              ],
+            },
+          ],
+        },
+
+        select: {
+          user_id: true,
+          name: true,
+          courses: {
+            select: {
+              course_name: true,
+              enrollmentYear: true,
+              abbreviation: true,
+            },
+          },
+          social_media: {
+            select: {
+              type: true,
+              url: true,
+            },
+          },
+          gender: true,
+          perfil_photo: true,
+          user_type: true,
+          workplace_history: {
+            select: {
+              workplace_user_id: true,
+              position: true,
+              function: true,
+              workplace: {
+                select: {
+                  company: true,
                 },
-              ]),
-            ],
-          },
-        ],
-      },
-
-      select: {
-        user_id: true,
-        name: true,
-        courses: {
-          select: {
-            course_name: true,
-            enrollmentYear: true,
-            abbreviation: true,
-          },
-        },
-        social_media: {
-          select: {
-            type: true,
-            url: true,
-          },
-        },
-        gender: true,
-        perfil_photo: true,
-        user_type: true,
-        workplace_history: {
-          select: {
-            workplace_user_id: true,
-            position: true,
-            function: true,
-            workplace: {
-              select: {
-                company: true,
               },
+              start_date: true,
+              end_date: true,
             },
-            start_date: true,
-            end_date: true,
           },
-        },
-        skills: {
-          select: {
-            user_skill_id: true,
-            skill: {
-              select: {
-                name: true,
+          skills: {
+            select: {
+              user_skill_id: true,
+              skill: {
+                select: {
+                  name: true,
+                },
               },
             },
           },
         },
-      },
 
-      take: 30,
-    });
+        take: limit,
+        skip: skip,
+      }),
+
+      prisma.user.count({
+        where: {
+          AND: [
+            // ✅ apenas usuários ativos
+            {
+              user_status: 'Active',
+            },
+
+            // ✅ lógica de busca
+            {
+              OR: [
+                {
+                  name: {
+                    contains: normalizedSearch,
+                    mode: 'insensitive',
+                  },
+                },
+
+                {
+                  courses: {
+                    some: {
+                      course_search: {
+                        contains: normalizedSearch,
+                        mode: 'insensitive',
+                      },
+                    },
+                  },
+                },
+
+                ...(enrollmentYearCandidate !== null
+                  ? [
+                      {
+                        courses: {
+                          some: {
+                            enrollmentYear: enrollmentYearCandidate,
+                          },
+                        },
+                      },
+                    ]
+                  : []),
+
+                ...tokens.flatMap((token) => [
+                  {
+                    name: {
+                      contains: token,
+                      mode: 'insensitive',
+                    },
+                  },
+                  {
+                    workplace_history: {
+                      some: {
+                        workplace: {
+                          company: {
+                            contains: token,
+                            mode: 'insensitive',
+                          },
+                        },
+                      },
+                    },
+                  },
+                  {
+                    courses: {
+                      some: {
+                        course_search: {
+                          contains: token,
+                          mode: 'insensitive',
+                        },
+                      },
+                    },
+                  },
+                  {
+                    skills: {
+                      some: {
+                        skill: {
+                          name: {
+                            contains: token,
+                            mode: 'insensitive',
+                          },
+                        },
+                      },
+                    },
+                  },
+                ]),
+              ],
+            },
+          ],
+        },
+      }),
+    ]);
+
+    const totalPages = Math.ceil(totalUsers / limit);
 
     const rankedUsers = users
       .map((user) => ({
@@ -1416,6 +1537,35 @@ export const searchUsers = async (userToken, search) => {
       return rankedFallbackUsers.slice(0, 30);
     }
 
-    return rankedUsers;
+    return {
+      users: rankedUsers,
+      pagination: {
+        page: currentPageNumber,
+        limit: limit,
+        totalItems: totalUsers,
+        totalPages: totalPages,
+        hasNextPage: currentPageNumber < totalPages,
+        hasPreviousPage: currentPageNumber > 1,
+      },
+    };
   });
+};
+
+export const getUsersNotifications = async () => {
+  const eligibleUsers = await prisma.user.findMany({
+    where: {
+      user_id: {
+        in: requestedUserIds,
+      },
+      receive_notifications: true,
+      user_status: 'Active',
+    },
+    select: {
+      user_id: true,
+    },
+  });
+
+  const userIds = eligibleUsers.map((user) => user.user_id);
+
+  return userIds;
 };
