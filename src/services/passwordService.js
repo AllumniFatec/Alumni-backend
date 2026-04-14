@@ -1,7 +1,7 @@
 import { PrismaClient } from '../generated/prisma/index.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { enqueueEmail } from '../utils/emailQueue.js';
+import { enqueueEmail } from '../queues/emailQueue.js';
 import * as validations from '../utils/validations.js';
 import { env } from '../config/env.js';
 import CustomError from '../utils/CustomError.js';
