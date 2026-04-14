@@ -16,18 +16,16 @@ const adminMutationsRateLimit = createRateLimit({
 router.get('/admin/dashboard', auth, adminController.dashboard);
 router.get('/admin/usersInAnalysis', auth, adminController.listAllUsersInAnalysis);
 router.post(
-  '/admin/approve/:userId',
+  '/admin/approve/:id',
   auth,
   adminMutationsRateLimit,
   authId,
   adminController.approveUser
 );
-router.post(
-  '/admin/refuse/:userId',
-  auth,
-  adminMutationsRateLimit,
-  authId,
-  adminController.refuseUser
-);
+router.post('/admin/refuse/:id', auth, adminMutationsRateLimit, authId, adminController.refuseUser);
+
+router.get('/admin/users', auth, adminController.getUsers);
+router.get('/admin/users/search', auth, adminController.searchUsers);
+router.patch('/admin/users/changeType/:id', auth, authId, adminController.changeUserType);
 
 export default router;

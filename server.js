@@ -18,7 +18,8 @@ import { env } from './src/config/env.js';
 import http from 'http';
 import { initSocket } from './src/config/socket.js';
 import './src/workers/emailWorker.js';
-
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './src/config/swagger.js';
 const app = express();
 
 app.use(express.json());
@@ -59,6 +60,18 @@ app.use('/', userRoutes);
 app.use('/', adminRoutes);
 app.use('/', eventRoutes);
 app.use('/', notificationRoutes);
+app.use(
+  '/docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    swaggerOptions: {
+      persistAuthorization: false,
+      docExpansion: 'list',
+      defaultModelsExpandDepth: 2,
+      defaultModelExpandDepth: 2,
+    },
+  })
+);
 
 server.listen(env.port, () => {
   console.log(`Servidor rodando na porta ${env.port}!`);
