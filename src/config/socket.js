@@ -11,6 +11,7 @@ export const initSocket = (server, corsOptions) => {
   io.on('connection', (socket) => {
     socket.on('register-user', (userId) => {
       connectedUsers.set(userId, socket.id);
+      socket.join(`user:${userId}`);
     });
 
     socket.on('disconnect', () => {

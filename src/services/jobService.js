@@ -7,7 +7,7 @@ import {
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
 import { capitalizeWords, isValidHttpUrl, getPageNumber } from '../utils/validations.js';
-import { notifyManyUsers } from './notificationService.js';
+import { enqueueNotificationForAudience } from './notificationService.js';
 import { notificationTypes } from '../utils/notificationTypes.js';
 import levenshtein from 'fast-levenshtein';
 
@@ -150,24 +150,14 @@ export const createJob = async (data, userToken, host) => {
     });
 
     if (newJob) {
-      const notifyUsers = await prisma.user.findMany({
-        where: {
-          receive_notifications: true,
-          user_id: {
-            not: user.user_id,
-          },
-          user_status: 'Active',
-        },
+      await enqueueNotificationForAudience({
+        type: notificationTypes.JOB_CREATED,
+        title: 'Nova vaga de emprego criada',
+        message: `Vaga de ${newJob.title} foi publicada por ${user.name}`,
+        link: `${host}jobs/${newJob.job_id}`,
+        authorId: user.user_id,
+        jobId: newJob.job_id,
       });
-
-      if (notifyUsers.length > 0) {
-        await notifyManyUsers(notifyUsers, {
-          type: notificationTypes.JOB_CREATED,
-          title: 'Nova vaga de emprego criada',
-          message: `Vaga de ${newJob.title} foi publicada por ${user.name}`,
-          link: `${host}jobs/${newJob.job_id}`,
-        });
-      }
     }
 
     return { message: 'Vaga criada com sucesso!' };
@@ -478,24 +468,14 @@ export const closeJob = async (userToken, jobId, host) => {
     });
 
     if (closedJob) {
-      const notifyUsers = await prisma.user.findMany({
-        where: {
-          receive_notifications: true,
-          user_id: {
-            not: user.user_id,
-          },
-          user_status: 'Active',
-        },
+      await enqueueNotificationForAudience({
+        type: notificationTypes.JOB_CLOSED,
+        title: 'Vaga de emprego encerrada',
+        message: `Vaga de ${closedJob.title} foi encerrada por ${user.name}`,
+        link: `${host}jobs/${closedJob.job_id}`,
+        authorId: user.user_id,
+        jobId: closedJob.job_id,
       });
-
-      if (notifyUsers.length > 0) {
-        await notifyManyUsers(notifyUsers, {
-          type: notificationTypes.JOB_CLOSED,
-          title: 'Vaga de emprego encerrada',
-          message: `Vaga de ${closedJob.title} foi encerrada por ${user.name}`,
-          link: `${host}jobs/${closedJob.job_id}`,
-        });
-      }
     }
 
     return { message: 'Vaga encerrada com sucesso!' };

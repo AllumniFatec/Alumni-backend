@@ -18,6 +18,8 @@ import { env } from './src/config/env.js';
 import http from 'http';
 import { initSocket } from './src/config/socket.js';
 import './src/workers/emailWorker.js';
+import './src/workers/notificationDispatcher.worker.js';
+import './src/workers/notificationDelivery.worker.js';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './src/config/swagger.js';
 const app = express();

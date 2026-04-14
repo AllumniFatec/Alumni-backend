@@ -3,7 +3,7 @@ import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
 import { capitalizeWords, getPageNumber } from '../utils/validations.js';
 import { parse } from 'date-fns';
-import { notifyManyUsers } from './notificationService.js';
+import { enqueueNotificationForAudience } from './notificationService.js';
 import { notificationTypes } from '../utils/notificationTypes.js';
 
 const prisma = new PrismaClient();
@@ -116,24 +116,14 @@ export const createEvent = async (userToken, eventData, host) => {
     });
 
     if (newEvent) {
-      const notifyUsers = await prisma.user.findMany({
-        where: {
-          receive_notifications: true,
-          user_id: {
-            not: user.user_id,
-          },
-          user_status: 'Active',
-        },
+      await enqueueNotificationForAudience({
+        type: notificationTypes.EVENT_CREATED,
+        title: 'Novo evento criado',
+        message: `Evento de ${newEvent.title} foi publicado por ${user.name}`,
+        link: `${host}events/${newEvent.event_id}`,
+        authorId: user.user_id,
+        eventId: newEvent.event_id,
       });
-
-      if (notifyUsers.length > 0) {
-        await notifyManyUsers(notifyUsers, {
-          type: notificationTypes.EVENT_CREATED,
-          title: 'Novo evento criado',
-          message: `Evento de ${newEvent.title} foi publicado por ${user.name}`,
-          link: `${host}events/${newEvent.event_id}`,
-        });
-      }
     }
 
     return { message: 'Evento criado com sucesso!' };
@@ -339,24 +329,14 @@ export const closeEvent = async (userToken, eventId, host) => {
     });
 
     if (closedEvent) {
-      const notifyUsers = await prisma.user.findMany({
-        where: {
-          receive_notifications: true,
-          user_id: {
-            not: user.user_id,
-          },
-          user_status: 'Active',
-        },
+      await enqueueNotificationForAudience({
+        type: notificationTypes.EVENT_CLOSED,
+        title: 'Evento encerrado',
+        message: `Evento de ${closedEvent.title} foi encerrado por ${user.name}`,
+        link: `${host}events/${closedEvent.event_id}`,
+        authorId: user.user_id,
+        eventId: closedEvent.event_id,
       });
-
-      if (notifyUsers.length > 0) {
-        await notifyManyUsers(notifyUsers, {
-          type: notificationTypes.EVENT_CLOSED,
-          title: 'Evento encerrado',
-          message: `Evento de ${closedEvent.title} foi encerrado por ${user.name}`,
-          link: `${host}events/${closedEvent.event_id}`,
-        });
-      }
     }
 
     return { message: 'Evento encerrado com sucesso!' };
