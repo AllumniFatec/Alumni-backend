@@ -1,6 +1,6 @@
 import { Worker } from 'bullmq';
 import { env } from '../config/env.js';
-import sendEmail from '../utils/email.js';
+import sendEmail from '../services/emailService.js';
 
 const EMAIL_QUEUE_NAME = 'alumni_emails';
 
@@ -45,4 +45,3 @@ const shutdown = async () => {
 
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
-

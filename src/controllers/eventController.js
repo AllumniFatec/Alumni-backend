@@ -6,7 +6,7 @@ export const createEvent = async (req, res) => {
     const user = req.user;
     const data = req.body;
 
-    const createdEvent = await eventService.createEvent(user, data);
+    const createdEvent = await eventService.createEvent(user, data, req.get('referer'));
 
     return res.status(201).json(createdEvent);
   } catch (err) {
@@ -87,7 +87,7 @@ export const closeEvent = async (req, res) => {
     const user = req.user;
     const eventId = req.params.id;
 
-    const closedEvent = await eventService.closeEvent(user, eventId);
+    const closedEvent = await eventService.closeEvent(user, eventId, req.get('referer'));
 
     return res.status(200).json(closedEvent);
   } catch (err) {

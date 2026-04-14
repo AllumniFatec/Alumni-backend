@@ -6,7 +6,7 @@ export const createJob = async (req, res) => {
     const user = req.user;
     const data = req.body;
 
-    const job = await jobService.createJob(data, user);
+    const job = await jobService.createJob(data, user, req.get('referer'));
 
     return res.status(201).json({ message: 'Vaga criada com sucesso!' });
   } catch (err) {
@@ -74,6 +74,22 @@ export const deleteJob = async (req, res) => {
     const deletedJob = await jobService.deleteJob(jobId, user);
 
     return res.status(200).json({ message: 'Vaga excluída com sucesso!' });
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+export const closeJob = async (req, res) => {
+  try {
+    const user = req.user;
+    const jobId = req.params.id;
+
+    const closedJob = await jobService.closeJob(user, jobId, req.get('referer'));
+
+    return res.status(200).json(closedJob);
   } catch (err) {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
