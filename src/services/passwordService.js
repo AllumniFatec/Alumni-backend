@@ -30,7 +30,7 @@ export const sendRecovery = async (userInfo, req) => {
   });
 
   //enviar email
-  const urlRecovery = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
+  const urlRecovery = `${req.get('referer')}/reset-password/${resetToken}`;
   const message = messagePasswordRecovery(user.name, urlRecovery);
 
   // Mesmo padrão do admin: enfileira e não bloqueia o fluxo da rota.
@@ -74,4 +74,6 @@ export const resetPassword = async (userInfo) => {
       updated_password: new Date(),
     },
   });
+
+  return { message: 'Senha alterada com sucesso!' };
 };

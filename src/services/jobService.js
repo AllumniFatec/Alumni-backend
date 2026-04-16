@@ -457,6 +457,7 @@ export const deleteJob = async (jobId, userToken) => {
       },
       data: {
         status: 'Deleted',
+        deleted_date: new Date(),
       },
     });
 

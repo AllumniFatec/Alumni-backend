@@ -34,7 +34,11 @@ const prepareUserData = async (userData) => {
 
   validations.validateEmail(email);
 
-  if (enrollmentYear < 1900 || enrollmentYear > new Date().getFullYear()) {
+  if (
+    Number.isNaN(enrollmentYear) ||
+    enrollmentYear < 1900 ||
+    enrollmentYear > new Date().getFullYear()
+  ) {
     throw new CustomError('Ano de ingresso inválido!', 422);
   }
 
@@ -61,7 +65,7 @@ const prepareUserData = async (userData) => {
   validations.validatePassword(password);
 
   const salt = await bcrypt.genSalt(10);
-  const hashPassword = await bcrypt.hash(userData.password, salt);
+  const hashPassword = await bcrypt.hash(password, salt);
 
   return {
     name: name,

@@ -854,7 +854,12 @@ function validateProfileData(profileData) {
   const requiredFields = ['name', 'gender', 'receive_notifications'];
 
   requiredFields.forEach((field) => {
-    if (!profileData[field] || String(profileData[field]).trim() === '') {
+    const value = profileData[field];
+    if (
+      value === undefined ||
+      value === null ||
+      (typeof value === 'string' && value.trim() === '')
+    ) {
       throw new CustomError(`Campo ${field} é obrigatório`, 400);
     }
   });
@@ -944,8 +949,8 @@ function validateWorkplaceData(workplaceData) {
   const company_name = String(workplaceData.company_name).trim();
   const position = String(workplaceData.position).trim();
   const functions = String(workplaceData.functions).trim();
-  const start_date = String(workplaceData.start_date).trim();
-  const end_date = String(workplaceData.end_date).trim();
+  const start_date = parseBRDate(workplaceData.start_date);
+  const end_date = workplaceData.end_date ? parseBRDate(workplaceData.end_date) : null;
 
   if (company_name.length < 3 || company_name.length > 100) {
     throw new CustomError('Nome da empresa deve ter entre 3 e 100 caracteres', 400);
@@ -981,15 +986,12 @@ export const insertWorkplace = async (userToken, data) => {
 
     const work_id = await findOrCreateWorkplace(company);
 
-    const new_start_date = parseBRDate(start_date);
-    const new_end_date = parseBRDate(end_date);
-
     await prisma.workplaceUser.create({
       data: {
         function: functions,
         position: position,
-        start_date: new_start_date,
-        end_date: new_end_date,
+        start_date: start_date,
+        end_date: end_date,
         user_id: user.user_id,
         workplace_id: work_id,
       },
@@ -1004,10 +1006,6 @@ export const updateWorkplace = async (userToken, jobData) => {
   const jobUserId = jobData.jobUserId;
   const { company_name, position, functions, start_date, end_date } =
     validateWorkplaceData(jobData);
-
-  if (Object.entries(jobData).some(([key, value]) => key !== 'end_date' && !value)) {
-    throw new CustomError('Todos os campos são obrigatórios!', 400);
-  }
 
   return authenticateUser(user_id, actions.editJob, async (user) => {
     const updatedCompany = await prisma.workplaceUser.findUnique({
@@ -1028,9 +1026,6 @@ export const updateWorkplace = async (userToken, jobData) => {
 
     const work_id = await findOrCreateWorkplace(company);
 
-    const new_start_date = parseBRDate(start_date);
-    const new_end_date = parseBRDate(end_date);
-
     await prisma.workplaceUser.update({
       where: {
         workplace_user_id: jobUserId,
@@ -1039,8 +1034,8 @@ export const updateWorkplace = async (userToken, jobData) => {
         position: position,
         function: functions,
         workplace_id: work_id,
-        start_date: new_start_date,
-        end_date: new_end_date,
+        start_date: start_date,
+        end_date: end_date,
         updated_at: new Date(),
       },
     });
@@ -1243,6 +1238,7 @@ export const updateSocialMedia = async (userToken, socialData) => {
       },
       data: {
         social_media: updatedSocialMedia,
+        updated_at: new Date(),
       },
     });
 
