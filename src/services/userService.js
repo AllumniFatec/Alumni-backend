@@ -854,7 +854,7 @@ function validateProfileData(profileData) {
   const requiredFields = ['name', 'gender', 'receive_notifications'];
 
   requiredFields.forEach((field) => {
-    if (!eventData[field] || String(eventData[field]).trim() === '') {
+    if (!profileData[field] || String(profileData[field]).trim() === '') {
       throw new CustomError(`Campo ${field} é obrigatório`, 400);
     }
   });
@@ -865,7 +865,7 @@ function validateProfileData(profileData) {
   const receive_notifications = Boolean(profileData.receive_notifications);
 
   if (name.length < 3 || name.length > 80) {
-    throw new CustomError('Nome deve ter entre 3 e 150 caracteres', 400);
+    throw new CustomError('Nome deve ter entre 3 e 80 caracteres', 400);
   }
 
   if (!Object.values(UserGender).includes(gender)) {
@@ -933,7 +933,7 @@ export const deleteMyProfile = async (userToken) => {
 };
 
 function validateWorkplaceData(workplaceData) {
-  const requiredFields = ['company_name', 'position', 'functions', 'start_date', 'end_date'];
+  const requiredFields = ['company_name', 'position', 'functions', 'start_date'];
 
   requiredFields.forEach((field) => {
     if (!workplaceData[field] || String(workplaceData[field]).trim() === '') {

@@ -38,8 +38,8 @@ const prepareUserData = async (userData) => {
     throw new CustomError('Ano de ingresso inválido!', 422);
   }
 
-  if (name.length < 3 || name.length > 150) {
-    throw new CustomError('Nome deve ter entre 3 e 150 caracteres', 400);
+  if (name.length < 3 || name.length > 80) {
+    throw new CustomError('Nome deve ter entre 3 e 80 caracteres', 400);
   }
 
   if (!Object.values(UserType).includes(userType)) {
@@ -51,7 +51,7 @@ const prepareUserData = async (userData) => {
   }
 
   const createdCourse = await prisma.course.findUnique({
-    where: { name: userData.course },
+    where: { course_id: course },
   });
 
   if (!createdCourse) {

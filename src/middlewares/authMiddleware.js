@@ -4,14 +4,15 @@ import { redisClient } from '../config/redisClient.js';
 
 const auth = async (req, res, next) => {
   const token = req.cookies?.access_token;
+
+  if (!token) {
+    return res.status(401).json({ message: 'Acesso negado!' });
+  }
+
   const isRevoked = await redisClient.get(`revoked-token:${token}`);
 
   if (isRevoked) {
     return res.status(401).json({ message: 'Sessão expirada!' });
-  }
-
-  if (!token) {
-    return res.status(401).json({ message: 'Acesso negado!' });
   }
 
   try {

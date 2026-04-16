@@ -91,7 +91,7 @@ function validateJobData(jobData) {
   ];
 
   requiredFields.forEach((field) => {
-    if (!eventData[field] || String(eventData[field]).trim() === '') {
+    if (!jobData[field] || String(jobData[field]).trim() === '') {
       throw new CustomError(`Campo ${field} é obrigatório`, 400);
     }
   });
@@ -105,7 +105,7 @@ function validateJobData(jobData) {
   const seniority_level = String(jobData.seniority_level).trim();
   const work_model = String(jobData.work_model).trim();
   const workplace_name = String(jobData.workplace_name).trim();
-  const url = String(jobData.url)?.trim();
+  const url = jobData.url ? String(jobData.url).trim() : undefined;
 
   if (title.length < 3 || title.length > 150) {
     throw new CustomError('Título deve ter entre 3 e 150 caracteres', 400);
