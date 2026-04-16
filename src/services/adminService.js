@@ -1,4 +1,4 @@
-import { PrismaClient } from '../generated/prisma/index.js';
+import prisma from '../config/prisma.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
 import { enqueueEmail } from '../queues/emailQueue.js';
@@ -6,8 +6,6 @@ import { messageApproveUser, messageRefuseUser } from '../utils/emailMessages.js
 import { getPageNumber } from '../utils/validations.js';
 import { UserType } from '../generated/prisma/index.js';
 import * as userService from './userService.js';
-
-const prisma = new PrismaClient();
 
 const actions = {
   getDashboard: 'acessar painel administrador',
@@ -69,12 +67,12 @@ export const getDashboard = async (userToken) => {
   });
 };
 
-export const listAllUsersInAnalysis = async (userToken, page = 1) => {
+export const listAllUsersInAnalysis = async (userToken, page = 2) => {
   const user_id = userToken.id;
 
   const currentPageNumber = getPageNumber(page);
 
-  const limit = 30;
+  const limit = 10;
   const skip = (currentPageNumber - 1) * limit;
 
   return authenticateUser(user_id, actions.listAllUsersInAnalysis, async (user) => {

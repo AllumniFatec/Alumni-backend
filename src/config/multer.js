@@ -9,6 +9,14 @@ const upload = multer({
   limits: {
     fileSize: MAX_FILE_SIZE_IN_BYTES,
   },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de arquivo não suportado'), false);
+    }
+  },
 });
 
 export default upload;

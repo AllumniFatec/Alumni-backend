@@ -1,10 +1,8 @@
-import { PrismaClient } from '../generated/prisma/index.js';
+import prisma from '../config/prisma.js';
 import { authenticateUser } from './userService.js';
 import { getPageNumber } from '../utils/validations.js';
 import CustomError from '../utils/CustomError.js';
 import { enqueueNotificationDispatch } from '../queues/notificationDispatcherQueue.js';
-
-const prisma = new PrismaClient();
 
 const actions = {
   getNotifications: 'listar notificações',
@@ -148,7 +146,7 @@ export const getCreatedNotifications = async (users, message, type) => {
     orderBy: {
       create_date: 'desc',
     },
-    take: cleanedUserIds.length,
+    take: users.length,
     select: {
       notification_id: true,
       user_id: true,

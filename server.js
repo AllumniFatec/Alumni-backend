@@ -22,10 +22,13 @@ import './src/workers/notificationDispatcher.worker.js';
 import './src/workers/notificationDelivery.worker.js';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './src/config/swagger.js';
+import helmet from 'helmet';
+
 const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(helmet());
 
 var corsOptions;
 

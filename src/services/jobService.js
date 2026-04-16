@@ -1,9 +1,5 @@
-import {
-  SeniorityLevel,
-  EmploymentType,
-  PrismaClient,
-  WorkModel,
-} from '../generated/prisma/index.js';
+import { SeniorityLevel, EmploymentType, WorkModel } from '../generated/prisma/index.js';
+import prisma from '../config/prisma.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
 import { capitalizeWords, isValidHttpUrl, getPageNumber } from '../utils/validations.js';
@@ -19,8 +15,6 @@ const actions = {
   getJobById: 'buscar vaga',
   closeJob: 'encerrar vaga',
 };
-
-const prisma = new PrismaClient();
 
 /** Mesmo shape retornado por GET /job (listagem / feed). Reutilizado em getMyProfile. */
 export const formatJobListItem = (job) => ({
@@ -83,27 +77,54 @@ export const findOrCreateWorkplace = async (company) => {
   return work_id;
 };
 
-export const createJob = async (data, userToken, host) => {
-  const user_id = userToken.id;
-  const {
-    title,
-    description,
-    city,
-    state,
-    country,
-    employment_type,
-    seniority_level,
-    work_model,
-    workplace_name,
-    url,
-  } = data;
+function validateJobData(jobData) {
+  const requiredFields = [
+    'title',
+    'description',
+    'city',
+    'state',
+    'country',
+    'employment_type',
+    'seniority_level',
+    'work_model',
+    'workplace_name',
+  ];
 
-  if (
-    Object.entries(data)
-      .filter(([key]) => key !== 'url')
-      .some(([, value]) => !value)
-  ) {
-    throw new CustomError('Todos os campos são obrigatórios', 400);
+  requiredFields.forEach((field) => {
+    if (!jobData[field] || String(jobData[field]).trim() === '') {
+      throw new CustomError(`Campo ${field} é obrigatório`, 400);
+    }
+  });
+
+  const title = String(jobData.title).trim();
+  const description = String(jobData.description).trim();
+  const city = String(jobData.city).trim();
+  const state = String(jobData.state).trim();
+  const country = String(jobData.country).trim();
+  const employment_type = String(jobData.employment_type).trim();
+  const seniority_level = String(jobData.seniority_level).trim();
+  const work_model = String(jobData.work_model).trim();
+  const workplace_name = String(jobData.workplace_name).trim();
+  const url = jobData.url ? String(jobData.url).trim() : undefined;
+
+  if (title.length < 3 || title.length > 150) {
+    throw new CustomError('Título deve ter entre 3 e 150 caracteres', 400);
+  }
+
+  if (description.length < 10 || description.length > 3500) {
+    throw new CustomError('Descrição deve ter entre 10 e 3500 caracteres', 400);
+  }
+
+  if (city.length < 3 || city.length > 80) {
+    throw new CustomError('Cidade deve ter entre 3 e 80 caracteres', 400);
+  }
+
+  if (state.length < 2 || state.length > 2) {
+    throw new CustomError('Estado deve ter 2 caracteres', 400);
+  }
+
+  if (country.length < 3 || country.length > 80) {
+    throw new CustomError('País deve ter entre 3 e 80 caracteres', 400);
   }
 
   if (!Object.values(EmploymentType).includes(employment_type)) {
@@ -118,9 +139,42 @@ export const createJob = async (data, userToken, host) => {
     throw new CustomError('Modelo de trabalho inválido', 400);
   }
 
-  if (description.length > 3500) {
-    throw new CustomError('A descrição da vaga deve conter no máximo 3500 caracteres', 400);
+  if (workplace_name.length < 3 || workplace_name.length > 100) {
+    throw new CustomError('Nome da empresa deve ter entre 3 e 100 caracteres', 400);
   }
+
+  if (url && url.length > 200) {
+    throw new CustomError('URL deve ter no máximo 200 caracteres', 400);
+  }
+
+  return {
+    title,
+    description,
+    city,
+    state,
+    country,
+    employment_type,
+    seniority_level,
+    work_model,
+    workplace_name,
+    url,
+  };
+}
+
+export const createJob = async (data, userToken, host) => {
+  const user_id = userToken.id;
+  const {
+    title,
+    description,
+    city,
+    state,
+    country,
+    employment_type,
+    seniority_level,
+    work_model,
+    workplace_name,
+    url,
+  } = validateJobData(data);
 
   if (url) {
     isValidHttpUrl(url);
@@ -177,7 +231,9 @@ export const getJobs = async (userToken, page = 1) => {
         take: limit,
         skip: skip,
         where: {
-          status: 'Active',
+          status: {
+            not: 'Deleted',
+          },
         },
         orderBy: {
           create_date: 'desc',
@@ -211,7 +267,7 @@ export const getJobs = async (userToken, page = 1) => {
 
       prisma.job.count({
         where: {
-          status: 'Active',
+          status: { not: 'Deleted' },
         },
       }),
     ]);
@@ -330,32 +386,8 @@ export const updateJob = async (jobId, data, userToken) => {
     work_model,
     workplace_name,
     url,
-  } = data;
+  } = validateJobData(data);
   const job_id = jobId;
-
-  if (
-    Object.entries(data)
-      .filter(([key]) => key !== 'url')
-      .some(([, value]) => !value)
-  ) {
-    throw new CustomError('Todos os campos são obrigatórios', 400);
-  }
-
-  if (!Object.values(EmploymentType).includes(employment_type)) {
-    throw new CustomError('Tipo de emprego inválido', 400);
-  }
-
-  if (!Object.values(SeniorityLevel).includes(seniority_level)) {
-    throw new CustomError('Nível de senioridade inválido', 400);
-  }
-
-  if (!Object.values(WorkModel).includes(work_model)) {
-    throw new CustomError('Modelo de trabalho inválido', 400);
-  }
-
-  if (description.length > 3500) {
-    throw new CustomError('A descrição da vaga deve conter no máximo 3500 caracteres', 400);
-  }
 
   if (url) {
     isValidHttpUrl(url);
@@ -427,6 +459,7 @@ export const deleteJob = async (jobId, userToken) => {
       },
       data: {
         status: 'Deleted',
+        deleted_date: new Date(),
       },
     });
 

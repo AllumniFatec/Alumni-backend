@@ -1,12 +1,10 @@
-import { PrismaClient } from '../generated/prisma/index.js';
+import prisma from '../config/prisma.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
 import { capitalizeWords, getPageNumber } from '../utils/validations.js';
 import { parse } from 'date-fns';
 import { enqueueNotificationForAudience } from './notificationService.js';
 import { notificationTypes } from '../utils/notificationTypes.js';
-
-const prisma = new PrismaClient();
 
 const actions = {
   createEvent: 'criar eventos',
@@ -147,7 +145,7 @@ export const getEvents = async (userToken, page = 1) => {
         skip: skip,
         take: limit,
         where: {
-          status: 'Active',
+          status: { not: 'Deleted' },
         },
         orderBy: {
           date_start: 'asc',
@@ -157,12 +155,13 @@ export const getEvents = async (userToken, page = 1) => {
           title: true,
           local: true,
           date_start: true,
+          status: true,
         },
       }),
 
       prisma.event.count({
         where: {
-          status: 'Active',
+          status: { not: 'Deleted' },
         },
       }),
     ]);
@@ -217,9 +216,6 @@ export const getEventById = async (userToken, eventId) => {
 
     if (event.status === 'Deleted') {
       throw new CustomError('Evento excluído!', 404);
-    }
-    if (event.status === 'Closed') {
-      throw new CustomError('Evento finalizado!', 404);
     }
 
     return formattedEvent(event);

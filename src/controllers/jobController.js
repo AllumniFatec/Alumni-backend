@@ -13,7 +13,10 @@ export const createJob = async (req, res) => {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
     }
-    return res.status(500).json({ error: err.message });
+    console.error('jobController(createJob) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
   }
 };
 
@@ -29,7 +32,10 @@ export const getJobs = async (req, res) => {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
     }
-    return res.status(500).json({ error: err.message });
+    console.error('jobController(getJobs) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
   }
 };
 
@@ -45,7 +51,10 @@ export const getJobById = async (req, res) => {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
     }
-    return res.status(500).json({ error: err.message });
+    console.error('jobController(getJobById) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
   }
 };
 
@@ -62,7 +71,10 @@ export const updateJob = async (req, res) => {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
     }
-    return res.status(500).json({ error: err.message });
+    console.error('jobController(updateJob) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
   }
 };
 
@@ -78,7 +90,10 @@ export const deleteJob = async (req, res) => {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
     }
-    return res.status(500).json({ error: err.message });
+    console.error('jobController(deleteJob) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
   }
 };
 
@@ -94,6 +109,9 @@ export const closeJob = async (req, res) => {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
     }
-    return res.status(500).json({ error: err.message });
+    console.error('jobController(closeJob) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
   }
 };

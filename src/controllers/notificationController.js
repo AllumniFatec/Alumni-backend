@@ -13,7 +13,10 @@ export const getNotifications = async (req, res) => {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
     }
-    return res.status(500).json({ error: err.message });
+    console.error('notificationController(getNotifications) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
   }
 };
 
@@ -29,6 +32,9 @@ export const readNotification = async (req, res) => {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
     }
-    return res.status(500).json({ error: err.message });
+    console.error('notificationController(readNotification) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
   }
 };

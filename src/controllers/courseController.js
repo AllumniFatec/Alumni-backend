@@ -13,7 +13,10 @@ export const insertCourse = async (req, res) => {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
     }
-    return res.status(500).json({ error: err.message });
+    console.error('courseController(insertCourse) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
   }
 };
 
@@ -26,6 +29,9 @@ export const listCourses = async (req, res) => {
     if (err instanceof CustomError) {
       return res.status(err.statusCode).json({ error: err.message });
     }
-    return res.status(500).json({ error: err.message });
+    console.error('courseController(listCourses) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
   }
 };

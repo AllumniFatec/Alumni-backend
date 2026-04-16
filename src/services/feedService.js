@@ -1,9 +1,7 @@
-import { PrismaClient } from '../generated/prisma/index.js';
+import prisma from '../config/prisma.js';
 import { authenticateUser } from './userService.js';
 import { formatPost, normalizePhoto, postSelectForApi } from '../utils/postApiFormatter.js';
 import { getPageNumber } from '../utils/validations.js';
-
-const prisma = new PrismaClient();
 
 const actions = {
   loadFeed: 'carregar feed',

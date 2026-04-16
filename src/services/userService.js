@@ -1,4 +1,5 @@
-import { PrismaClient, UserGender, SocialMediaType } from '../generated/prisma/index.js';
+import { UserGender, SocialMediaType } from '../generated/prisma/index.js';
+import prisma from '../config/prisma.js';
 import { findOrCreateWorkplace, formatJobListItem } from './jobService.js';
 import { formatPost, postSelectForApi } from '../utils/postApiFormatter.js';
 import {
@@ -11,8 +12,6 @@ import CustomError from '../utils/CustomError.js';
 import levenshtein from 'fast-levenshtein';
 import cloudinary from '../config/cloudinary.js';
 import crypto from 'crypto';
-
-const prisma = new PrismaClient();
 
 const actions = {
   updateProfile: 'atualizar perfil',
@@ -851,20 +850,56 @@ export const updateProfilePhoto = async (userToken, image) => {
   });
 };
 
+function validateProfileData(profileData) {
+  const requiredFields = ['name', 'gender', 'receive_notifications'];
+
+  requiredFields.forEach((field) => {
+    const value = profileData[field];
+    if (
+      value === undefined ||
+      value === null ||
+      (typeof value === 'string' && value.trim() === '')
+    ) {
+      throw new CustomError(`Campo ${field} é obrigatório`, 400);
+    }
+  });
+
+  const name = String(profileData.name).trim();
+  const gender = String(profileData.gender).trim();
+  const biography = String(profileData.biography)?.trim();
+  const receive_notifications = Boolean(profileData.receive_notifications);
+
+  if (name.length < 3 || name.length > 80) {
+    throw new CustomError('Nome deve ter entre 3 e 80 caracteres', 400);
+  }
+
+  if (!Object.values(UserGender).includes(gender)) {
+    throw new CustomError('Gênero de usuário inválido!', 422);
+  }
+
+  if (receive_notifications !== true && receive_notifications !== false) {
+    throw new CustomError('Notificações devem ser true ou false', 400);
+  }
+
+  if (biography && biography.length > 600) {
+    throw new CustomError('Biografia deve ter no máximo 600 caracteres', 400);
+  }
+
+  return {
+    name,
+    gender,
+    biography,
+    receive_notifications,
+  };
+}
+
 export const updateMyProfile = async (userToken, data) => {
   const user_id = userToken.id;
-  const { name, gender, biography, receive_notifications } = data;
+  const { name, gender, biography, receive_notifications } = validateProfileData(data);
 
   return authenticateUser(user_id, actions.updateProfile, async (user) => {
     if (user.user_id !== user_id) {
       throw new CustomError('Usuário não autorizado a editar este perfil!', 403);
-    }
-    if (!name) {
-      throw new CustomError('Campo de nome é obrigatório', 400);
-    }
-
-    if (!Object.values(UserGender).includes(gender)) {
-      throw new CustomError('Gênero de usuário inválido!', 422);
     }
 
     const updatedUser = await prisma.user.update({
@@ -902,9 +937,45 @@ export const deleteMyProfile = async (userToken) => {
   });
 };
 
+function validateWorkplaceData(workplaceData) {
+  const requiredFields = ['company_name', 'position', 'functions', 'start_date'];
+
+  requiredFields.forEach((field) => {
+    if (!workplaceData[field] || String(workplaceData[field]).trim() === '') {
+      throw new CustomError(`Campo ${field} é obrigatório`, 400);
+    }
+  });
+
+  const company_name = String(workplaceData.company_name).trim();
+  const position = String(workplaceData.position).trim();
+  const functions = String(workplaceData.functions).trim();
+  const start_date = parseBRDate(workplaceData.start_date);
+  const end_date = workplaceData.end_date ? parseBRDate(workplaceData.end_date) : null;
+
+  if (company_name.length < 3 || company_name.length > 100) {
+    throw new CustomError('Nome da empresa deve ter entre 3 e 100 caracteres', 400);
+  }
+
+  if (position.length < 3 || position.length > 150) {
+    throw new CustomError('Cargo deve ter entre 3 e 150 caracteres', 400);
+  }
+
+  if (functions.length < 3 || functions.length > 300) {
+    throw new CustomError('Funções devem ter entre 3 e 300 caracteres', 400);
+  }
+
+  return {
+    company_name,
+    position,
+    functions,
+    start_date,
+    end_date,
+  };
+}
+
 export const insertWorkplace = async (userToken, data) => {
   const user_id = userToken.id;
-  const { company_name, position, functions, start_date, end_date } = data;
+  const { company_name, position, functions, start_date, end_date } = validateWorkplaceData(data);
 
   if (Object.entries(data).some(([key, value]) => key !== 'end_date' && !value)) {
     throw new CustomError('Todos os campos são obrigatórios!', 400);
@@ -915,15 +986,12 @@ export const insertWorkplace = async (userToken, data) => {
 
     const work_id = await findOrCreateWorkplace(company);
 
-    const new_start_date = parseBRDate(start_date);
-    const new_end_date = parseBRDate(end_date);
-
     await prisma.workplaceUser.create({
       data: {
         function: functions,
         position: position,
-        start_date: new_start_date,
-        end_date: new_end_date,
+        start_date: start_date,
+        end_date: end_date,
         user_id: user.user_id,
         workplace_id: work_id,
       },
@@ -935,11 +1003,9 @@ export const insertWorkplace = async (userToken, data) => {
 
 export const updateWorkplace = async (userToken, jobData) => {
   const user_id = userToken.id;
-  const { jobUserId, company_name, position, functions, start_date, end_date } = jobData;
-
-  if (Object.entries(jobData).some(([key, value]) => key !== 'end_date' && !value)) {
-    throw new CustomError('Todos os campos são obrigatórios!', 400);
-  }
+  const jobUserId = jobData.jobUserId;
+  const { company_name, position, functions, start_date, end_date } =
+    validateWorkplaceData(jobData);
 
   return authenticateUser(user_id, actions.editJob, async (user) => {
     const updatedCompany = await prisma.workplaceUser.findUnique({
@@ -960,9 +1026,6 @@ export const updateWorkplace = async (userToken, jobData) => {
 
     const work_id = await findOrCreateWorkplace(company);
 
-    const new_start_date = parseBRDate(start_date);
-    const new_end_date = parseBRDate(end_date);
-
     await prisma.workplaceUser.update({
       where: {
         workplace_user_id: jobUserId,
@@ -971,8 +1034,8 @@ export const updateWorkplace = async (userToken, jobData) => {
         position: position,
         function: functions,
         workplace_id: work_id,
-        start_date: new_start_date,
-        end_date: new_end_date,
+        start_date: start_date,
+        end_date: end_date,
         updated_at: new Date(),
       },
     });
@@ -1015,6 +1078,10 @@ export const insertUserSkill = async (userToken, skillData) => {
   return authenticateUser(user_id, actions.insertUserSkill, async (user) => {
     const skill = capitalizeWords(skill_name.trim());
     const slug = skill.toLowerCase().replace(' ', '-');
+
+    if (skill.length < 3 || skill.length > 60) {
+      throw new CustomError('Habilidade deve ter entre 3 e 60 caracteres', 400);
+    }
 
     const skill_id = await findOrCreateSkill(skill, slug);
 
@@ -1089,6 +1156,10 @@ export const insertSocialMedia = async (userToken, socialData) => {
       throw new CustomError('Rede social inválida', 400);
     }
 
+    if (url.length > 200) {
+      throw new CustomError('URL deve ter no máximo 200 caracteres', 400);
+    }
+
     isValidHttpUrl(url);
 
     await prisma.user.update({
@@ -1121,6 +1192,10 @@ export const updateSocialMedia = async (userToken, socialData) => {
   return authenticateUser(user_id, actions.updatedSocialMedia, async (user) => {
     if (!Object.values(SocialMediaType).includes(media)) {
       throw new CustomError('Rede social inválida', 400);
+    }
+
+    if (url.length > 200) {
+      throw new CustomError('URL deve ter no máximo 200 caracteres', 400);
     }
 
     isValidHttpUrl(url);
@@ -1163,6 +1238,7 @@ export const updateSocialMedia = async (userToken, socialData) => {
       },
       data: {
         social_media: updatedSocialMedia,
+        updated_at: new Date(),
       },
     });
 
