@@ -1,4 +1,4 @@
-import { PrismaClient } from '../generated/prisma/index.js';
+import prisma from '../config/prisma.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { enqueueEmail } from '../queues/emailQueue.js';
@@ -6,8 +6,6 @@ import * as validations from '../utils/validations.js';
 import { env } from '../config/env.js';
 import CustomError from '../utils/CustomError.js';
 import { messagePasswordRecovery } from '../utils/emailMessages.js';
-
-const prisma = new PrismaClient();
 
 export const sendRecovery = async (userInfo, req) => {
   validations.validateEmail(userInfo.email);
@@ -18,7 +16,7 @@ export const sendRecovery = async (userInfo, req) => {
   });
 
   if (!user) {
-    throw new CustomError('Email não cadastrado!', 404);
+    throw new CustomError('Usuário não encontrado!', 404);
   }
 
   //gerar o token para resetar senha

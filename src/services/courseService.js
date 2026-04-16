@@ -1,9 +1,7 @@
-import { PrismaClient } from '../generated/prisma/index.js';
+import prisma from '../config/prisma.js';
 import CustomError from '../utils/CustomError.js';
 import { normalizeText } from '../utils/validations.js';
 import { authenticateUser } from './userService.js';
-
-const prisma = new PrismaClient();
 
 const actions = {
   getCourses: 'listar cursos',

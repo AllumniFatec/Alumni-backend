@@ -1,4 +1,5 @@
-import { PrismaClient, UserGender, SocialMediaType } from '../generated/prisma/index.js';
+import { UserGender, SocialMediaType } from '../generated/prisma/index.js';
+import prisma from '../config/prisma.js';
 import { findOrCreateWorkplace, formatJobListItem } from './jobService.js';
 import { formatPost, postSelectForApi } from '../utils/postApiFormatter.js';
 import {
@@ -11,8 +12,6 @@ import CustomError from '../utils/CustomError.js';
 import levenshtein from 'fast-levenshtein';
 import cloudinary from '../config/cloudinary.js';
 import crypto from 'crypto';
-
-const prisma = new PrismaClient();
 
 const actions = {
   updateProfile: 'atualizar perfil',

@@ -1,15 +1,31 @@
 import { Server } from 'socket.io';
+import { env } from './env.js';
+import jwt from 'jsonwebtoken';
 
 let io;
 const connectedUsers = new Map();
 
 export const initSocket = (server, corsOptions) => {
   io = new Server(server, {
-    cors: { origin: corsOptions },
+    cors: corsOptions,
+  });
+
+  io.use((socket, next) => {
+    const token = socket.handshake.headers.cookie.split('=')[1].split(';')[0];
+    if (!token) {
+      return next(new Error('Não autenticado'));
+    }
+    try {
+      socket.data.user = jwt.verify(token, env.jwtSecret);
+      next();
+    } catch {
+      next(new Error('Token inválido'));
+    }
   });
 
   io.on('connection', (socket) => {
-    socket.on('register-user', (userId) => {
+    socket.on('register-user', () => {
+      const userId = socket.data.user.id;
       connectedUsers.set(userId, socket.id);
       socket.join(`user:${userId}`);
     });

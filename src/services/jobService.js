@@ -1,9 +1,5 @@
-import {
-  SeniorityLevel,
-  EmploymentType,
-  PrismaClient,
-  WorkModel,
-} from '../generated/prisma/index.js';
+import { SeniorityLevel, EmploymentType, WorkModel } from '../generated/prisma/index.js';
+import prisma from '../config/prisma.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
 import { capitalizeWords, isValidHttpUrl, getPageNumber } from '../utils/validations.js';
@@ -19,8 +15,6 @@ const actions = {
   getJobById: 'buscar vaga',
   closeJob: 'encerrar vaga',
 };
-
-const prisma = new PrismaClient();
 
 /** Mesmo shape retornado por GET /job (listagem / feed). Reutilizado em getMyProfile. */
 export const formatJobListItem = (job) => ({

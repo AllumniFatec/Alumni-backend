@@ -1,11 +1,10 @@
-import { PrismaClient, UserType, UserGender } from '../generated/prisma/index.js';
+import { UserType, UserGender } from '../generated/prisma/index.js';
+import prisma from '../config/prisma.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import CustomError from '../utils/CustomError.js';
 import * as validations from '../utils/validations.js';
 import { env } from '../config/env.js';
-
-const prisma = new PrismaClient();
 
 const prepareUserData = async (userData) => {
   validations.validateEmail(userData.email);
@@ -143,7 +142,7 @@ export const loginUser = async (userData) => {
       admin: isAdmin,
     },
     env.jwtSecret,
-    { expiresIn: '5d' }
+    { expiresIn: '1d' }
   );
   return token;
 };

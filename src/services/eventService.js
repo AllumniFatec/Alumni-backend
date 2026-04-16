@@ -1,12 +1,10 @@
-import { PrismaClient } from '../generated/prisma/index.js';
+import prisma from '../config/prisma.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
 import { capitalizeWords, getPageNumber } from '../utils/validations.js';
 import { parse } from 'date-fns';
 import { enqueueNotificationForAudience } from './notificationService.js';
 import { notificationTypes } from '../utils/notificationTypes.js';
-
-const prisma = new PrismaClient();
 
 const actions = {
   createEvent: 'criar eventos',

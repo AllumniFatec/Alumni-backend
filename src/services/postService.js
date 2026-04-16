@@ -1,11 +1,9 @@
-import { PrismaClient } from '../generated/prisma/index.js';
+import prisma from '../config/prisma.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
 import { formatPost, postSelectForApi } from '../utils/postApiFormatter.js';
 import { enqueueNotificationForAudience } from './notificationService.js';
 import { notificationTypes } from '../utils/notificationTypes.js';
-
-const prisma = new PrismaClient();
 
 const actions = {
   createPost: 'criar postagem',

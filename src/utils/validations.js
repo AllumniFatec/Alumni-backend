@@ -41,11 +41,14 @@ export function capitalizeWords(text) {
 }
 
 export function isValidHttpUrl(url) {
-  const parsed = new URL(url);
+  try {
+    const parsed = new URL(url);
 
-  if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
-    return;
-  } else {
+    if (parsed.protocol !== 'http:' || parsed.protocol !== 'https:') {
+      throw new CustomError('URL informada inválida', 400);
+    }
+  } catch (err) {
+    if (err instanceof CustomError) throw err;
     throw new CustomError('URL informada inválida', 400);
   }
 }
