@@ -61,7 +61,9 @@ export const getMe = async (req, res) => {
 export const logout = async (req, res) => {
   const token = req.cookies?.access_token;
 
-  await redisClient.set(`revoked-token:${token}`, 'true', 'EX', 60 * 60 * 24); // 1 dia
+  if (token) {
+    await redisClient.set(`revoked-token:${token}`, 'true', 'EX', 60 * 60 * 24); // 1 dia
+  }
 
   res.clearCookie('access_token', {
     httpOnly: true,

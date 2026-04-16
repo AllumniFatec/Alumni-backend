@@ -17,6 +17,10 @@ export function validatePassword(password) {
 export function validateEmail(email) {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+  if (email.length > 254) {
+    throw new CustomError('Email deve ter no máximo 254 caracteres', 400);
+  }
+
   if (!regex.test(email) || email == null || email == '') {
     throw new CustomError('Email inválido', 401);
   }
@@ -44,7 +48,7 @@ export function isValidHttpUrl(url) {
   try {
     const parsed = new URL(url);
 
-    if (parsed.protocol !== 'http:' || parsed.protocol !== 'https:') {
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
       throw new CustomError('URL informada inválida', 400);
     }
   } catch (err) {

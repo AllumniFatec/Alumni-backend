@@ -24,8 +24,8 @@ export const createPost = async (postData, userToken) => {
     throw new CustomError('O conteúdo da postagem é obrigatório', 400);
   }
 
-  if (post_content.length > 2000) {
-    throw new CustomError('O conteúdo da postagem não pode exceder 2000 caracteres', 400);
+  if (post_content.length < 10 || post_content.length > 2000) {
+    throw new CustomError('O conteúdo da postagem deve ter entre 10 e 2000 caracteres', 400);
   }
 
   return authenticateUser(user_id, actions.createPost, async (user) => {
@@ -52,8 +52,8 @@ export const updatePost = async (postId, postData, userToken) => {
     throw new CustomError('O conteúdo da postagem é obrigatório', 400);
   }
 
-  if (post_content.length > 2000) {
-    throw new CustomError('O conteúdo da postagem não pode exceder 2000 caracteres', 400);
+  if (post_content.length < 10 || post_content.length > 2000) {
+    throw new CustomError('O conteúdo da postagem deve ter entre 10 e 2000 caracteres', 400);
   }
 
   return authenticateUser(user_id, actions.updatePost, async (user) => {
@@ -134,8 +134,8 @@ export const createCommentPost = async (postId, commentData, userToken) => {
     throw new CustomError('O conteúdo do comentário é obrigatório', 400);
   }
 
-  if (comment_content.length > 1000) {
-    throw new CustomError('O conteúdo do comentário não pode exceder 1000 caracteres', 400);
+  if (comment_content.length < 10 || comment_content.length > 1000) {
+    throw new CustomError('O conteúdo do comentário deve ter entre 10 e 1000 caracteres', 400);
   }
 
   return authenticateUser(user_id, actions.createCommentPost, async (user) => {
@@ -190,8 +190,8 @@ export const updateCommentPost = async (postCommentId, postCommentData, userToke
     throw new CustomError('O conteúdo do comentário é obrigatório', 400);
   }
 
-  if (post_comment_content.length > 1000) {
-    throw new CustomError('O conteúdo do comentário não pode exceder 1000 caracteres', 400);
+  if (post_comment_content.length < 10 || post_comment_content.length > 1000) {
+    throw new CustomError('O conteúdo do comentário deve ter entre 10 e 1000 caracteres', 400);
   }
 
   return authenticateUser(user_id, actions.updateCommentPost, async (user) => {

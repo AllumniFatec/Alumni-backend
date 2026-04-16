@@ -7,44 +7,77 @@ import * as validations from '../utils/validations.js';
 import { env } from '../config/env.js';
 
 const prepareUserData = async (userData) => {
-  validations.validateEmail(userData.email);
+  const requiredFields = [
+    'name',
+    'email',
+    'password',
+    'gender',
+    'userType',
+    'course',
+    'enrollmentYear',
+  ];
 
-  if (!Object.values(UserType).includes(userData.userType)) {
+  requiredFields.forEach((field) => {
+    if (!userData[field] || String(userData[field]).trim() === '') {
+      throw new CustomError(`Campo ${field} é obrigatório`, 400);
+    }
+  });
+
+  const name = String(userData.name).trim();
+  const email = String(userData.email).trim();
+  const password = String(userData.password).trim();
+  const gender = String(userData.gender).trim();
+  const userType = String(userData.userType).trim();
+  const course = String(userData.course).trim();
+  const enrollmentYear = Number(userData.enrollmentYear);
+  const studentId = String(userData.studentId).trim();
+
+  validations.validateEmail(email);
+
+  if (enrollmentYear < 1900 || enrollmentYear > new Date().getFullYear()) {
+    throw new CustomError('Ano de ingresso inválido!', 422);
+  }
+
+  if (name.length < 3 || name.length > 150) {
+    throw new CustomError('Nome deve ter entre 3 e 150 caracteres', 400);
+  }
+
+  if (!Object.values(UserType).includes(userType)) {
     throw new CustomError('Tipo de usuário inválido!', 422);
   }
 
-  if (!Object.values(UserGender).includes(userData.gender)) {
+  if (!Object.values(UserGender).includes(gender)) {
     throw new CustomError('Gênero de usuário inválido!', 422);
   }
 
-  const course = await prisma.course.findUnique({
+  const createdCourse = await prisma.course.findUnique({
     where: { name: userData.course },
   });
 
-  if (!course) {
+  if (!createdCourse) {
     throw new CustomError('Curso informado inválido!', 422);
   }
 
-  validations.validatePassword(userData.password);
+  validations.validatePassword(password);
 
   const salt = await bcrypt.genSalt(10);
   const hashPassword = await bcrypt.hash(userData.password, salt);
 
   return {
-    name: userData.name,
-    email: userData.email,
+    name: name,
+    email: email,
     password: hashPassword,
-    gender: userData.gender,
-    user_type: userData.userType,
-    student_id: userData.studentId,
+    gender: gender,
+    user_type: userType,
+    student_id: studentId,
     courses: {
       set: [
         {
-          course_id: course.course_id,
-          course_name: course.name,
-          course_search: course.normalize_name,
-          abbreviation: course.abbreviation,
-          enrollmentYear: Number(userData.enrollmentYear),
+          course_id: createdCourse.course_id,
+          course_name: createdCourse.name,
+          course_search: createdCourse.normalize_name,
+          abbreviation: createdCourse.abbreviation,
+          enrollmentYear: enrollmentYear,
         },
       ],
     },
@@ -53,13 +86,13 @@ const prepareUserData = async (userData) => {
 
 //Cadastro
 export const registerUser = async (data) => {
+  const userData = await prepareUserData(data);
+
   const email = data.email;
 
   const existingUser = await prisma.user.findUnique({
     where: { email: email },
   });
-
-  const userData = await prepareUserData(data);
 
   if (existingUser?.user_status === 'Refused') {
     await prisma.user.update({
@@ -114,6 +147,7 @@ export const getMe = async (userId) => {
 //Login
 export const loginUser = async (userData) => {
   validations.validateEmail(userData.email);
+  validations.validatePassword(userData.password);
 
   const user = await prisma.user.findUnique({
     where: { email: userData.email },
@@ -127,7 +161,6 @@ export const loginUser = async (userData) => {
     throw new CustomError('Usuário não autorizado!', 403);
   }
 
-  validations.validatePassword(userData.password);
   const isMatch = await bcrypt.compare(userData.password, user.password);
 
   if (!isMatch) {

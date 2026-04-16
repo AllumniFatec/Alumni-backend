@@ -11,7 +11,11 @@ export const initSocket = (server, corsOptions) => {
   });
 
   io.use((socket, next) => {
-    const token = socket.handshake.headers.cookie.split('=')[1].split(';')[0];
+    const token = socket.handshake.headers.cookie
+      ?.split(';')
+      .find((c) => c.trim().startsWith('access_token='))
+      ?.split('=')[1];
+
     if (!token) {
       return next(new Error('Não autenticado'));
     }
