@@ -42,6 +42,10 @@ const prepareUserData = async (userData) => {
     throw new CustomError('Ano de ingresso inválido!', 422);
   }
 
+  if (studentId == undefined) {
+    studentId = null;
+  }
+
   if (name.length < 3 || name.length > 80) {
     throw new CustomError('Nome deve ter entre 3 e 80 caracteres', 400);
   }

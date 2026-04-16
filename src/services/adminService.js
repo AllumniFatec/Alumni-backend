@@ -67,12 +67,12 @@ export const getDashboard = async (userToken) => {
   });
 };
 
-export const listAllUsersInAnalysis = async (userToken, page = 1) => {
+export const listAllUsersInAnalysis = async (userToken, page = 2) => {
   const user_id = userToken.id;
 
   const currentPageNumber = getPageNumber(page);
 
-  const limit = 30;
+  const limit = 10;
   const skip = (currentPageNumber - 1) * limit;
 
   return authenticateUser(user_id, actions.listAllUsersInAnalysis, async (user) => {

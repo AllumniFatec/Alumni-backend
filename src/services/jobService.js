@@ -231,7 +231,9 @@ export const getJobs = async (userToken, page = 1) => {
         take: limit,
         skip: skip,
         where: {
-          status: 'Active',
+          status: {
+            not: 'Deleted',
+          },
         },
         orderBy: {
           create_date: 'desc',
@@ -265,7 +267,7 @@ export const getJobs = async (userToken, page = 1) => {
 
       prisma.job.count({
         where: {
-          status: 'Active',
+          status: { not: 'Deleted' },
         },
       }),
     ]);

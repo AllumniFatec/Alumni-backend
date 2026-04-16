@@ -145,7 +145,7 @@ export const getEvents = async (userToken, page = 1) => {
         skip: skip,
         take: limit,
         where: {
-          status: 'Active',
+          status: { not: 'Deleted' },
         },
         orderBy: {
           date_start: 'asc',
@@ -155,12 +155,13 @@ export const getEvents = async (userToken, page = 1) => {
           title: true,
           local: true,
           date_start: true,
+          status: true,
         },
       }),
 
       prisma.event.count({
         where: {
-          status: 'Active',
+          status: { not: 'Deleted' },
         },
       }),
     ]);
@@ -215,9 +216,6 @@ export const getEventById = async (userToken, eventId) => {
 
     if (event.status === 'Deleted') {
       throw new CustomError('Evento excluído!', 404);
-    }
-    if (event.status === 'Closed') {
-      throw new CustomError('Evento finalizado!', 404);
     }
 
     return formattedEvent(event);
