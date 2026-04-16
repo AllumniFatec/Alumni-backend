@@ -1,6 +1,7 @@
 import { Server } from 'socket.io';
 import { env } from './env.js';
 import jwt from 'jsonwebtoken';
+import { redisClient } from './redisClient.js';
 
 let io;
 const connectedUsers = new Map();
@@ -10,11 +11,16 @@ export const initSocket = (server, corsOptions) => {
     cors: corsOptions,
   });
 
-  io.use((socket, next) => {
+  io.use(async (socket, next) => {
     const token = socket.handshake.headers.cookie
       ?.split(';')
       .find((c) => c.trim().startsWith('access_token='))
       ?.split('=')[1];
+
+    const isRevoked = await redisClient.get(`revoked-token:${token}`);
+    if (isRevoked) {
+      return next(new Error('Token expirado'));
+    }
 
     if (!token) {
       return next(new Error('Não autenticado'));

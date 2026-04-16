@@ -2,6 +2,7 @@ import * as authService from '../services/authService.js';
 import CustomError from '../utils/CustomError.js';
 import { env } from '../config/env.js';
 import { redisClient } from '../config/redisClient.js';
+import jwt from 'jsonwebtoken';
 
 export const register = async (req, res) => {
   try {
@@ -62,7 +63,12 @@ export const logout = async (req, res) => {
   const token = req.cookies?.access_token;
 
   if (token) {
-    await redisClient.set(`revoked-token:${token}`, 'true', 'EX', 60 * 60 * 24); // 1 dia
+    const decoded = jwt.verify(token, env.jwtSecret);
+    const now = Math.floor(Date.now() / 1000);
+    const exp = decoded.exp;
+    const ttl = exp - now;
+
+    await redisClient.set(`revoked-token:${token}`, 'true', 'EX', ttl); // resto de tempo do token
   }
 
   res.clearCookie('access_token', {
