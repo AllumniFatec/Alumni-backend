@@ -2,9 +2,9 @@ import prisma from '../config/prisma.js';
 import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
 import { enqueueEmail } from '../queues/emailQueue.js';
-import { messageApproveUser, messageRefuseUser } from '../utils/emailMessages.js';
+import { messageApproveUser, messageRefuseUser, messageBanUser } from '../utils/emailMessages.js';
 import { getPageNumber } from '../utils/validations.js';
-import { UserType } from '../generated/prisma/index.js';
+import { UserType, BanReason } from '../generated/prisma/index.js';
 import * as userService from './userService.js';
 
 const actions = {
@@ -15,6 +15,25 @@ const actions = {
   getUsers: 'listar usuários',
   searchUsers: 'buscar usuários',
   changeUserType: 'alterar tipo de usuário',
+  banUser: 'banir usuário',
+};
+
+const BanReasonLabel = {
+  Spam: 'Spam',
+  Harassment: 'Assédio',
+  HateSpeech: 'Discurso de ódio',
+  InappropriateContent: 'Conteúdo inapropriado',
+  Threats: 'Ameaças',
+  Fraud: 'Fraude',
+  Scam: 'Golpe',
+  Impersonation: 'Falsidade ideológica',
+  PrivacyViolation: 'Violação de privacidade',
+  UnauthorizedAdvertisement: 'Publicidade não autorizada',
+  MaliciousLink: 'Link malicioso',
+  MaliciousActivity: 'Atividade maliciosa',
+  MultipleViolations: 'Múltiplas violações',
+  TermsOfServiceViolation: 'Violação dos Termos de Serviço',
+  Others: 'Outros',
 };
 
 function verifyAdminUser(user, action) {
@@ -153,6 +172,8 @@ export const approveUser = async (userToken, alumniId, protocol, host) => {
     } catch (err) {
       throw new CustomError('Algo de errado aconteceu. Por favor, tente novamente mais tarde', 500);
     }
+
+    return { message: 'Usuário aprovado com sucesso!' };
   });
 };
 
@@ -202,6 +223,8 @@ export const refuseUser = async (userToken, alumniId, protocol, host) => {
     } catch (err) {
       throw new CustomError('Algo de errado aconteceu. Por favor, tente novamente mais tarde', 500);
     }
+
+    return { message: 'Usuário recusado com sucesso!' };
   });
 };
 
@@ -277,5 +300,73 @@ export const changeUserType = async (userToken, userTargetId, type) => {
     });
 
     return { message: 'Tipo de usuário alterado com sucesso!' };
+  });
+};
+
+export const banUser = async (userToken, userTargetId, banData) => {
+  const user_id = userToken.id;
+  const user_target_id = userTargetId;
+  const { reason, description } = banData;
+
+  return authenticateUser(user_id, actions.banUser, async (user) => {
+    verifyAdminUser(user, actions.banUser);
+
+    if (!Object.values(BanReason).includes(reason)) {
+      throw new CustomError('Motivo de banimento inválido!', 422);
+    }
+
+    if (description.length < 3 || description.length > 300) {
+      throw new CustomError('Descrição deve ter entre 3 e 300 caracteres!', 422);
+    }
+
+    const targetUser = await prisma.user.findUnique({
+      where: {
+        user_id: user_target_id,
+      },
+    });
+
+    if (!targetUser) {
+      throw new CustomError('Usuário não encontrado!', 404);
+    }
+
+    if (targetUser.user_status !== 'Active') {
+      throw new CustomError('Usuário não pode ser banido!', 400);
+    }
+
+    try {
+      const bannedUser = await prisma.user.update({
+        where: {
+          user_id: user_target_id,
+        },
+        data: {
+          ban_details: {
+            push: {
+              reason: reason,
+              description: description,
+              date: new Date(),
+              author_id: user.user_id,
+            },
+          },
+          user_status: 'Banned',
+        },
+      });
+
+      const message = messageBanUser(targetUser.name, BanReasonLabel[reason]);
+
+      enqueueEmail({
+        email: targetUser.email,
+        subject: 'Conta Suspensa Alumni Fatec Sorocaba',
+        message: message,
+        jobKey: `ban-user:${targetUser.user_id}`,
+      });
+    } catch (err) {
+      throw new CustomError(
+        'Algo de errado aconteceu. Por favor, tente novamente mais tarde: ',
+        err.message,
+        500
+      );
+    }
+
+    return { message: 'Usuário banido com sucesso!' };
   });
 };

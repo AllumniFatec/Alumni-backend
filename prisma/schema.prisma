@@ -32,6 +32,8 @@ model User {
   receive_notifications  Boolean @default(true)
   user_status            UserStatus @default(InAnalysis)
 
+  ban_details            BanDetails[]
+
   user_type              UserType
 
   notifications          Notification[]
@@ -245,6 +247,13 @@ type UserCourse {
   enrollmentYear  Int
 }
 
+type BanDetails {
+  reason      BanReason
+  description String
+  date        DateTime
+  author_id   String @db.ObjectId
+}
+
 enum SocialMediaType {
   Instagram
   Linkedin
@@ -306,4 +315,22 @@ enum WorkModel {
   Remote          @map("Remoto")
   OnSite          @map("Presencial")
   Hybrid          @map("Híbrido")
+}
+
+enum BanReason {
+  Spam        @map("Spam")
+  Harassment  @map("Assédio")
+  HateSpeech  @map("Discurso de ódio")
+  InappropriateContent  @map("Conteúdo inapropriado")
+  Threats             @map("Ameaças")
+  Fraud               @map("Fraude")
+  Scam                @map("Golpe")
+  Impersonation       @map("Falsidade ideológica")
+  PrivacyViolation    @map("Violação de privacidade")
+  UnauthorizedAdvertisement @map("Publicidade não autorizada")
+  MaliciousLink         @map("Link malicioso")
+  MaliciousActivity     @map("Atividade maliciosa")
+  MultipleViolations    @map("Múltiplas violações")
+  TermsOfServiceViolation @map("Violação dos Termos de Serviço")
+  Others                 @map("Outros")
 }

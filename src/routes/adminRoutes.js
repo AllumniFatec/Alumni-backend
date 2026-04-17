@@ -32,6 +32,7 @@ router.post(
   authId,
   adminController.refuseUser
 );
+router.post('/admin/users/ban/:id', auth, adminOnly, authId, adminController.banUser);
 
 router.get('/admin/users', auth, adminOnly, adminController.getUsers);
 router.get('/admin/users/search', auth, adminOnly, adminController.searchUsers);
