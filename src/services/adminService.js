@@ -31,6 +31,8 @@ export const getDashboard = async (userToken) => {
   const user_id = userToken.id;
 
   return authenticateUser(user_id, actions.getDashboard, async (user) => {
+    const limit = 10;
+
     verifyAdminUser(user, actions.getDashboard);
 
     const usersInAnalysis = await prisma.user.findMany({
@@ -54,7 +56,7 @@ export const getDashboard = async (userToken) => {
         gender: true,
         user_type: true,
       },
-      take: 10,
+      take: limit,
     });
 
     const [countUsersInAnalysis, countUsersActive, countJobsActive] = await Promise.all([
@@ -78,32 +80,49 @@ export const listAllUsersInAnalysis = async (userToken, page = 2) => {
   return authenticateUser(user_id, actions.listAllUsersInAnalysis, async (user) => {
     verifyAdminUser(user, actions.listAllUsersInAnalysis);
 
-    const users = await prisma.user.findMany({
-      where: {
-        user_status: 'InAnalysis',
-      },
-      orderBy: {
-        create_date: 'asc',
-      },
-      select: {
-        user_id: true,
-        name: true,
-        email: true,
-        student_id: true,
-        courses: {
-          select: {
-            course_name: true,
-            enrollmentYear: true,
-          },
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where: {
+          user_status: 'InAnalysis',
         },
-        gender: true,
-        user_type: true,
-      },
-      take: limit,
-      skip: skip,
-    });
+        orderBy: {
+          create_date: 'asc',
+        },
+        select: {
+          user_id: true,
+          name: true,
+          email: true,
+          student_id: true,
+          courses: {
+            select: {
+              course_name: true,
+              enrollmentYear: true,
+            },
+          },
+          gender: true,
+          user_type: true,
+        },
+        take: limit,
+        skip: skip,
+      }),
 
-    return users;
+      prisma.user.count({ where: { user_status: 'InAnalysis' } }),
+    ]);
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      users: users,
+      pagination: {
+        pagination: {
+          page: currentPageNumber,
+          limit: limit,
+          totalItems: total,
+          totalPages: totalPages,
+          hasNextPage: currentPageNumber < totalPages,
+          hasPreviousPage: currentPageNumber > 1,
+        },
+      },
+    };
   });
 };
 
