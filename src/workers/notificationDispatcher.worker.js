@@ -37,7 +37,7 @@ const dispatchToFixedUsers = async (payload) => {
   const requestedUserIds = Array.isArray(payload.userIds) ? payload.userIds : [];
   if (requestedUserIds.length === 0) return;
 
-  const userIds = await getUsersNotifications();
+  const userIds = await getUsersNotifications(requestedUserIds);
 
   for (let index = 0; index < userIds.length; index += BATCH_SIZE) {
     const batch = userIds.slice(index, index + BATCH_SIZE);

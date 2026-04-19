@@ -23,10 +23,16 @@ export const notificationDispatcherQueue = new Queue(NOTIFICATION_DISPATCHER_QUE
   },
 });
 
+const resolveReferenceId = (payload) =>
+  payload?.referenceId ?? payload?.postId ?? payload?.eventId ?? payload?.jobId ?? '';
+
 const buildDispatchJobId = (payload) => {
+  const idsKey = Array.isArray(payload?.userIds)
+    ? [...new Set(payload.userIds.filter(Boolean))].sort().join(',')
+    : 'all';
   const rawKey =
     payload?.jobKey ??
-    `${payload?.type ?? 'notification'}:${payload?.authorId ?? 'anonymous'}:${payload?.referenceId ?? ''}:${payload?.message ?? ''}`;
+    `${payload?.type ?? 'notification'}:${payload?.authorId ?? 'anonymous'}:${resolveReferenceId(payload)}:${idsKey}:${payload?.message ?? ''}`;
   return `notification-dispatch-${createHash('sha256').update(String(rawKey)).digest('hex')}`;
 };
 

@@ -1627,7 +1627,11 @@ export const searchUsers = async (userToken, search, page = 1) => {
   });
 };
 
-export const getUsersNotifications = async () => {
+export const getUsersNotifications = async (requestedUserIds = []) => {
+  if (!Array.isArray(requestedUserIds) || requestedUserIds.length === 0) {
+    return [];
+  }
+
   const eligibleUsers = await prisma.user.findMany({
     where: {
       user_id: {
