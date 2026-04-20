@@ -50,7 +50,7 @@ export const getDashboard = async (userToken) => {
   const user_id = userToken.id;
 
   return authenticateUser(user_id, actions.getDashboard, async (user) => {
-    const limit = 2;
+    const limit = 10;
 
     verifyAdminUser(user, actions.getDashboard);
 
