@@ -31,7 +31,7 @@ export const getDashboard = async (userToken) => {
   const user_id = userToken.id;
 
   return authenticateUser(user_id, actions.getDashboard, async (user) => {
-    const limit = 10;
+    const limit = 2;
 
     verifyAdminUser(user, actions.getDashboard);
 
@@ -113,14 +113,12 @@ export const listAllUsersInAnalysis = async (userToken, page = 2) => {
     return {
       users: users,
       pagination: {
-        pagination: {
-          page: currentPageNumber,
-          limit: limit,
-          totalItems: total,
-          totalPages: totalPages,
-          hasNextPage: currentPageNumber < totalPages,
-          hasPreviousPage: currentPageNumber > 1,
-        },
+        page: currentPageNumber,
+        limit: limit,
+        totalItems: total,
+        totalPages: totalPages,
+        hasNextPage: currentPageNumber < totalPages,
+        hasPreviousPage: currentPageNumber > 1,
       },
     };
   });
