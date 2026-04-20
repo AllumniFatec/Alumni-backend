@@ -14,6 +14,7 @@ const actions = {
   deleteCommentPost: 'deletar comentário',
   createLikePost: 'curtir postagem',
   deleteLikePost: 'remover curtida',
+  getPosById: 'carregar postagem',
 };
 
 export const createPost = async (postData, userToken) => {
@@ -40,6 +41,28 @@ export const createPost = async (postData, userToken) => {
       select: postSelectForApi,
     });
     return formatPost(full);
+  });
+};
+
+export const getPostById = async (userToken, postId) => {
+  const user_id = userToken.id;
+  const post_id = postId;
+
+  return authenticateUser(user_id, actions.getPosById, async (user) => {
+    const post = await prisma.post.findUnique({
+      where: {
+        post_id: post_id,
+      },
+      select: postSelectForApi,
+    });
+
+    if (!post) {
+      throw new CustomError('Nenhuma postagem encontrada', 403);
+    }
+
+    const formattedPost = formatPost(post);
+
+    return formattedPost;
   });
 };
 

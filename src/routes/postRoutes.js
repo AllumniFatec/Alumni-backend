@@ -56,6 +56,7 @@ const createOrRemoveLikePostRateLimit = createRateLimit({
 });
 
 router.post('/post', auth, createPostRateLimit, postController.createPost);
+router.get('/post/:id', auth, authId, postController.getPost);
 router.patch('/post/:id', auth, updatePostRateLimit, authId, postController.updatePost);
 router.delete('/post/:id', auth, deletePostRateLimit, authId, postController.deletePost);
 
