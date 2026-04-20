@@ -177,6 +177,10 @@ export const loginUser = async (userData) => {
     throw new CustomError('Usuário em análise', 403);
   }
 
+  if (user.user_status !== 'Active') {
+    throw new CustomError('Usuário não autorizado', 403);
+  }
+
   const isMatch = await bcrypt.compare(userData.password, user.password);
 
   if (!isMatch) {

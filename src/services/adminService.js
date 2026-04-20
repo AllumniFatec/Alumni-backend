@@ -315,7 +315,7 @@ export const banUser = async (userToken, userTargetId, banData) => {
       throw new CustomError('Motivo de banimento inválido!', 422);
     }
 
-    if (description.length < 3 || description.length > 300) {
+    if (!description || description.length < 3 || description.length > 300) {
       throw new CustomError('Descrição deve ter entre 3 e 300 caracteres!', 422);
     }
 
@@ -360,11 +360,7 @@ export const banUser = async (userToken, userTargetId, banData) => {
         jobKey: `ban-user:${targetUser.user_id}`,
       });
     } catch (err) {
-      throw new CustomError(
-        'Algo de errado aconteceu. Por favor, tente novamente mais tarde: ',
-        err.message,
-        500
-      );
+      throw new CustomError('Algo de errado aconteceu. Por favor, tente novamente mais tarde', 500);
     }
 
     return { message: 'Usuário banido com sucesso!' };
