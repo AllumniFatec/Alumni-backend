@@ -114,6 +114,10 @@ export const registerUser = async (data) => {
     return { message: 'Usuário recadastrado com sucesso!' };
   }
 
+  if (existingUser?.user_status === 'Banned') {
+    throw new CustomError('Usuário banido permanentemente. Por favor, contate o suporte.', 403);
+  }
+
   if (existingUser) {
     throw new CustomError('Usuário já cadastrado!', 409);
   }
@@ -165,8 +169,16 @@ export const loginUser = async (userData) => {
     throw new CustomError('Usuário não encontrado!', 404);
   }
 
+  if (user.user_status === 'Banned') {
+    throw new CustomError('Usuário banido permanentemente', 403);
+  }
+
+  if (user.user_status === 'InAnalysis') {
+    throw new CustomError('Usuário em análise', 403);
+  }
+
   if (user.user_status !== 'Active') {
-    throw new CustomError('Usuário não autorizado!', 403);
+    throw new CustomError('Usuário não autorizado', 403);
   }
 
   const isMatch = await bcrypt.compare(userData.password, user.password);

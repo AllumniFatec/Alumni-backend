@@ -133,3 +133,23 @@ export const changeUserType = async (req, res) => {
       .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
   }
 };
+
+export const banUser = async (req, res) => {
+  try {
+    const user = req.user;
+    const userId = req.params.id;
+    const banData = req.body;
+
+    const bannedUser = await adminService.banUser(user, userId, banData);
+
+    return res.status(200).json(bannedUser);
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    console.error('adminController(banUser) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
+  }
+};

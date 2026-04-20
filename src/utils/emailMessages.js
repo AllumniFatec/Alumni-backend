@@ -122,3 +122,34 @@ export function messagePasswordRecovery(userName, urlRecovery) {
   </table>
 </div>`;
 }
+
+export function messageBanUser(userName, reason) {
+  return `<div style="width: 100%; text-align: center; font-family: Arial, sans-serif; background-color: #f6f6f6; padding: 30px 0;">
+  <table align="center" cellpadding="0" cellspacing="0" width="100%" style="max-width: 500px; background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <tr>
+      <td align="center" style="color: #333333; font-size: 18px;">
+        <h3 style="margin-top: 0; color: #AE0C0D;">Olá, ${userName}</h3>
+
+        <p style="margin: 10px 0 20px 0;">
+          Informamos que sua conta foi <strong>suspensa permanentemente</strong> por violação das diretrizes da plataforma.
+        </p>
+
+        <div style="background-color: #f8f8f8; border-left: 4px solid #AE0C0D; padding: 15px; margin: 20px 0; text-align: center; border-radius: 6px;">
+          <p style="margin: 0; font-size: 15px; color: #555555;">
+            <strong>Motivo do banimento:</strong><br>
+            ${reason}
+          </p>
+        </div>
+
+        <p style="margin-top: 20px; color: #555555;">
+          Caso acredite que isso tenha ocorrido por engano, entre em contato com a equipe de suporte.
+        </p>
+
+        <p style="margin-top: 10px; color: #777777; font-size: 14px;">
+          Agradecemos sua compreensão.
+        </p>
+      </td>
+    </tr>
+  </table>
+</div>`;
+}
