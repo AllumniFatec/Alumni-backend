@@ -496,6 +496,47 @@ export const swaggerDoc = {
         description: 'Página de usuários em análise (sem objeto pagination na resposta)',
         items: { $ref: '#/components/schemas/AdminUserInAnalysisCard' },
       },
+      UserTypeEnum: {
+        type: 'string',
+        description: 'Tipos de usuário (UserType)',
+        enum: ['Student', 'Alumni', 'Teacher', 'Admin'],
+      },
+      BanReasonEnum: {
+        type: 'string',
+        description: 'Motivo de banimento (BanReason)',
+        enum: [
+          'Spam',
+          'Harassment',
+          'HateSpeech',
+          'InappropriateContent',
+          'Threats',
+          'Fraud',
+          'Scam',
+          'Impersonation',
+          'PrivacyViolation',
+          'UnauthorizedAdvertisement',
+          'MaliciousLink',
+          'MaliciousActivity',
+          'MultipleViolations',
+          'TermsOfServiceViolation',
+          'Others',
+        ],
+      },
+      AdminChangeUserTypeInput: {
+        type: 'object',
+        properties: {
+          type: { $ref: '#/components/schemas/UserTypeEnum' },
+        },
+        required: ['type'],
+      },
+      AdminBanUserInput: {
+        type: 'object',
+        properties: {
+          reason: { $ref: '#/components/schemas/BanReasonEnum' },
+          description: { type: 'string', minLength: 3, maxLength: 300 },
+        },
+        required: ['reason', 'description'],
+      },
       JobClosedRecord: {
         type: 'object',
         description: 'Registro Job retornado após fechar vaga (PATCH)',
@@ -1018,18 +1059,110 @@ export const swaggerDoc = {
           required: true,
           content: {
             'application/json': {
-              schema: {
-                type: 'object',
-                properties: {
-                  type: { type: 'string' },
-                },
-                required: ['type'],
-              },
+              schema: { $ref: '#/components/schemas/AdminChangeUserTypeInput' },
             },
           },
         },
         responses: {
-          200: { $ref: '#/components/responses/GenericResponse' },
+          200: {
+            description: 'Tipo de usuário alterado',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/MessageResponse' },
+              },
+            },
+          },
+          400: {
+            description: 'Usuário não pode ser alterado',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ApiErrorBody' } },
+            },
+          },
+          401: {
+            description: 'Não autorizado',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ApiErrorBody' } },
+            },
+          },
+          403: {
+            description: 'Acesso restrito a administradores',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ApiErrorBody' } },
+            },
+          },
+          404: {
+            description: 'Usuário não encontrado',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ApiErrorBody' } },
+            },
+          },
+          409: {
+            description: 'Tipo de usuário já é o mesmo',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ApiErrorBody' } },
+            },
+          },
+          422: {
+            description: 'Tipo de usuário inválido',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ApiErrorBody' } },
+            },
+          },
+        },
+      },
+    },
+    '/admin/users/ban/{id}': {
+      post: {
+        tags: ['Admin'],
+        summary: 'Banir usuário',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/AdminBanUserInput' },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Usuário banido',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/MessageResponse' },
+              },
+            },
+          },
+          400: {
+            description: 'Usuário não pode ser banido',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ApiErrorBody' } },
+            },
+          },
+          401: {
+            description: 'Não autorizado',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ApiErrorBody' } },
+            },
+          },
+          403: {
+            description: 'Acesso restrito a administradores',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ApiErrorBody' } },
+            },
+          },
+          404: {
+            description: 'Usuário não encontrado',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ApiErrorBody' } },
+            },
+          },
+          422: {
+            description: 'Motivo ou descrição inválidos',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/ApiErrorBody' } },
+            },
+          },
         },
       },
     },
