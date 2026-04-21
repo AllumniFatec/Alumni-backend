@@ -14,7 +14,7 @@ const actions = {
   deleteCommentPost: 'deletar comentário',
   createLikePost: 'curtir postagem',
   deleteLikePost: 'remover curtida',
-  getPosById: 'carregar postagem',
+  getPostById: 'carregar postagem',
 };
 
 export const createPost = async (postData, userToken) => {
@@ -48,7 +48,7 @@ export const getPostById = async (userToken, postId) => {
   const user_id = userToken.id;
   const post_id = postId;
 
-  return authenticateUser(user_id, actions.getPosById, async (user) => {
+  return authenticateUser(user_id, actions.getPostById, async (user) => {
     const post = await prisma.post.findUnique({
       where: {
         post_id: post_id,
@@ -56,8 +56,8 @@ export const getPostById = async (userToken, postId) => {
       select: postSelectForApi,
     });
 
-    if (!post) {
-      throw new CustomError('Nenhuma postagem encontrada', 403);
+    if (!post || post.status === 'Deleted') {
+      throw new CustomError('Postagem não encontrada', 404);
     }
 
     const formattedPost = formatPost(post);
@@ -148,7 +148,7 @@ export const deletePost = async (postId, userToken) => {
   });
 };
 
-export const createCommentPost = async (postId, commentData, userToken) => {
+export const createCommentPost = async (postId, commentData, userToken, host) => {
   const user_id = userToken.id;
   const post_id = postId;
   const comment_content = commentData.content;
@@ -197,6 +197,7 @@ export const createCommentPost = async (postId, commentData, userToken) => {
         authorId: user.user_id,
         userIds: [post.author_id],
         postId: post.post_id,
+        link: `${host}posts/${post.post_id}`,
       });
     }
 
@@ -291,7 +292,7 @@ export const deleteCommentPost = async (postCommentId, userToken) => {
   });
 };
 
-export const createLikePost = async (postId, userToken) => {
+export const createLikePost = async (postId, userToken, host) => {
   const user_id = userToken.id;
   const post_id = postId;
 
@@ -390,6 +391,7 @@ export const createLikePost = async (postId, userToken) => {
         },
         select: {
           author_id: true,
+          post_id: true,
         },
       });
 
@@ -401,6 +403,7 @@ export const createLikePost = async (postId, userToken) => {
           authorId: user.user_id,
           userIds: [postLiked.author_id],
           postId: result.data.post_id,
+          link: `${host}posts/${postLiked.post_id}`,
         });
       }
     }
