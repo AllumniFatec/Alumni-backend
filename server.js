@@ -41,7 +41,7 @@ if (env.isDevelopment) {
   };
 } else {
   corsOptions = {
-    origin: 'http://localhost:5500', // origin of your frontend (no trailing slash)
+    origin: ['https://alumnifatecso.com.br', 'http://alumnifatecso.com.br'], // origin of your frontend (no trailing slash)
     credentials: true, // permite cookies / auth headers
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'], // ajuste conforme necessário
