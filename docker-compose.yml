@@ -1,0 +1,40 @@
+services:
+  api:
+    image: ghcr.io/allumnifatec/alumni-backend:latest
+    ports:
+      - '3001:3001'
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # As demais variáveis são adicionadas pela aba Environment do Dokploy:
+      # DATABASE_URL
+      # JWT_SECRET
+      # MAX_AGE_COOKIES
+      # EMAIL_USER
+      # EMAIL_PASSWORD
+      # EMAIL_HOST
+      # EMAIL_PORT
+      # CLOUDINARY_NAME
+      # CLOUDINARY_KEY
+      # CLOUDINARY_SECRET
+      # RATE_LIMIT_ENABLED
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  redis_data:
