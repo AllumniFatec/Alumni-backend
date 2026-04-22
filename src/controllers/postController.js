@@ -23,6 +23,25 @@ export const createPost = async (req, res) => {
   }
 };
 
+export const getPost = async (req, res) => {
+  try {
+    const user = req.user;
+    const postId = req.params.id;
+
+    const post = await postService.getPostById(user, postId);
+
+    return res.status(200).json(post);
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    console.error('postController(getPostById) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
+  }
+};
+
 export const updatePost = async (req, res) => {
   try {
     const data = req.body;
@@ -71,7 +90,12 @@ export const createCommentPost = async (req, res) => {
     const user = req.user;
     const commentData = req.body;
 
-    const updatedPost = await postService.createCommentPost(postId, commentData, user);
+    const updatedPost = await postService.createCommentPost(
+      postId,
+      commentData,
+      user,
+      req.get('referer')
+    );
 
     return res.status(200).json({ message: 'Comentário adicionado com sucesso!' });
   } catch (err) {
@@ -129,7 +153,7 @@ export const createLikePost = async (req, res) => {
     const postId = req.params.id;
     const user = req.user;
 
-    const updatedPost = await postService.createLikePost(postId, user);
+    const updatedPost = await postService.createLikePost(postId, user, req.get('referer'));
 
     return res.status(200).json(updatedPost);
   } catch (err) {
