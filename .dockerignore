@@ -1,4 +1,33 @@
-node_modules
-.git
+# Dependências locais
+node_modules/
+
+# Variáveis de ambiente — NUNCA entram na imagem
 .env
 .env.*
+.env.example
+env.prod
+env.dev
+
+# Prisma engines gerados localmente (Windows/Mac)
+# Serão regenerados dentro da imagem para Linux
+src/generated/
+
+# Git e CI
+.git/
+.github/
+
+# Docs e arquivos de desenvolvimento
+docs/
+README.md
+README-API.md
+*.md
+./docs/mongoQueries/updateUser.js
+
+# Configs de editor/OS
+.DS_Store
+.prettierrc.json
+.eslintrc*
+
+# Logs
+*.log
+npm-debug.log*
