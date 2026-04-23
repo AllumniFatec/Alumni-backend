@@ -5,10 +5,10 @@ services:
     ports:
       - '3001:3001'
     environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - NODE_ENV=${NODE_ENV}
+      - PORT=${PORT}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
       - MAX_AGE_COOKIES=${MAX_AGE_COOKIES}
