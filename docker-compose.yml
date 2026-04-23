@@ -1,6 +1,7 @@
 services:
   api:
     image: ghcr.io/allumnifatec/alumni-backend:latest
+    pull_policy: always
     ports:
       - '3001:3001'
     environment:
