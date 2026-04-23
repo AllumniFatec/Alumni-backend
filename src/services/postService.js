@@ -4,6 +4,7 @@ import { authenticateUser } from './userService.js';
 import { formatPost, postSelectForApi } from '../utils/postApiFormatter.js';
 import { enqueueNotificationForAudience } from './notificationService.js';
 import { notificationTypes } from '../utils/notificationTypes.js';
+import { env } from '../config/env.js';
 
 const actions = {
   createPost: 'criar postagem',
@@ -148,7 +149,7 @@ export const deletePost = async (postId, userToken) => {
   });
 };
 
-export const createCommentPost = async (postId, commentData, userToken, host) => {
+export const createCommentPost = async (postId, commentData, userToken) => {
   const user_id = userToken.id;
   const post_id = postId;
   const comment_content = commentData.content;
@@ -197,7 +198,7 @@ export const createCommentPost = async (postId, commentData, userToken, host) =>
         authorId: user.user_id,
         userIds: [post.author_id],
         postId: post.post_id,
-        link: `${host}posts/${post.post_id}`,
+        link: `${env.host}/posts/${post.post_id}`,
       });
     }
 
@@ -292,7 +293,7 @@ export const deleteCommentPost = async (postCommentId, userToken) => {
   });
 };
 
-export const createLikePost = async (postId, userToken, host) => {
+export const createLikePost = async (postId, userToken) => {
   const user_id = userToken.id;
   const post_id = postId;
 
@@ -403,7 +404,7 @@ export const createLikePost = async (postId, userToken, host) => {
           authorId: user.user_id,
           userIds: [postLiked.author_id],
           postId: result.data.post_id,
-          link: `${host}posts/${postLiked.post_id}`,
+          link: `${env.host}/posts/${postLiked.post_id}`,
         });
       }
     }

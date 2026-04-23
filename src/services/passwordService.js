@@ -30,7 +30,7 @@ export const sendRecovery = async (userInfo, req) => {
   });
 
   //enviar email
-  const urlRecovery = `${req.get('referer')}/reset-password/${resetToken}`;
+  const urlRecovery = `${env.host}/reset-password/${resetToken}`;
   const message = messagePasswordRecovery(user.name, urlRecovery);
 
   // Mesmo padrão do admin: enfileira e não bloqueia o fluxo da rota.

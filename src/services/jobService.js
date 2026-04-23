@@ -6,6 +6,7 @@ import { capitalizeWords, isValidHttpUrl, getPageNumber } from '../utils/validat
 import { enqueueNotificationForAudience } from './notificationService.js';
 import { notificationTypes } from '../utils/notificationTypes.js';
 import levenshtein from 'fast-levenshtein';
+import { env } from '../config/env.js';
 
 const actions = {
   createJob: 'criar vaga',
@@ -161,7 +162,7 @@ function validateJobData(jobData) {
   };
 }
 
-export const createJob = async (data, userToken, host) => {
+export const createJob = async (data, userToken) => {
   const user_id = userToken.id;
   const {
     title,
@@ -208,7 +209,7 @@ export const createJob = async (data, userToken, host) => {
         type: notificationTypes.JOB_CREATED,
         title: 'Nova vaga de emprego criada',
         message: `Vaga de ${newJob.title} foi publicada por ${user.name}`,
-        link: `${host}jobs/${newJob.job_id}`,
+        link: `${env.host}/jobs/${newJob.job_id}`,
         authorId: user.user_id,
         jobId: newJob.job_id,
       });
@@ -467,7 +468,7 @@ export const deleteJob = async (jobId, userToken) => {
   });
 };
 
-export const closeJob = async (userToken, jobId, host) => {
+export const closeJob = async (userToken, jobId) => {
   const user_id = userToken.id;
   const job_id = jobId;
 
@@ -505,7 +506,7 @@ export const closeJob = async (userToken, jobId, host) => {
         type: notificationTypes.JOB_CLOSED,
         title: 'Vaga de emprego encerrada',
         message: `Vaga de ${closedJob.title} foi encerrada por ${user.name}`,
-        link: `${host}jobs/${closedJob.job_id}`,
+        link: `${env.host}/jobs/${closedJob.job_id}`,
         authorId: user.user_id,
         jobId: closedJob.job_id,
       });

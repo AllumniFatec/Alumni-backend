@@ -79,5 +79,5 @@ app.use(
 );
 
 server.listen(env.port, () => {
-  console.log(`🚀 Servidor rodando na porta ${env.port}!`);
+  console.log(`Servidor rodando na porta ${env.port}!`);
 });

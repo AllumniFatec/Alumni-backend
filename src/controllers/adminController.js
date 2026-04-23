@@ -43,7 +43,7 @@ export const approveUser = async (req, res) => {
     const user = req.user;
     const alumniId = req.params.id;
 
-    await adminService.approveUser(user, alumniId, req.protocol, req.get('host'));
+    await adminService.approveUser(user, alumniId);
 
     return res.status(200).json({ message: 'Usuário aprovado com sucesso!' });
   } catch (err) {
@@ -62,7 +62,7 @@ export const refuseUser = async (req, res) => {
     const user = req.user;
     const alumniId = req.params.id;
 
-    await adminService.refuseUser(user, alumniId, req.protocol, req.get('host'));
+    await adminService.refuseUser(user, alumniId);
 
     return res.status(200).json({ message: 'Usuário recusado com sucesso!' });
   } catch (err) {

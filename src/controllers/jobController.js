@@ -6,7 +6,7 @@ export const createJob = async (req, res) => {
     const user = req.user;
     const data = req.body;
 
-    const job = await jobService.createJob(data, user, req.get('referer'));
+    const job = await jobService.createJob(data, user);
 
     return res.status(201).json({ message: 'Vaga criada com sucesso!' });
   } catch (err) {
@@ -102,7 +102,7 @@ export const closeJob = async (req, res) => {
     const user = req.user;
     const jobId = req.params.id;
 
-    const closedJob = await jobService.closeJob(user, jobId, req.get('referer'));
+    const closedJob = await jobService.closeJob(user, jobId);
 
     return res.status(200).json(closedJob);
   } catch (err) {

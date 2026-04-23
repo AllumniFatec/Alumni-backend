@@ -52,6 +52,9 @@ export const env = {
   rateLimit: {
     enabled: process.env.RATE_LIMIT_ENABLED !== 'false',
   },
+
+  // Host
+  host: process.env.HOST || 'http://localhost:3000',
 };
 
 export default env;

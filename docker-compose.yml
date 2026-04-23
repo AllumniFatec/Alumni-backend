@@ -20,6 +20,7 @@ services:
       - CLOUDINARY_KEY=${CLOUDINARY_KEY}
       - CLOUDINARY_SECRET=${CLOUDINARY_SECRET}
       - RATE_LIMIT_ENABLED=${RATE_LIMIT_ENABLED}
+      - HOST=${HOST}
     depends_on:
       redis:
         condition: service_healthy

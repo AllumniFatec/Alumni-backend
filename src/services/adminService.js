@@ -5,6 +5,7 @@ import { enqueueEmail } from '../queues/emailQueue.js';
 import { messageApproveUser, messageRefuseUser, messageBanUser } from '../utils/emailMessages.js';
 import { getPageNumber } from '../utils/validations.js';
 import { UserType, BanReason } from '../generated/prisma/index.js';
+import { env } from '../config/env.js';
 import * as userService from './userService.js';
 
 const actions = {
@@ -143,7 +144,7 @@ export const listAllUsersInAnalysis = async (userToken, page = 2) => {
   });
 };
 
-export const approveUser = async (userToken, alumniId, protocol, host) => {
+export const approveUser = async (userToken, alumniId) => {
   const user_id = userToken.id;
   const alumni_id = alumniId;
 
@@ -176,7 +177,7 @@ export const approveUser = async (userToken, alumniId, protocol, host) => {
         },
       });
 
-      const urlPlatform = `${protocol}://${host}/sign-in`;
+      const urlPlatform = `${env.host}/sign-in`;
       const message = messageApproveUser(targetUser.name, urlPlatform);
 
       // Não bloquear a resposta da API: o envio acontece em background pela fila.
@@ -194,7 +195,7 @@ export const approveUser = async (userToken, alumniId, protocol, host) => {
   });
 };
 
-export const refuseUser = async (userToken, alumniId, protocol, host) => {
+export const refuseUser = async (userToken, alumniId) => {
   const user_id = userToken.id;
   const alumni_id = alumniId;
 
@@ -227,7 +228,7 @@ export const refuseUser = async (userToken, alumniId, protocol, host) => {
         },
       });
 
-      const urlPlatform = `${protocol}://${host}/sign-up`;
+      const urlPlatform = `${env.host}/sign-up`;
       const message = messageRefuseUser(targetUser.name, urlPlatform);
 
       // Não bloquear a resposta da API: o envio acontece em background pela fila.

@@ -90,12 +90,7 @@ export const createCommentPost = async (req, res) => {
     const user = req.user;
     const commentData = req.body;
 
-    const updatedPost = await postService.createCommentPost(
-      postId,
-      commentData,
-      user,
-      req.get('referer')
-    );
+    const updatedPost = await postService.createCommentPost(postId, commentData, user);
 
     return res.status(200).json({ message: 'Comentário adicionado com sucesso!' });
   } catch (err) {
@@ -153,7 +148,7 @@ export const createLikePost = async (req, res) => {
     const postId = req.params.id;
     const user = req.user;
 
-    const updatedPost = await postService.createLikePost(postId, user, req.get('referer'));
+    const updatedPost = await postService.createLikePost(postId, user);
 
     return res.status(200).json(updatedPost);
   } catch (err) {

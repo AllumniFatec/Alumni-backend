@@ -5,6 +5,7 @@ import { capitalizeWords, getPageNumber } from '../utils/validations.js';
 import { parse } from 'date-fns';
 import { enqueueNotificationForAudience } from './notificationService.js';
 import { notificationTypes } from '../utils/notificationTypes.js';
+import { env } from '../config/env.js';
 
 const actions = {
   createEvent: 'criar eventos',
@@ -89,7 +90,7 @@ function validateEventData(eventData) {
   return { title, description, local, startDate, endDate };
 }
 
-export const createEvent = async (userToken, eventData, host) => {
+export const createEvent = async (userToken, eventData) => {
   const user_id = userToken.id;
 
   const { title, description, local, startDate, endDate } = validateEventData(eventData);
@@ -118,7 +119,7 @@ export const createEvent = async (userToken, eventData, host) => {
         type: notificationTypes.EVENT_CREATED,
         title: 'Novo evento criado',
         message: `Evento de ${newEvent.title} foi publicado por ${user.name}`,
-        link: `${host}events/${newEvent.event_id}`,
+        link: `${env.host}/events/${newEvent.event_id}`,
         authorId: user.user_id,
         eventId: newEvent.event_id,
       });
@@ -291,7 +292,7 @@ export const deleteEvent = async (userToken, eventId) => {
   });
 };
 
-export const closeEvent = async (userToken, eventId, host) => {
+export const closeEvent = async (userToken, eventId) => {
   const user_id = userToken.id;
   const event_id = eventId;
 
@@ -329,7 +330,7 @@ export const closeEvent = async (userToken, eventId, host) => {
         type: notificationTypes.EVENT_CLOSED,
         title: 'Evento encerrado',
         message: `Evento de ${closedEvent.title} foi encerrado por ${user.name}`,
-        link: `${host}events/${closedEvent.event_id}`,
+        link: `${env.host}/events/${closedEvent.event_id}`,
         authorId: user.user_id,
         eventId: closedEvent.event_id,
       });
