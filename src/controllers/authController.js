@@ -4,6 +4,13 @@ import { env } from '../config/env.js';
 import { redisClient } from '../config/redisClient.js';
 import jwt from 'jsonwebtoken';
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: !env.isDevelopment,
+  sameSite: env.isDevelopment ? 'lax' : 'none',
+  domain: env.isDevelopment ? undefined : '.alumnifatecso.com.br',
+};
+
 export const register = async (req, res) => {
   try {
     const user = await authService.registerUser(req.body);
@@ -24,10 +31,7 @@ export const login = async (req, res) => {
     const token = await authService.loginUser(req.body);
 
     res.cookie('access_token', token, {
-      httpOnly: true,
-      secure: !env.isDevelopment,
-      sameSite: env.isDevelopment ? 'lax' : 'none',
-      domain: env.isDevelopment ? undefined : '.alumnifatecso.com.br',
+      ...cookieOptions,
       maxAge: parseInt(env.maxAgeCookies),
     });
 
@@ -72,11 +76,7 @@ export const logout = async (req, res) => {
     await redisClient.set(`revoked-token:${token}`, 'true', 'EX', ttl); // resto de tempo do token
   }
 
-  res.clearCookie('access_token', {
-    httpOnly: true,
-    secure: !env.isDevelopment,
-    sameSite: 'strict',
-  });
+  res.clearCookie('access_token', cookieOptions);
 
   return res.status(200).json({ message: 'Logout realizado com sucesso' });
 };
