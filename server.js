@@ -79,6 +79,5 @@ app.use(
 );
 
 server.listen(env.port, () => {
-  console.log(`Servidor na porta ${env.port}!`);
-  console.log(corsOptions);
+  console.log(`🚀 Servidor rodando na porta ${env.port}!`);
 });

@@ -26,8 +26,9 @@ export const login = async (req, res) => {
     res.cookie('access_token', token, {
       httpOnly: true,
       secure: !env.isDevelopment,
-      sameSite: 'strict',
-      maxAge: parseInt(env.maxAgeCookies), // 1 hora
+      sameSite: env.isDevelopment ? 'lax' : 'none',
+      domain: env.isDevelopment ? undefined : '.alumnifatecso.com.br',
+      maxAge: parseInt(env.maxAgeCookies),
     });
 
     res.status(200).json({
