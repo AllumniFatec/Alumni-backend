@@ -41,7 +41,7 @@ if (env.isDevelopment) {
   };
 } else {
   corsOptions = {
-    origin: 'https://www.alumnifatecso.com.br', // origin of your frontend (no trailing slash)
+    origin: ['https://alumnifatecso.com.br', 'https://www.alumnifatecso.com.br'], // origin of your frontend (no trailing slash)
     credentials: true, // permite cookies / auth headers
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'], // ajuste conforme necessário
@@ -79,6 +79,6 @@ app.use(
 );
 
 server.listen(env.port, () => {
-  console.log(`Servidor rodando na porta ${env.port}!`);
+  console.log(`Servidor na porta ${env.port}!`);
   console.log(corsOptions);
 });
