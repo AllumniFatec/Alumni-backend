@@ -115,3 +115,23 @@ export const closeJob = async (req, res) => {
       .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
   }
 };
+
+export const getJobsByUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const page = req.query.page || 1;
+    const user = req.user;
+
+    const jobs = await jobService.getJobsByUser(user, userId, page);
+
+    return res.status(200).json(jobs);
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    console.error('jobController(getJobsByUser) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
+  }
+};
