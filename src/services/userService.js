@@ -412,9 +412,9 @@ export const getUserById = async (userToken, userId) => {
       throw new CustomError('Usuário não econtrado!', 404);
     }
 
-    const jobs = await getJobsByUser(userToken, user_id, 1);
-    const events = await getEventsByUser(userToken, user_id, 1);
-    const posts = await getPostsByUser(userToken, user_id, 1);
+    const jobs = await getJobsByUser(userToken, userId, 1);
+    const events = await getEventsByUser(userToken, userId, 1);
+    const posts = await getPostsByUser(userToken, userId, 1);
 
     return { ...userData, jobs: jobs, events: events, posts: posts };
   });
