@@ -342,7 +342,7 @@ export const closeEvent = async (userToken, eventId) => {
 };
 
 export const getEventsByUser = async (userToken, userId, page = 1) => {
-  const user_id = userId;
+  const user_id = userToken.id;
   const target_user_id = userId;
   const currentPageNumber = getPageNumber(page);
   const limit = 10;
