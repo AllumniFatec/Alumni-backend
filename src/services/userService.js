@@ -317,7 +317,15 @@ async function findOrCreateSkill(skillName, slugName) {
   const shouldUseFuzzyMatch = !isShortSkill && !hasTechSymbols;
 
   if (shouldUseFuzzyMatch) {
+    const firstChar = normalizedSkillName[0];
     const skills = await prisma.skill.findMany({
+      where: {
+        name: {
+          startsWith: firstChar,
+          mode: 'insensitive',
+        },
+      },
+      take: 200,
       select: {
         skill_id: true,
         name: true,
