@@ -41,11 +41,25 @@ const getEventIdRateLimit = createRateLimit({
   getIdentifier: (req) => req.user?.id || req.user?.userId,
 });
 
+const getEventsByUserRateLimit = createRateLimit({
+  keyPrefix: 'events-user-get',
+  windowSeconds: 60, //1 minuto
+  maxRequests: 80,
+  getIdentifier: (req) => req.user?.id || req.user?.userId,
+});
+
 router.post('/event', auth, createEventRateLimit, eventController.createEvent);
 router.get('/event', auth, listEventsRateLimit, eventController.getEvents);
 router.get('/event/:id', auth, getEventIdRateLimit, authId, eventController.getEventById);
 router.put('/event/:id', auth, updateEventRateLimit, authId, eventController.updateEvent);
 router.delete('/event/:id', auth, deleteOrCloseEventRateLimit, authId, eventController.deleteEvent);
 router.patch('/event/:id', auth, deleteOrCloseEventRateLimit, authId, eventController.closeEvent);
+router.get(
+  '/event/user/:id',
+  auth,
+  getEventsByUserRateLimit,
+  authId,
+  eventController.getEventsByUser
+);
 
 export default router;

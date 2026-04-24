@@ -15,6 +15,7 @@ const actions = {
   getJobs: 'listar vagas',
   getJobById: 'buscar vaga',
   closeJob: 'encerrar vaga',
+  getJobsByUser: 'carregar vagas do usuário',
 };
 
 /** Mesmo shape retornado por GET /job (listagem / feed). Reutilizado em getMyProfile. */
@@ -513,5 +514,70 @@ export const closeJob = async (userToken, jobId) => {
     }
 
     return { message: 'Vaga encerrada com sucesso!' };
+  });
+};
+
+export const getJobsByUser = async (userToken, userId, page = 1) => {
+  const user_id = userToken.id;
+  const target_user_id = userId;
+  const currentPageNumber = getPageNumber(page);
+  const limit = 10;
+  const skip = (currentPageNumber - 1) * limit;
+
+  return authenticateUser(user_id, actions.getJobsByUser, async (user) => {
+    const [jobs, total] = await Promise.all([
+      prisma.job.findMany({
+        where: {
+          author_id: target_user_id,
+          status: { not: 'Deleted' },
+        },
+        take: limit,
+        skip: skip,
+        orderBy: {
+          create_date: 'desc',
+        },
+        select: {
+          job_id: true,
+          title: true,
+          author_id: true,
+          workplace: {
+            select: {
+              company: true,
+            },
+          },
+          location: {
+            select: {
+              city: true,
+              state: true,
+            },
+          },
+          employment_type: true,
+          work_model: true,
+          status: true,
+          create_date: true,
+        },
+      }),
+
+      prisma.job.count({
+        where: {
+          author_id: target_user_id,
+          status: { not: 'Deleted' },
+        },
+      }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      jobs: jobs.map(formatJobListItem),
+      pagination: {
+        page: currentPageNumber,
+        limit: limit,
+        totalItems: total,
+        totalPages: totalPages,
+        hasNextPage: currentPageNumber < totalPages,
+        hasPreviousPage: currentPageNumber > 1,
+      },
+    };
   });
 };
