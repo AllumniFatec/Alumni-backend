@@ -14,6 +14,7 @@ const actions = {
   updateEvent: 'editar evento',
   deleteEvent: 'excluir evento',
   closeEvent: 'encerrar evento',
+  getEventsByUser: 'carregar eventos do usuário',
 };
 
 const removeNullFields = (obj) =>
@@ -337,5 +338,56 @@ export const closeEvent = async (userToken, eventId) => {
     }
 
     return { message: 'Evento encerrado com sucesso!' };
+  });
+};
+
+export const getEventsByUser = async (userToken, userId, page = 1) => {
+  const user_id = userToken.id;
+  const target_user_id = userId;
+  const currentPageNumber = getPageNumber(page);
+  const limit = 10;
+  const skip = (currentPageNumber - 1) * limit;
+
+  return authenticateUser(user_id, actions.getEventsByUser, async (user) => {
+    const [events, total] = await Promise.all([
+      prisma.event.findMany({
+        where: {
+          author_id: target_user_id,
+          status: { not: 'Deleted' },
+        },
+        take: limit,
+        skip: skip,
+        orderBy: {
+          date_start: 'asc',
+        },
+        select: {
+          title: true,
+          event_id: true,
+          status: true,
+          date_start: true,
+        },
+      }),
+
+      prisma.event.count({
+        where: {
+          author_id: target_user_id,
+          status: { not: 'Deleted' },
+        },
+      }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      events: events,
+      pagination: {
+        page: currentPageNumber,
+        limit: limit,
+        totalItems: total,
+        totalPages: totalPages,
+        hasNextPage: currentPageNumber < totalPages,
+        hasPreviousPage: currentPageNumber > 1,
+      },
+    };
   });
 };

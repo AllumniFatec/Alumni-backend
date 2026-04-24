@@ -5,6 +5,7 @@ import { formatPost, postSelectForApi } from '../utils/postApiFormatter.js';
 import { enqueueNotificationForAudience } from './notificationService.js';
 import { notificationTypes } from '../utils/notificationTypes.js';
 import { env } from '../config/env.js';
+import { getPageNumber } from '../utils/validations.js';
 
 const actions = {
   createPost: 'criar postagem',
@@ -16,6 +17,7 @@ const actions = {
   createLikePost: 'curtir postagem',
   deleteLikePost: 'remover curtida',
   getPostById: 'carregar postagem',
+  getPostsByUser: 'carregar postagens do usuário',
 };
 
 export const createPost = async (postData, userToken) => {
@@ -413,6 +415,51 @@ export const createLikePost = async (postId, userToken) => {
   });
 };
 
+export const getPostsByUser = async (userToken, userId, page = 1) => {
+  const user_id = userToken.id;
+  const target_user_id = userId;
+  const currentPageNumber = getPageNumber(page);
+  const limit = 10;
+  const skip = (currentPageNumber - 1) * limit;
+
+  return authenticateUser(user_id, actions.getPostsByUser, async (user) => {
+    const [posts, total] = await Promise.all([
+      prisma.post.findMany({
+        where: {
+          author_id: target_user_id,
+          status: 'Active',
+        },
+        take: limit,
+        skip: skip,
+        orderBy: {
+          create_date: 'desc',
+        },
+        select: postSelectForApi,
+      }),
+
+      prisma.post.count({
+        where: {
+          author_id: target_user_id,
+          status: 'Active',
+        },
+      }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      posts: posts.map(formatPost),
+      pagination: {
+        page: currentPageNumber,
+        limit: limit,
+        totalItems: total,
+        totalPages: totalPages,
+        hasNextPage: currentPageNumber < totalPages,
+        hasPreviousPage: currentPageNumber > 1,
+      },
+    };
+  });
+};
 /*
 export const deleteLikePost = async (postId, userToken) => {
   const user_id = userToken.id;
