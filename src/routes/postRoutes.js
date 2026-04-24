@@ -55,6 +55,13 @@ const createOrRemoveLikePostRateLimit = createRateLimit({
   getIdentifier: (req) => req.user?.id || req.user?.userId,
 });
 
+const getPostsByUserRateLimit = createRateLimit({
+  keyPrefix: 'posts-user-get',
+  windowSeconds: 60, //1 minuto
+  maxRequests: 80,
+  getIdentifier: (req) => req.user?.id || req.user?.userId,
+});
+
 router.post('/post', auth, createPostRateLimit, postController.createPost);
 router.get('/post/:id', auth, authId, postController.getPost);
 router.patch('/post/:id', auth, updatePostRateLimit, authId, postController.updatePost);
@@ -89,6 +96,8 @@ router.post(
   authId,
   postController.createLikePost
 );
+
+router.get('/post/user/:id', auth, getPostsByUserRateLimit, authId, postController.getPostsByUser);
 //router.delete('/post/like/:id', auth, postController.deleteLikePost);
 
 export default router;

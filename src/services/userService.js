@@ -1,6 +1,6 @@
 import { UserGender, SocialMediaType } from '../generated/prisma/index.js';
 import prisma from '../config/prisma.js';
-import { findOrCreateWorkplace, formatJobListItem } from './jobService.js';
+import { findOrCreateWorkplace, formatJobListItem, getJobsByUser } from './jobService.js';
 import { formatPost, postSelectForApi } from '../utils/postApiFormatter.js';
 import {
   normalizeText,
@@ -12,6 +12,8 @@ import CustomError from '../utils/CustomError.js';
 import levenshtein from 'fast-levenshtein';
 import cloudinary from '../config/cloudinary.js';
 import crypto from 'crypto';
+import { getEventsByUser } from './eventService.js';
+import { getPostsByUser } from './postService.js';
 
 const actions = {
   updateProfile: 'atualizar perfil',
@@ -30,276 +32,17 @@ const actions = {
   searchUser: 'pesquisar usuários',
 };
 
-const PROFILE_PAGE_EVENTS_LIMIT = 3;
-const PROFILE_PAGE_JOBS_LIMIT = 3;
-const PROFILE_PAGE_POSTS_LIMIT = 10;
-
-const _getUserProfileData = async (targetUserId, pageEvent = 1, pageJob = 1, pagePost = 1) => {
-  const limitEvents = PROFILE_PAGE_EVENTS_LIMIT;
-  const limitJobs = PROFILE_PAGE_JOBS_LIMIT;
-  const limitPosts = PROFILE_PAGE_POSTS_LIMIT;
-
-  const currentPageEventNumber = getPageNumber(pageEvent);
-  const currentPageJobNumber = getPageNumber(pageJob);
-  const currentPagePostNumber = getPageNumber(pagePost);
-
-  const skipEvents = (currentPageEventNumber - 1) * limitEvents;
-  const skipJobs = (currentPageJobNumber - 1) * limitJobs;
-  const skipPosts = (currentPagePostNumber - 1) * limitPosts;
-
-  const userData = await prisma.user.findUnique({
-    where: {
-      user_id: targetUserId,
-    },
-    select: {
-      user_id: true,
-      perfil_photo: true,
-      name: true,
-      biography: true,
-      user_type: true,
-      courses: {
-        select: {
-          course_name: true,
-          enrollmentYear: true,
-        },
-      },
-      workplace_history: {
-        orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
-        select: {
-          workplace_user_id: true,
-          position: true,
-          function: true,
-          workplace: {
-            select: {
-              company: true,
-            },
-          },
-          start_date: true,
-          end_date: true,
-        },
-      },
-      social_media: {
-        select: {
-          id: true,
-          type: true,
-          url: true,
-        },
-      },
-      skills: {
-        select: {
-          skill: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      },
-      gender: true,
-      email: true,
-      receive_notifications: true,
-    },
-  });
-
-  if (!userData) {
-    throw new CustomError('Usuário não econtrado!', 404);
-  }
-
-  const [eventsUserData, jobsUserData, postsUserData, totalEvents, totalJobs, totalPosts] =
-    await Promise.all([
-      prisma.event.findMany({
-        take: limitEvents,
-        skip: skipEvents,
-        where: {
-          author_id: targetUserId,
-          status: { not: 'Deleted' },
-        },
-        orderBy: {
-          date_start: 'asc',
-        },
-        select: {
-          title: true,
-          event_id: true,
-          status: true,
-          date_start: true,
-          date_end: true,
-          local: true,
-          description: true,
-        },
-      }),
-
-      prisma.job.findMany({
-        take: limitJobs,
-        skip: skipJobs,
-        where: {
-          author_id: targetUserId,
-          status: { not: 'Deleted' },
-        },
-        orderBy: {
-          create_date: 'desc',
-        },
-        select: {
-          job_id: true,
-          title: true,
-          author_id: true,
-          workplace: {
-            select: {
-              company: true,
-            },
-          },
-          location: {
-            select: {
-              city: true,
-              state: true,
-            },
-          },
-          employment_type: true,
-          work_model: true,
-          status: true,
-          create_date: true,
-        },
-      }),
-
-      prisma.post.findMany({
-        take: limitPosts,
-        skip: skipPosts,
-        where: {
-          author_id: targetUserId,
-          status: { not: 'Deleted' },
-        },
-        orderBy: {
-          create_date: 'desc',
-        },
-        select: {
-          post_id: true,
-          content: true,
-          create_date: true,
-          images: true,
-          comments_count: true,
-          comments: {
-            where: {
-              status: 'Active',
-              author: {
-                user_status: 'Active',
-              },
-            },
-            select: {
-              content: true,
-              comment_id: true,
-              create_date: true,
-              author: {
-                select: {
-                  user_id: true,
-                  name: true,
-                  perfil_photo: true,
-                  user_status: true,
-                  courses: {
-                    select: {
-                      abbreviation: true,
-                      enrollmentYear: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-          likes_count: true,
-          likes: {
-            where: {
-              status: 'Active',
-              author: {
-                user_status: 'Active',
-              },
-            },
-            select: {
-              like_id: true,
-              create_date: true,
-              author: {
-                select: {
-                  user_id: true,
-                  name: true,
-                  perfil_photo: true,
-                  user_status: true,
-                  courses: {
-                    select: {
-                      abbreviation: true,
-                      enrollmentYear: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      }),
-
-      prisma.event.count({
-        where: {
-          author_id: targetUserId,
-          status: { not: 'Deleted' },
-        },
-      }),
-
-      prisma.job.count({
-        where: {
-          author_id: targetUserId,
-          status: { not: 'Deleted' },
-        },
-      }),
-
-      prisma.post.count({
-        where: {
-          author_id: targetUserId,
-          status: { not: 'Deleted' },
-        },
-      }),
-    ]);
-
-  const totalPagesEvents = Math.ceil(totalEvents / limitEvents);
-  const totalPagesJobs = Math.ceil(totalJobs / limitJobs);
-  const totalPagesPosts = Math.ceil(totalPosts / limitPosts);
-
-  return {
-    user: userData,
-    jobs: jobsUserData.map(formatJobListItem),
-    events: eventsUserData.map((event) => formattedEvent(event)),
-    posts: postsUserData,
-    paginationEvents: {
-      page: currentPageEventNumber,
-      limit: limitEvents,
-      totalItems: totalEvents,
-      totalPages: totalPagesEvents,
-      hasNextPage: currentPageEventNumber < totalPagesEvents,
-      hasPreviousPage: currentPageEventNumber > 1,
-    },
-    paginationJobs: {
-      page: currentPageJobNumber,
-      limit: limitJobs,
-      totalItems: totalJobs,
-      totalPages: totalPagesJobs,
-      hasNextPage: currentPageJobNumber < totalPagesJobs,
-      hasPreviousPage: currentPageJobNumber > 1,
-    },
-    paginationPosts: {
-      page: currentPagePostNumber,
-      limit: limitPosts,
-      totalItems: totalPosts,
-      totalPages: totalPagesPosts,
-      hasNextPage: currentPagePostNumber < totalPagesPosts,
-      hasPreviousPage: currentPagePostNumber > 1,
-    },
-  };
-};
-
 const STOPWORDS = new Set(['e', 'de', 'da', 'do', 'das', 'dos', 'a', 'o', 'em', 'para', 'com']);
 
 async function findOrCreateSkill(skillName, slugName) {
-  let skillData;
-  let skill_id;
+  const normalizedSkillName = skillName.trim().toLowerCase();
+  const hasTechSymbols = /[#+.]/.test(normalizedSkillName);
+  const isShortSkill = normalizedSkillName.length < 4;
 
-  const skill = await prisma.skill.findFirst({
+  const exactSkill = await prisma.skill.findFirst({
     where: {
       name: {
-        contains: skillName,
+        equals: skillName.trim(),
         mode: 'insensitive',
       },
     },
@@ -308,32 +51,57 @@ async function findOrCreateSkill(skillName, slugName) {
     },
   });
 
-  if (skill) {
-    skill_id = skill.skill_id;
+  if (exactSkill) {
+    return exactSkill.skill_id;
   }
 
-  if (!skill) {
-    const skills = await prisma.skill.findMany();
+  let skillData;
+  const shouldUseFuzzyMatch = !isShortSkill && !hasTechSymbols;
 
-    skillData = skills.find((s) => {
-      return levenshtein.get(s.name.toLowerCase(), skillName.toLowerCase()) <= 3;
+  if (shouldUseFuzzyMatch) {
+    const firstChar = normalizedSkillName[0];
+    const skills = await prisma.skill.findMany({
+      where: {
+        name: {
+          startsWith: firstChar,
+          mode: 'insensitive',
+        },
+      },
+      take: 200,
+      select: {
+        skill_id: true,
+        name: true,
+      },
     });
 
-    if (!skillData) {
-      const newSkill = await prisma.skill.create({
-        data: {
-          name: skillName,
-          slug: slugName,
-        },
-      });
+    skillData = skills.find((s) => {
+      const normalizedExistingName = s.name.trim().toLowerCase();
+      const existingHasTechSymbols = /[#+.]/.test(normalizedExistingName);
 
-      skill_id = newSkill.skill_id;
-    } else {
-      skill_id = skillData.skill_id;
-    }
+      if (normalizedExistingName.length < 4 || existingHasTechSymbols) {
+        return false;
+      }
+
+      if (Math.abs(normalizedExistingName.length - normalizedSkillName.length) > 1) {
+        return false;
+      }
+
+      return levenshtein.get(normalizedExistingName, normalizedSkillName) <= 1;
+    });
   }
 
-  return skill_id;
+  if (skillData) {
+    return skillData.skill_id;
+  }
+
+  const newSkill = await prisma.skill.create({
+    data: {
+      name: skillName.trim(),
+      slug: slugName,
+    },
+  });
+
+  return newSkill.skill_id;
 }
 
 export function tokenize(text) {
@@ -583,7 +351,7 @@ export const getUsers = async (userToken, page = 1) => {
   });
 };
 
-export const getUserById = async (userToken, userId, pageEvent = 1, pageJob = 1, pagePost = 1) => {
+export const getUserById = async (userToken, userId) => {
   const user_id = userToken.id;
 
   return authenticateUser(user_id, actions.getUsers, async (user) => {
@@ -636,48 +404,6 @@ export const getUserById = async (userToken, userId, pageEvent = 1, pageJob = 1,
             },
           },
         },
-        events: {
-          select: {
-            title: true,
-            event_id: true,
-            status: true,
-          },
-        },
-        jobs: {
-          where: {
-            status: { not: 'Deleted' },
-          },
-          orderBy: { create_date: 'desc' },
-          select: {
-            job_id: true,
-            title: true,
-            author_id: true,
-            workplace: {
-              select: {
-                company: true,
-              },
-            },
-            location: {
-              select: {
-                city: true,
-                state: true,
-              },
-            },
-            employment_type: true,
-            work_model: true,
-            status: true,
-            create_date: true,
-          },
-        },
-        posts: {
-          where: {
-            status: 'Active',
-          },
-          orderBy: {
-            create_date: 'desc',
-          },
-          select: postSelectForApi,
-        },
         gender: true,
       },
     });
@@ -686,21 +412,23 @@ export const getUserById = async (userToken, userId, pageEvent = 1, pageJob = 1,
       throw new CustomError('Usuário não econtrado!', 404);
     }
 
-    return {
-      ...userData,
-      jobs: userData.jobs.map(formatJobListItem),
-      posts: userData.posts.map(formatPost),
-    };
+    const [jobs, events, posts] = await Promise.all([
+      getJobsByUser(userToken, userId, 1),
+      getEventsByUser(userToken, userId, 1),
+      getPostsByUser(userToken, userId, 1),
+    ]);
+
+    return { ...userData, jobs: jobs, events: events, posts: posts };
   });
 };
 
-export const getMyProfile = async (userToken, pageEvent = 1, pageJob = 1, pagePost = 1) => {
+export const getMyProfile = async (userToken) => {
   const user_id = userToken.id;
 
   return authenticateUser(user_id, actions.getMyProfile, async (user) => {
     const userData = await prisma.user.findUnique({
       where: {
-        user_id: user.user_id,
+        user_id: user_id,
       },
       select: {
         user_id: true,
@@ -712,6 +440,7 @@ export const getMyProfile = async (userToken, pageEvent = 1, pageJob = 1, pagePo
           select: {
             course_name: true,
             enrollmentYear: true,
+            abbreviation: true,
           },
         },
         workplace_history: {
@@ -742,56 +471,11 @@ export const getMyProfile = async (userToken, pageEvent = 1, pageJob = 1, pagePo
             skill: {
               select: {
                 name: true,
-                skill_id: true,
               },
             },
           },
-        },
-        events: {
-          select: {
-            title: true,
-            event_id: true,
-            status: true,
-          },
-        },
-        jobs: {
-          where: {
-            status: { not: 'Deleted' },
-          },
-          orderBy: { create_date: 'desc' },
-          select: {
-            job_id: true,
-            title: true,
-            author_id: true,
-            workplace: {
-              select: {
-                company: true,
-              },
-            },
-            location: {
-              select: {
-                city: true,
-                state: true,
-              },
-            },
-            employment_type: true,
-            work_model: true,
-            status: true,
-            create_date: true,
-          },
-        },
-        posts: {
-          where: {
-            status: 'Active',
-          },
-          orderBy: {
-            create_date: 'desc',
-          },
-          select: postSelectForApi,
         },
         gender: true,
-        email: true,
-        receive_notifications: true,
       },
     });
 
@@ -799,11 +483,13 @@ export const getMyProfile = async (userToken, pageEvent = 1, pageJob = 1, pagePo
       throw new CustomError('Usuário não econtrado!', 404);
     }
 
-    return {
-      ...userData,
-      jobs: userData.jobs.map(formatJobListItem),
-      posts: userData.posts.map(formatPost),
-    };
+    const [jobs, events, posts] = await Promise.all([
+      getJobsByUser(userToken, user_id, 1),
+      getEventsByUser(userToken, user_id, 1),
+      getPostsByUser(userToken, user_id, 1),
+    ]);
+
+    return { ...userData, jobs: jobs, events: events, posts: posts };
   });
 };
 
@@ -881,8 +567,8 @@ function validateProfileData(profileData) {
     throw new CustomError('Notificações devem ser true ou false', 400);
   }
 
-  if (biography && biography.length > 600) {
-    throw new CustomError('Biografia deve ter no máximo 600 caracteres', 400);
+  if (biography && biography.length > 1000) {
+    throw new CustomError('Biografia deve ter no máximo 1000 caracteres', 400);
   }
 
   return {
@@ -1079,8 +765,8 @@ export const insertUserSkill = async (userToken, skillData) => {
     const skill = capitalizeWords(skill_name.trim());
     const slug = skill.toLowerCase().replace(' ', '-');
 
-    if (skill.length < 3 || skill.length > 60) {
-      throw new CustomError('Habilidade deve ter entre 3 e 60 caracteres', 400);
+    if (skill.length < 1 || skill.length > 60) {
+      throw new CustomError('Habilidade deve ter entre 1 e 60 caracteres', 400);
     }
 
     const skill_id = await findOrCreateSkill(skill, slug);

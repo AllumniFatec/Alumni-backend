@@ -115,3 +115,23 @@ export const closeEvent = async (req, res) => {
       .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
   }
 };
+
+export const getEventsByUser = async (req, res) => {
+  try {
+    const user = req.user;
+    const userId = req.params.id;
+    const page = req.query.page || 1;
+
+    const events = await eventService.getEventsByUser(user, userId, page);
+
+    return res.status(200).json(events);
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    console.error('eventController(getEventsByUser) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
+  }
+};
