@@ -293,13 +293,14 @@ const _getUserProfileData = async (targetUserId, pageEvent = 1, pageJob = 1, pag
 const STOPWORDS = new Set(['e', 'de', 'da', 'do', 'das', 'dos', 'a', 'o', 'em', 'para', 'com']);
 
 async function findOrCreateSkill(skillName, slugName) {
-  let skillData;
-  let skill_id;
+  const normalizedSkillName = skillName.trim().toLowerCase();
+  const hasTechSymbols = /[#+.]/.test(normalizedSkillName);
+  const isShortSkill = normalizedSkillName.length < 4;
 
-  const skill = await prisma.skill.findFirst({
+  const exactSkill = await prisma.skill.findFirst({
     where: {
       name: {
-        contains: skillName,
+        equals: skillName.trim(),
         mode: 'insensitive',
       },
     },
@@ -308,32 +309,49 @@ async function findOrCreateSkill(skillName, slugName) {
     },
   });
 
-  if (skill) {
-    skill_id = skill.skill_id;
+  if (exactSkill) {
+    return exactSkill.skill_id;
   }
 
-  if (!skill) {
-    const skills = await prisma.skill.findMany();
+  let skillData;
+  const shouldUseFuzzyMatch = !isShortSkill && !hasTechSymbols;
 
-    skillData = skills.find((s) => {
-      return levenshtein.get(s.name.toLowerCase(), skillName.toLowerCase()) <= 3;
+  if (shouldUseFuzzyMatch) {
+    const skills = await prisma.skill.findMany({
+      select: {
+        skill_id: true,
+        name: true,
+      },
     });
 
-    if (!skillData) {
-      const newSkill = await prisma.skill.create({
-        data: {
-          name: skillName,
-          slug: slugName,
-        },
-      });
+    skillData = skills.find((s) => {
+      const normalizedExistingName = s.name.trim().toLowerCase();
+      const existingHasTechSymbols = /[#+.]/.test(normalizedExistingName);
 
-      skill_id = newSkill.skill_id;
-    } else {
-      skill_id = skillData.skill_id;
-    }
+      if (normalizedExistingName.length < 4 || existingHasTechSymbols) {
+        return false;
+      }
+
+      if (Math.abs(normalizedExistingName.length - normalizedSkillName.length) > 1) {
+        return false;
+      }
+
+      return levenshtein.get(normalizedExistingName, normalizedSkillName) <= 1;
+    });
   }
 
-  return skill_id;
+  if (skillData) {
+    return skillData.skill_id;
+  }
+
+  const newSkill = await prisma.skill.create({
+    data: {
+      name: skillName.trim(),
+      slug: slugName,
+    },
+  });
+
+  return newSkill.skill_id;
 }
 
 export function tokenize(text) {
@@ -881,8 +899,8 @@ function validateProfileData(profileData) {
     throw new CustomError('Notificações devem ser true ou false', 400);
   }
 
-  if (biography && biography.length > 600) {
-    throw new CustomError('Biografia deve ter no máximo 600 caracteres', 400);
+  if (biography && biography.length > 1000) {
+    throw new CustomError('Biografia deve ter no máximo 1000 caracteres', 400);
   }
 
   return {
@@ -1079,8 +1097,8 @@ export const insertUserSkill = async (userToken, skillData) => {
     const skill = capitalizeWords(skill_name.trim());
     const slug = skill.toLowerCase().replace(' ', '-');
 
-    if (skill.length < 3 || skill.length > 60) {
-      throw new CustomError('Habilidade deve ter entre 3 e 60 caracteres', 400);
+    if (skill.length < 1 || skill.length > 60) {
+      throw new CustomError('Habilidade deve ter entre 1 e 60 caracteres', 400);
     }
 
     const skill_id = await findOrCreateSkill(skill, slug);
