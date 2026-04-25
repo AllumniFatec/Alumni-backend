@@ -433,6 +433,8 @@ export const getMyProfile = async (userToken) => {
       select: {
         user_id: true,
         perfil_photo: true,
+        email: true,
+        receive_notifications: true,
         name: true,
         biography: true,
         user_type: true,
