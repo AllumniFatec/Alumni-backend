@@ -51,4 +51,7 @@ router.patch(
   adminController.changeUserType
 );
 
+router.post('/admin/courses', auth, adminOnly, adminController.createCourse);
+router.put('/admin/courses/:id', auth, adminOnly, authId, adminController.updateCourse);
+
 export default router;
