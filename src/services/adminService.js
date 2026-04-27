@@ -392,6 +392,18 @@ export const createCourse = async (userToken, courseInfo) => {
   const user_id = userToken.id;
   const { courseName, courseAbbreviation } = courseInfo;
 
+  if (!courseName || !courseAbbreviation) {
+    throw new CustomError('Nome e abreviação do curso são obrigatórios!', 400);
+  }
+
+  if (courseName.length < 3 || courseName.length > 100) {
+    throw new CustomError('Nome do curso deve ter entre 3 e 100 caracteres!', 422);
+  }
+
+  if (courseAbbreviation.length < 1 || courseAbbreviation.length > 10) {
+    throw new CustomError('Abreviação do curso deve ter entre 1 e 10 caracteres!', 422);
+  }
+
   return authenticateUser(user_id, actions.createCourse, async (user) => {
     verifyAdminUser(user, actions.createCourse);
 
@@ -421,6 +433,18 @@ export const updateCourse = async (userToken, courseId, courseInfo) => {
   const user_id = userToken.id;
   const course_id = courseId;
   const { courseName, courseAbbreviation } = courseInfo;
+
+  if (!courseName || !courseAbbreviation) {
+    throw new CustomError('Nome e abreviação do curso são obrigatórios!', 400);
+  }
+
+  if (courseName.length < 3 || courseName.length > 100) {
+    throw new CustomError('Nome do curso deve ter entre 3 e 100 caracteres!', 422);
+  }
+
+  if (courseAbbreviation.length < 1 || courseAbbreviation.length > 10) {
+    throw new CustomError('Abreviação do curso deve ter entre 1 e 10 caracteres!', 422);
+  }
 
   return authenticateUser(user_id, actions.updateCourse, async (user) => {
     verifyAdminUser(user, actions.updateCourse);

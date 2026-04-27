@@ -14,6 +14,13 @@ const adminMutationsRateLimit = createRateLimit({
   getIdentifier: (req) => req.user?.id || req.user?.userId,
 });
 
+const adminCoursesRateLimit = createRateLimit({
+  keyPrefix: 'admin-courses',
+  windowSeconds: 60,
+  maxRequests: 10,
+  getIdentifier: (req) => req.user?.id || req.user?.userId,
+});
+
 router.get('/admin/dashboard', auth, adminOnly, adminController.dashboard);
 router.get('/admin/usersInAnalysis', auth, adminOnly, adminController.listAllUsersInAnalysis);
 router.post(
@@ -51,7 +58,14 @@ router.patch(
   adminController.changeUserType
 );
 
-router.post('/admin/courses', auth, adminOnly, adminController.createCourse);
-router.put('/admin/courses/:id', auth, adminOnly, authId, adminController.updateCourse);
+router.post('/admin/courses', auth, adminOnly, adminCoursesRateLimit, adminController.createCourse);
+router.put(
+  '/admin/courses/:id',
+  auth,
+  adminOnly,
+  adminCoursesRateLimit,
+  authId,
+  adminController.updateCourse
+);
 
 export default router;
