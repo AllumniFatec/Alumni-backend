@@ -153,3 +153,42 @@ export const banUser = async (req, res) => {
       .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
   }
 };
+
+export const createCourse = async (req, res) => {
+  try {
+    const user = req.user;
+    const courseInfo = req.body;
+
+    const course = await adminService.createCourse(user, courseInfo);
+
+    return res.status(201).json(course);
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    console.error('adminController(createCourse) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
+  }
+};
+
+export const updateCourse = async (req, res) => {
+  try {
+    const user = req.user;
+    const courseId = req.params.id;
+    const courseInfo = req.body;
+
+    const updatedCourse = await adminService.updateCourse(user, courseId, courseInfo);
+
+    return res.status(200).json(updatedCourse);
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    console.error('adminController(updateCourse) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
+  }
+};

@@ -7,6 +7,7 @@ import { getPageNumber } from '../utils/validations.js';
 import { UserType, BanReason } from '../generated/prisma/index.js';
 import { env } from '../config/env.js';
 import * as userService from './userService.js';
+import { normalizeText } from '../utils/validations.js';
 
 const actions = {
   getDashboard: 'acessar painel administrador',
@@ -17,6 +18,8 @@ const actions = {
   searchUsers: 'buscar usuários',
   changeUserType: 'alterar tipo de usuário',
   banUser: 'banir usuário',
+  createCourse: 'criar curso',
+  updateCourse: 'atualizar curso',
 };
 
 const BanReasonLabel = {
@@ -382,5 +385,89 @@ export const banUser = async (userToken, userTargetId, banData) => {
     }
 
     return { message: 'Usuário banido com sucesso!' };
+  });
+};
+
+export const createCourse = async (userToken, courseInfo) => {
+  const user_id = userToken.id;
+  const { courseName, courseAbbreviation } = courseInfo;
+
+  if (!courseName || !courseAbbreviation) {
+    throw new CustomError('Nome e abreviação do curso são obrigatórios!', 400);
+  }
+
+  if (courseName.length < 3 || courseName.length > 100) {
+    throw new CustomError('Nome do curso deve ter entre 3 e 100 caracteres!', 422);
+  }
+
+  if (courseAbbreviation.length < 1 || courseAbbreviation.length > 10) {
+    throw new CustomError('Abreviação do curso deve ter entre 1 e 10 caracteres!', 422);
+  }
+
+  return authenticateUser(user_id, actions.createCourse, async (user) => {
+    verifyAdminUser(user, actions.createCourse);
+
+    const isExist = await prisma.course.findUnique({
+      where: { name: courseName },
+    });
+
+    if (isExist) {
+      throw new CustomError('Curso já cadastrado!', 409);
+    }
+
+    const normalize_name = normalizeText(courseName);
+
+    const createdCourse = await prisma.course.create({
+      data: {
+        name: courseName,
+        normalize_name: normalize_name,
+        abbreviation: courseAbbreviation,
+      },
+    });
+
+    return { message: 'Curso cadastrado com sucesso!' };
+  });
+};
+
+export const updateCourse = async (userToken, courseId, courseInfo) => {
+  const user_id = userToken.id;
+  const course_id = courseId;
+  const { courseName, courseAbbreviation } = courseInfo;
+
+  if (!courseName || !courseAbbreviation) {
+    throw new CustomError('Nome e abreviação do curso são obrigatórios!', 400);
+  }
+
+  if (courseName.length < 3 || courseName.length > 100) {
+    throw new CustomError('Nome do curso deve ter entre 3 e 100 caracteres!', 422);
+  }
+
+  if (courseAbbreviation.length < 1 || courseAbbreviation.length > 10) {
+    throw new CustomError('Abreviação do curso deve ter entre 1 e 10 caracteres!', 422);
+  }
+
+  return authenticateUser(user_id, actions.updateCourse, async (user) => {
+    verifyAdminUser(user, actions.updateCourse);
+
+    const targetCourse = await prisma.course.findUnique({
+      where: { course_id: course_id },
+    });
+
+    if (!targetCourse) {
+      throw new CustomError('Curso não encontrado!', 404);
+    }
+
+    const normalize_name = normalizeText(courseName);
+
+    const updatedCourse = await prisma.course.update({
+      where: { course_id: course_id },
+      data: {
+        name: courseName,
+        normalize_name: normalize_name,
+        abbreviation: courseAbbreviation,
+      },
+    });
+
+    return { message: 'Curso atualizado com sucesso!' };
   });
 };
