@@ -160,8 +160,8 @@ export const createCommentPost = async (postId, commentData, userToken) => {
     throw new CustomError('O conteúdo do comentário é obrigatório', 400);
   }
 
-  if (comment_content.length < 10 || comment_content.length > 1000) {
-    throw new CustomError('O conteúdo do comentário deve ter entre 10 e 1000 caracteres', 400);
+  if (comment_content.length < 1 || comment_content.length > 1000) {
+    throw new CustomError('O conteúdo do comentário deve ter entre 1 e 1000 caracteres', 400);
   }
 
   return authenticateUser(user_id, actions.createCommentPost, async (user) => {
@@ -181,6 +181,16 @@ export const createCommentPost = async (postId, commentData, userToken) => {
         author_id: user.user_id,
         post_id: post_id,
       },
+      select: {
+        post_id: true,
+      },
+    });
+
+    const commentsCount = await prisma.postComments.count({
+      where: {
+        post_id: newComment.post_id,
+        status: 'Active',
+      },
     });
 
     await prisma.post.update({
@@ -188,7 +198,7 @@ export const createCommentPost = async (postId, commentData, userToken) => {
         post_id: post_id,
       },
       data: {
-        comments_count: { increment: 1 },
+        comments_count: commentsCount,
       },
     });
 
@@ -217,8 +227,8 @@ export const updateCommentPost = async (postCommentId, postCommentData, userToke
     throw new CustomError('O conteúdo do comentário é obrigatório', 400);
   }
 
-  if (post_comment_content.length < 10 || post_comment_content.length > 1000) {
-    throw new CustomError('O conteúdo do comentário deve ter entre 10 e 1000 caracteres', 400);
+  if (post_comment_content.length < 1 || post_comment_content.length > 1000) {
+    throw new CustomError('O conteúdo do comentário deve ter entre 1 e 1000 caracteres', 400);
   }
 
   return authenticateUser(user_id, actions.updateCommentPost, async (user) => {
@@ -273,12 +283,22 @@ export const deleteCommentPost = async (postCommentId, userToken) => {
       }
     }
 
-    await prisma.postComments.update({
+    const deletedComment = await prisma.postComments.update({
       where: {
         comment_id: post_comment_id,
       },
       data: {
         status: 'Deleted',
+      },
+      select: {
+        post_id: true,
+      },
+    });
+
+    const commentsCount = await prisma.postComments.count({
+      where: {
+        post_id: deletedComment.post_id,
+        status: 'Active',
       },
     });
 
@@ -287,7 +307,7 @@ export const deleteCommentPost = async (postCommentId, userToken) => {
         post_id: postComment.post_id,
       },
       data: {
-        comments_count: { decrement: 1 },
+        comments_count: commentsCount,
       },
     });
 
