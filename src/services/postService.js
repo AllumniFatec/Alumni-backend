@@ -189,6 +189,7 @@ export const createCommentPost = async (postId, commentData, userToken) => {
     const commentsCount = await prisma.postComments.count({
       where: {
         post_id: newComment.post_id,
+        status: 'Active',
       },
     });
 
@@ -297,6 +298,7 @@ export const deleteCommentPost = async (postCommentId, userToken) => {
     const commentsCount = await prisma.postComments.count({
       where: {
         post_id: deletedComment.post_id,
+        status: 'Active',
       },
     });
 
