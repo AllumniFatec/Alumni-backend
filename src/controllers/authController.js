@@ -28,9 +28,24 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const token = await authService.loginUser(req.body);
+    const loginResult = await authService.loginUser(req.body);
 
-    res.cookie('access_token', token, {
+    if (loginResult?.requiresReactivation) {
+      res.clearCookie('access_token', cookieOptions);
+
+      res.cookie('reactivate_token', loginResult.reactivateToken, {
+        ...cookieOptions,
+        maxAge: 5 * 60 * 1000,
+      });
+
+      return res.status(409).json({
+        name: loginResult.name,
+        deleted_at: loginResult.deleted_at,
+        message: loginResult.message,
+      });
+    }
+
+    res.cookie('access_token', loginResult, {
       ...cookieOptions,
       maxAge: parseInt(env.maxAgeCookies),
     });
@@ -79,4 +94,34 @@ export const logout = async (req, res) => {
   res.clearCookie('access_token', cookieOptions);
 
   return res.status(200).json({ message: 'Logout realizado com sucesso' });
+};
+
+export const reactivate = async (req, res) => {
+  try {
+    const reactivateToken = req.user;
+    const token = req.cookies?.reactivate_token;
+
+    const reactivatedUser = await authService.reactivateUser(reactivateToken);
+
+    if (token) {
+      const decoded = jwt.verify(token, env.jwtSecret);
+      const now = Math.floor(Date.now() / 1000);
+      const exp = decoded.exp;
+      const ttl = exp - now;
+
+      await redisClient.set(`revoked-token:${token}`, 'true', 'EX', ttl); // resto de tempo do token
+    }
+
+    res.clearCookie('reactivate_token', cookieOptions);
+
+    return res.status(200).json(reactivatedUser);
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    console.error('authController(reactivate) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
+  }
 };
