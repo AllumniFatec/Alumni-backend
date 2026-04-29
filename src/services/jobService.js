@@ -368,7 +368,7 @@ export const getJobById = async (userToken, jobId) => {
       work_model: job.work_model,
       status: job.status,
       create_date: job.create_date,
-      url: job.url,
+      url: job?.url,
     };
 
     return formattedJob;
