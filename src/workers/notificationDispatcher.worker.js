@@ -1,5 +1,4 @@
 import { Worker } from 'bullmq';
-import { PrismaClient } from '../generated/prisma/index.js';
 import { env } from '../config/env.js';
 import {
   enqueueNotificationDelivery,
@@ -7,8 +6,8 @@ import {
 } from '../queues/notificationDeliveryQueue.js';
 import { NOTIFICATION_DISPATCHER_QUEUE_NAME } from '../queues/notificationDispatcherQueue.js';
 import { getUsersNotifications } from '../services/userService.js';
+import prisma from '../config/prisma.js';
 
-const prisma = new PrismaClient();
 const BATCH_SIZE = 500;
 
 const connection = {
@@ -119,7 +118,6 @@ notificationDispatcherWorker.on('error', (err) => {
 const shutdown = async () => {
   try {
     await notificationDispatcherWorker.close();
-    await prisma.$disconnect();
   } catch (err) {
     console.error('[notificationDispatcherWorker] error on shutdown:', err);
   } finally {
