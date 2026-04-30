@@ -4,7 +4,7 @@ import { env } from '../config/env.js';
 import { redisClient } from '../config/redisClient.js';
 import jwt from 'jsonwebtoken';
 
-const cookieOptions = {
+export const cookieOptions = {
   httpOnly: true,
   secure: !env.isDevelopment,
   sameSite: env.isDevelopment ? 'lax' : 'none',
@@ -104,12 +104,12 @@ export const reactivate = async (req, res) => {
     const reactivatedUser = await authService.reactivateUser(reactivateToken);
 
     if (token) {
-      const decoded = jwt.verify(token, env.jwtSecret);
       const now = Math.floor(Date.now() / 1000);
-      const exp = decoded.exp;
-      const ttl = exp - now;
+      const ttl = reactivateToken.exp - now;
 
-      await redisClient.set(`revoked-token:${token}`, 'true', 'EX', ttl); // resto de tempo do token
+      if (ttl > 0) {
+        await redisClient.set(`revoked-token:${token}`, 'true', 'EX', ttl);
+      }
     }
 
     res.clearCookie('reactivate_token', cookieOptions);
