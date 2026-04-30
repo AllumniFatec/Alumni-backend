@@ -361,6 +361,7 @@ export const getUserById = async (userToken, userId) => {
       },
       select: {
         user_id: true,
+        user_status: true,
         perfil_photo: true,
         name: true,
         biography: true,
@@ -410,6 +411,10 @@ export const getUserById = async (userToken, userId) => {
 
     if (!userData) {
       throw new CustomError('Usuário não econtrado!', 404);
+    }
+
+    if (userData.user_status !== 'Active') {
+      throw new CustomError('Usuário não encontrado', 404);
     }
 
     const [jobs, events, posts] = await Promise.all([

@@ -10,17 +10,33 @@ export const normalizePhoto = (photo) => {
   return undefined;
 };
 
-const formatComment = (comment) => ({
-  id: comment.comment_id,
-  content: comment.content,
-  create_date: comment.create_date,
-  user_id: comment.author.user_id,
-  user_name: comment.author.name,
-  user_perfil_photo: normalizePhoto(comment.author.perfil_photo),
-  user_status: comment.author.user_status,
-  user_course_abbreviation: comment.author.courses[0]?.abbreviation,
-  user_course_enrollmentYear: comment.author.courses[0]?.enrollmentYear,
-});
+const formatComment = (comment) => {
+  if (comment.author.user_status !== 'Active') {
+    return {
+      id: comment.comment_id,
+      content: comment.content,
+      create_date: comment.create_date,
+      user_id: comment.author.user_id,
+      user_name: 'Usuário excluído',
+      user_perfil_photo: undefined,
+      user_status: comment.author.user_status,
+      user_course_abbreviation: undefined,
+      user_course_enrollmentYear: undefined,
+    };
+  }
+
+  return {
+    id: comment.comment_id,
+    content: comment.content,
+    create_date: comment.create_date,
+    user_id: comment.author.user_id,
+    user_name: comment.author.name,
+    user_perfil_photo: normalizePhoto(comment.author.perfil_photo),
+    user_status: comment.author.user_status,
+    user_course_abbreviation: comment.author.courses[0]?.abbreviation,
+    user_course_enrollmentYear: comment.author.courses[0]?.enrollmentYear,
+  };
+};
 
 const formatLike = (like) => ({
   id: like.like_id,
@@ -45,9 +61,9 @@ export const postSelectForApi = {
   comments: {
     where: {
       status: 'Active',
-      author: {
-        user_status: 'Active',
-      },
+    },
+    orderBy: {
+      create_date: 'asc',
     },
     select: {
       comment_id: true,
