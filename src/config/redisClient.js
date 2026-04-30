@@ -31,11 +31,4 @@ redisSubscriber.on('error', (err) => {
 
 // Exporta as opções base para que filas BullMQ usem a mesma config
 // sem instanciar novos clientes Redis — BullMQ cria as próprias conexões internamente.
-export const redisConnectionOptions = {
-  host: env.redis.host,
-  port: env.redis.port,
-  password: env.redis.password || undefined,
-  maxRetriesPerRequest: null,
-  enableReadyCheck: false,
-  retryStrategy: (times) => Math.min(times * 200, 3000),
-};
+export const redisConnectionOptions = baseOptions;
