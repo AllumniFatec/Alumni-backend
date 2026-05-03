@@ -9,107 +9,152 @@ datasource db {
 }
 
 model Notification {
-  notification_id  String @id @default(auto()) @map("_id") @db.ObjectId
-  user_id          String @db.ObjectId
-  user             User @relation(fields: [user_id], references: [user_id])
-  type             String
-  title            String
-  message          String
-  link             String?
-  is_read          Boolean @default(false)
-  create_date      DateTime @default(now())
+  notification_id String   @id @default(auto()) @map("_id") @db.ObjectId
+  user_id         String   @db.ObjectId
+  user            User     @relation(fields: [user_id], references: [user_id])
+  type            String
+  title           String
+  message         String
+  link            String?
+  is_read         Boolean  @default(false)
+  create_date     DateTime @default(now())
 }
 
 model User {
-  user_id                String @id @default(auto()) @map("_id") @db.ObjectId
-  name                   String
-  email                  String @unique
-  password               String
-  gender                 UserGender
-  student_id             String?
-  biography              String?
-  perfil_photo           Json?
-  receive_notifications  Boolean @default(true)
-  user_status            UserStatus @default(InAnalysis)
+  user_id               String     @id @default(auto()) @map("_id") @db.ObjectId
+  name                  String
+  email                 String     @unique
+  password              String
+  gender                UserGender
+  student_id            String?
+  biography             String?
+  perfil_photo          Json?
+  receive_notifications Boolean    @default(true)
+  user_status           UserStatus @default(InAnalysis)
 
-  ban_details            BanDetails[]
+  ban_details BanDetails[]
 
-  user_type              UserType
+  user_type UserType
 
-  notifications          Notification[]
-  social_media           SocialMedia[]
-  courses                UserCourse[]
-  events                 Event[]
-  jobs                   Job[]
-  posts                  Post[]
-  post_likes             PostLikes[]
-  post_comments          PostComments[]
-  skills                 UserSkill[]
+  notifications     Notification[]
+  social_media      SocialMedia[]
+  courses           UserCourse[]
+  events            Event[]
+  jobs              Job[]
+  posts             Post[]
+  post_likes        PostLikes[]
+  post_comments     PostComments[]
+  skills            UserSkill[]
+  chat_participants ChatParticipant[]
+  messages          Message[]
 
-  workplace_history      WorkplaceUser[]
+  workplace_history WorkplaceUser[]
 
-  create_date            DateTime @default(now())
-  updated_at             DateTime? @updatedAt
-  deleted_at             DateTime?
+  create_date DateTime  @default(now())
+  updated_at  DateTime? @updatedAt
+  deleted_at  DateTime?
 
-  token_password_reset   String?
-  updated_password       DateTime?
+  token_password_reset String?
+  updated_password     DateTime?
 
   @@index([create_date])
 }
 
+model Chat {
+  chat_id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  last_message    String?
+  last_message_at DateTime?
+
+  created_at DateTime @default(now())
+
+  participants ChatParticipant[]
+  messages     Message[]
+}
+
+model ChatParticipant {
+  participant_id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  chat_id String @db.ObjectId
+  user_id String @db.ObjectId
+
+  chat Chat @relation(fields: [chat_id], references: [chat_id])
+  user User @relation(fields: [user_id], references: [user_id])
+
+  @@index([chat_id])
+  @@index([user_id])
+}
+
+model Message {
+  message_id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  chat_id   String @db.ObjectId
+  sender_id String @db.ObjectId
+
+  content String
+
+  read_by String[]
+
+  created_at DateTime @default(now())
+
+  chat Chat @relation(fields: [chat_id], references: [chat_id])
+  sender User @relation(fields: [sender_id], references: [user_id])
+
+  @@index([chat_id, created_at(sort: Desc)])
+}
+
 model Workplace {
-  workplace_id  String @id @default(auto()) @map("_id") @db.ObjectId
-  company       String @unique
-  
+  workplace_id String @id @default(auto()) @map("_id") @db.ObjectId
+  company      String @unique
+
   users_history WorkplaceUser[]
   jobs          Job[]
 
-  create_date   DateTime @default(now())
-  updated_at    DateTime?
-  deleted_date  DateTime?
+  create_date  DateTime  @default(now())
+  updated_at   DateTime?
+  deleted_date DateTime?
 }
 
 model WorkplaceUser {
-  workplace_user_id   String @id @default(auto()) @map("_id") @db.ObjectId
+  workplace_user_id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  position            String
-  function            String
-  start_date          DateTime
-  end_date            DateTime?
-  
-  workplace_id        String @db.ObjectId
-  workplace           Workplace @relation(fields: [workplace_id], references: [workplace_id])
+  position   String
+  function   String
+  start_date DateTime
+  end_date   DateTime?
 
-  user_id             String @db.ObjectId
-  user                User @relation(fields: [user_id], references: [user_id])
+  workplace_id String    @db.ObjectId
+  workplace    Workplace @relation(fields: [workplace_id], references: [workplace_id])
 
-  create_date         DateTime @default(now())
-  updated_at          DateTime?
-  deleted_date        DateTime?
+  user_id String @db.ObjectId
+  user    User   @relation(fields: [user_id], references: [user_id])
+
+  create_date  DateTime  @default(now())
+  updated_at   DateTime?
+  deleted_date DateTime?
 }
 
 model Course {
-  course_id       String @id @default(auto()) @map("_id") @db.ObjectId
-  name            String @unique
-  normalize_name  String @unique
-  abbreviation    String @unique
+  course_id      String @id @default(auto()) @map("_id") @db.ObjectId
+  name           String @unique
+  normalize_name String @unique
+  abbreviation   String @unique
 }
 
 model Event {
-  event_id     String @id @default(auto()) @map("_id") @db.ObjectId
-  title        String
-  description  String
-  local        String
-  date_start   DateTime
-  date_end     DateTime
-  images       Json[]
-  status       Status @default(Active)
+  event_id    String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  local       String
+  date_start  DateTime
+  date_end    DateTime
+  images      Json[]
+  status      Status   @default(Active)
 
-  author_id    String @db.ObjectId
-  author       User @relation(fields: [author_id], references: [user_id])
+  author_id String @db.ObjectId
+  author    User   @relation(fields: [author_id], references: [user_id])
 
-  create_date  DateTime @default(now())
+  create_date  DateTime  @default(now())
   updated_at   DateTime?
   deleted_date DateTime?
 
@@ -118,108 +163,108 @@ model Event {
 }
 
 model Job {
-  job_id          String @id @default(auto()) @map("_id") @db.ObjectId
+  job_id          String         @id @default(auto()) @map("_id") @db.ObjectId
   title           String
   description     String
   images          Json[]
-  status          Status @default(Active)
+  status          Status         @default(Active)
   location        JobLocation
   employment_type EmploymentType
   seniority_level SeniorityLevel
   work_model      WorkModel
   url             String?
 
-  workplace_id    String @db.ObjectId
-  workplace       Workplace @relation(fields: [workplace_id], references: [workplace_id])
+  workplace_id String    @db.ObjectId
+  workplace    Workplace @relation(fields: [workplace_id], references: [workplace_id])
 
-  author_id       String @db.ObjectId
-  author          User @relation(fields: [author_id], references: [user_id])
+  author_id String @db.ObjectId
+  author    User   @relation(fields: [author_id], references: [user_id])
 
-  create_date     DateTime @default(now())
-  updated_at      DateTime?
-  deleted_date    DateTime?
+  create_date  DateTime  @default(now())
+  updated_at   DateTime?
+  deleted_date DateTime?
 
   @@index([author_id, create_date(sort: Desc)])
   @@index([create_date(sort: Desc)])
 }
 
 model Post {
-  post_id        String @id @default(auto()) @map("_id") @db.ObjectId
-  content        String
-  images         Json[]
-  status         Status @default(Active)
+  post_id String @id @default(auto()) @map("_id") @db.ObjectId
+  content String
+  images  Json[]
+  status  Status @default(Active)
 
-  author_id      String @db.ObjectId
-  author         User @relation(fields: [author_id], references: [user_id])
+  author_id String @db.ObjectId
+  author    User   @relation(fields: [author_id], references: [user_id])
 
-  likes          PostLikes[]
-  likes_count    Int @default(0)
+  likes       PostLikes[]
+  likes_count Int         @default(0)
 
   comments       PostComments[]
-  comments_count Int @default(0)
+  comments_count Int            @default(0)
 
-  create_date    DateTime @default(now())
-  updated_at     DateTime?
-  deleted_date   DateTime?
+  create_date  DateTime  @default(now())
+  updated_at   DateTime?
+  deleted_date DateTime?
 
   @@index([author_id, create_date(sort: Desc)])
   @@index([create_date(sort: Desc)])
 }
 
 model PostLikes {
-  like_id       String @id @default(auto()) @map("_id") @db.ObjectId
+  like_id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  post_id       String @db.ObjectId
-  post          Post @relation(fields: [post_id], references: [post_id])
+  post_id String @db.ObjectId
+  post    Post   @relation(fields: [post_id], references: [post_id])
 
-  author_id     String @db.ObjectId
-  author        User @relation(fields: [author_id], references: [user_id])
+  author_id String @db.ObjectId
+  author    User   @relation(fields: [author_id], references: [user_id])
 
-  status        Status @default(Active)
+  status Status @default(Active)
 
-  create_date   DateTime @default(now())
+  create_date DateTime @default(now())
 
   @@unique([post_id, author_id])
   @@index([post_id, create_date(sort: Desc)])
 }
 
 model PostComments {
-  comment_id    String @id @default(auto()) @map("_id") @db.ObjectId
+  comment_id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  post_id       String @db.ObjectId
-  post          Post @relation(fields: [post_id], references: [post_id])
+  post_id String @db.ObjectId
+  post    Post   @relation(fields: [post_id], references: [post_id])
 
-  author_id       String @db.ObjectId
-  author          User @relation(fields: [author_id], references: [user_id])
+  author_id String @db.ObjectId
+  author    User   @relation(fields: [author_id], references: [user_id])
 
-  content       String
-  status        Status @default(Active)
+  content String
+  status  Status @default(Active)
 
-  create_date   DateTime @default(now())
-  updated_at    DateTime?
-  deleted_date  DateTime?
+  create_date  DateTime  @default(now())
+  updated_at   DateTime?
+  deleted_date DateTime?
 
   @@index([post_id, create_date(sort: Desc)])
 }
 
 model Skill {
-  skill_id    String @id @default(auto()) @map("_id") @db.ObjectId
-  name        String @unique
-  slug        String @unique
+  skill_id String @id @default(auto()) @map("_id") @db.ObjectId
+  name     String @unique
+  slug     String @unique
 
-  users       UserSkill[]
+  users UserSkill[]
 }
 
 model UserSkill {
-  user_skill_id  String @id @default(auto()) @map("_id") @db.ObjectId
+  user_skill_id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  user_id        String @db.ObjectId
-  user           User @relation(fields: [user_id], references: [user_id])
+  user_id String @db.ObjectId
+  user    User   @relation(fields: [user_id], references: [user_id])
 
-  skill_id       String @db.ObjectId
-  skill          Skill @relation(fields: [skill_id], references: [skill_id])
+  skill_id String @db.ObjectId
+  skill    Skill  @relation(fields: [skill_id], references: [skill_id])
 
-  create_date    DateTime @default(now())
+  create_date DateTime @default(now())
 
   @@unique([user_id, skill_id])
   @@index([user_id])
@@ -234,24 +279,24 @@ type JobLocation {
 }
 
 type SocialMedia {
-  id     String
-  type   SocialMediaType
-  url    String
+  id   String
+  type SocialMediaType
+  url  String
 }
 
 type UserCourse {
-  course_id       String
-  course_name     String
-  course_search   String
-  abbreviation    String
-  enrollmentYear  Int
+  course_id      String
+  course_name    String
+  course_search  String
+  abbreviation   String
+  enrollmentYear Int
 }
 
 type BanDetails {
   reason      BanReason
   description String
   date        DateTime
-  author_id   String @db.ObjectId
+  author_id   String    @db.ObjectId
 }
 
 enum SocialMediaType {
@@ -294,43 +339,43 @@ enum Status {
 }
 
 enum EmploymentType {
-  Internship      @map("Estágio")
-  Trainee         @map("Trainee")
-  Apprentice      @map("Jovem Aprendiz")
-  CLT             @map("CLT")
-  Contractor      @map("PJ")
-  Freelancer      @map("Freelancer")
-  SelfEmployed    @map("Autônomo")
+  Internship   @map("Estágio")
+  Trainee      @map("Trainee")
+  Apprentice   @map("Jovem Aprendiz")
+  CLT          @map("CLT")
+  Contractor   @map("PJ")
+  Freelancer   @map("Freelancer")
+  SelfEmployed @map("Autônomo")
 }
 
 enum SeniorityLevel {
-  Internship      @map("Estágio")
-  Junior          @map("Júnior")
-  MidLevel        @map("Pleno")
-  Senior          @map("Sênior")
-  Specialist      @map("Especialista")
+  Internship @map("Estágio")
+  Junior     @map("Júnior")
+  MidLevel   @map("Pleno")
+  Senior     @map("Sênior")
+  Specialist @map("Especialista")
 }
 
 enum WorkModel {
-  Remote          @map("Remoto")
-  OnSite          @map("Presencial")
-  Hybrid          @map("Híbrido")
+  Remote @map("Remoto")
+  OnSite @map("Presencial")
+  Hybrid @map("Híbrido")
 }
 
 enum BanReason {
-  Spam        @map("Spam")
-  Harassment  @map("Assédio")
-  HateSpeech  @map("Discurso de ódio")
-  InappropriateContent  @map("Conteúdo inapropriado")
-  Threats             @map("Ameaças")
-  Fraud               @map("Fraude")
-  Scam                @map("Golpe")
-  Impersonation       @map("Falsidade ideológica")
-  PrivacyViolation    @map("Violação de privacidade")
+  Spam                      @map("Spam")
+  Harassment                @map("Assédio")
+  HateSpeech                @map("Discurso de ódio")
+  InappropriateContent      @map("Conteúdo inapropriado")
+  Threats                   @map("Ameaças")
+  Fraud                     @map("Fraude")
+  Scam                      @map("Golpe")
+  Impersonation             @map("Falsidade ideológica")
+  PrivacyViolation          @map("Violação de privacidade")
   UnauthorizedAdvertisement @map("Publicidade não autorizada")
-  MaliciousLink         @map("Link malicioso")
-  MaliciousActivity     @map("Atividade maliciosa")
-  MultipleViolations    @map("Múltiplas violações")
-  TermsOfServiceViolation @map("Violação dos Termos de Serviço")
-  Others                 @map("Outros")
+  MaliciousLink             @map("Link malicioso")
+  MaliciousActivity         @map("Atividade maliciosa")
+  MultipleViolations        @map("Múltiplas violações")
+  TermsOfServiceViolation   @map("Violação dos Termos de Serviço")
+  Others                    @map("Outros")
 }
