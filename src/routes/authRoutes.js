@@ -21,5 +21,6 @@ router.post('/auth/register', registerRateLimit, authController.register);
 router.post('/auth/login', loginRateLimit, authController.login);
 router.get('/auth/me', auth, authController.getMe);
 router.post('/auth/logout', auth, authController.logout);
+router.post('/auth/reactivate', auth, authController.reactivate);
 
 export default router;

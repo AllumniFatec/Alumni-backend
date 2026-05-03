@@ -21,6 +21,22 @@ services:
       - CLOUDINARY_SECRET=${CLOUDINARY_SECRET}
       - RATE_LIMIT_ENABLED=${RATE_LIMIT_ENABLED}
       - HOST=${HOST}
+      # Aumenta o pool de threads de I/O do Node (padrão é 4).
+      # Beneficia operações de crypto, fs e DNS usadas pela API.
+      - UV_THREADPOOL_SIZE=16
+      # Limita o heap do Node a 1 GB — evita que o GC fique travando
+      # sob carga alta e que o container ultrapasse o limite de memória.
+      - NODE_OPTIONS=--max-old-space-size=1024
+    deploy:
+      resources:
+        limits:
+          # 1.5 vCPU para a API; os outros 0.5 ficam para APP + Redis + SO.
+          cpus: '1.5'
+          # 1.5 GB de RAM para a API.
+          memory: 1536M
+        reservations:
+          cpus: '0.25'
+          memory: 512M
     depends_on:
       redis:
         condition: service_healthy
@@ -28,8 +44,24 @@ services:
 
   redis:
     image: redis:7-alpine
+    # Configurações de performance e persistência para o Redis.
+    # - maxmemory: teto de 256 MB; acima disso descarta keys menos usadas (LRU).
+    # - save: persiste snapshot a cada 60s se houver ≥1 escrita (adequado para filas BullMQ).
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save 60 1
+      --loglevel warning
     volumes:
       - redis_data:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          memory: 64M
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 10s

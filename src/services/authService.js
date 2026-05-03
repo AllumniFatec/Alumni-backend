@@ -169,22 +169,41 @@ export const loginUser = async (userData) => {
     throw new CustomError('Usuário não encontrado!', 404);
   }
 
-  if (user.user_status === 'Banned') {
-    throw new CustomError('Usuário banido permanentemente', 403);
-  }
-
-  if (user.user_status === 'InAnalysis') {
-    throw new CustomError('Usuário em análise', 403);
-  }
-
-  if (user.user_status !== 'Active') {
-    throw new CustomError('Usuário não autorizado', 403);
-  }
-
   const isMatch = await bcrypt.compare(userData.password, user.password);
 
   if (!isMatch) {
     throw new CustomError('Senha incorreta!', 401);
+  }
+
+  if (user.user_status === 'Banned') {
+    throw new CustomError('Usuário banido permanentemente', 403); //forbidden - usuário banido permanentemente
+  }
+
+  if (user.user_status === 'InAnalysis') {
+    throw new CustomError('Usuário em análise', 423); //locked - usuário em análise
+  }
+
+  if (user.user_status === 'Refused') {
+    throw new CustomError('Usuário recusado', 422); //unprocessable entity - usuário recusado
+  }
+
+  if (user.user_status === 'Suspended') {
+    const reactivateToken = jwt.sign(
+      {
+        id: user.user_id,
+        purpose: 'reactivation',
+      },
+      env.jwtSecret,
+      { expiresIn: '5m' }
+    );
+
+    return {
+      requiresReactivation: true,
+      name: user.name,
+      deleted_at: user.deleted_at,
+      reactivateToken,
+      message: 'Usuário suspenso. Reative sua conta para continuar.',
+    };
   }
 
   const isAdmin = user.user_type == 'Admin';
@@ -198,4 +217,30 @@ export const loginUser = async (userData) => {
     { expiresIn: '1d' }
   );
   return token;
+};
+
+export const reactivateUser = async (reactivateUserToken) => {
+  const user_id = reactivateUserToken.id;
+
+  const user = await prisma.user.findUnique({
+    where: { user_id: user_id },
+  });
+
+  if (!user) {
+    throw new CustomError('Usuário não encontrado', 404);
+  }
+
+  if (user.user_status !== 'Suspended') {
+    throw new CustomError('Usuário não suspenso', 400);
+  }
+
+  await prisma.user.update({
+    where: { user_id: user_id },
+    data: {
+      user_status: 'Active',
+      deleted_at: null,
+    },
+  });
+
+  return { message: 'Conta reativada com sucesso' };
 };

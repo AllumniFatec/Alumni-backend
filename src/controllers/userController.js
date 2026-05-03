@@ -1,5 +1,6 @@
 import * as userService from '../services/userService.js';
 import CustomError from '../utils/CustomError.js';
+import { cookieOptions } from './authController.js';
 
 export const getUsers = async (req, res) => {
   try {
@@ -121,6 +122,8 @@ export const deleteMyProfile = async (req, res) => {
     const user = req.user;
 
     const deletedProfile = await userService.deleteMyProfile(user);
+
+    res.clearCookie('access_token', cookieOptions);
 
     return res.status(200).json({ message: 'Perfil excluído com sucesso!' });
   } catch (err) {
