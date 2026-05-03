@@ -3,7 +3,7 @@ import { env } from '../config/env.js';
 import { redisClient } from '../config/redisClient.js';
 
 const auth = async (req, res, next) => {
-  const token = req.cookies?.access_token;
+  const token = req.cookies?.access_token ?? req.cookies?.reactivate_token;
 
   if (!token) {
     return res.status(401).json({ message: 'Acesso negado!' });
