@@ -1,11 +1,9 @@
 import { Worker } from 'bullmq';
-import { PrismaClient } from '../generated/prisma/index.js';
 import { env } from '../config/env.js';
 import { getIo } from '../config/socket.js';
 import { NOTIFICATION_DELIVERY_QUEUE_NAME } from '../queues/notificationDeliveryQueue.js';
 import { getCreatedNotifications } from '../services/notificationService.js';
-
-const prisma = new PrismaClient();
+import prisma from '../config/prisma.js';
 
 const connection = {
   host: env.redis.host,
@@ -77,7 +75,6 @@ notificationDeliveryWorker.on('error', (err) => {
 const shutdown = async () => {
   try {
     await notificationDeliveryWorker.close();
-    await prisma.$disconnect();
   } catch (err) {
     console.error('[notificationDeliveryWorker] error on shutdown:', err);
   } finally {
