@@ -8,6 +8,9 @@ const prisma = new PrismaClient();
 
 const actions = {
   startChat: 'iniciar chat',
+  getChats: 'listar chats',
+  getChatMessages: 'listar mensagens de um chat',
+  saveMessage: 'enviar mensagem',
 };
 
 export const startChat = async (userToken, targetUserId) => {
@@ -27,5 +30,185 @@ export const startChat = async (userToken, targetUserId) => {
         participants: true,
       },
     });
+
+    const existingChat = chats.find((chat) => {
+      const participants = chat.participants.map((p) => p.user_id);
+      return (
+        participants.includes(user_id) &&
+        participants.includes(target_user_id) &&
+        participants.length === 2
+      );
+    });
+
+    if (existingChat) {
+      return existingChat;
+    }
+
+    const newChat = await prisma.chat.create({
+      data: {
+        participants: {
+          create: [{ user_id: user_id }, { user_id: target_user_id }],
+        },
+      },
+    });
+
+    return newChat;
+  });
+};
+
+export const getChats = async (userToken, page = 1) => {
+  const user_id = userToken.id;
+
+  return authenticateUser(user_id, actions.getChats, async (user) => {
+    const currentPageNumber = getPageNumber(page);
+    const limit = 10;
+    const skip = (currentPageNumber - 1) * limit;
+
+    const [chats, totalChats] = await Promise.all([
+      prisma.chat.findMany({
+        where: {
+          participants: {
+            some: {
+              user_id: user_id,
+            },
+          },
+        },
+        select: {
+          chat_id: true,
+          last_message: true,
+        },
+        include: {
+          participants: {
+            include: {
+              user: {
+                select: {
+                  user_id: true,
+                  name: true,
+                  perfil_photo: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          last_message_at: 'desc',
+        },
+        skip: skip,
+        take: limit,
+      }),
+
+      prisma.chat.count({
+        where: {
+          participants: {
+            some: {
+              user_id: user_id,
+            },
+          },
+        },
+      }),
+    ]);
+
+    const totalPages = Math.ceil(totalChats / limit);
+
+    return {
+      chats: chats,
+      pagination: {
+        page: currentPageNumber,
+        limit: limit,
+        totalItems: totalChats,
+        totalPages: totalPages,
+        hasNextPage: currentPageNumber < totalPages,
+        hasPreviousPage: currentPageNumber > 1,
+      },
+    };
+  });
+};
+
+export const getChatMessages = async (userToken, chatId, page = 1) => {
+  const user_id = userToken.id;
+  const chat_id = chatId;
+
+  return authenticateUser(user_id, actions.getChatMessages, async (user) => {
+    const currentPageNumber = getPageNumber(page);
+    const limit = 20;
+    const skip = (currentPageNumber - 1) * limit;
+
+    const [messages, totalMessages] = await Promise.all([
+      prisma.message.findMany({
+        where: {
+          chat_id: chat_id,
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+        select: {
+          message_id: true,
+          content: true,
+          read_by: true,
+          sender_id: true,
+          created_at: true,
+          chat_id: true,
+        },
+        skip: skip,
+        take: limit,
+      }),
+
+      prisma.message.count({
+        where: {
+          chat_id: chat_id,
+        },
+      }),
+    ]);
+
+    const totalPages = Math.ceil(totalMessages / limit);
+
+    return {
+      messages: messages,
+      pagination: {
+        page: currentPageNumber,
+        limit: limit,
+        totalItems: totalMessages,
+        totalPages: totalPages,
+        hasNextPage: currentPageNumber < totalPages,
+        hasPreviousPage: currentPageNumber > 1,
+      },
+    };
+  });
+};
+
+export const saveMessage = async (userToken, chatId, content) => {
+  const user_id = userToken.id;
+  const chat_id = chatId;
+  const textContent = content.trim();
+
+  return authenticateUser(user_id, actions.saveMessage, async (user) => {
+    if (!textContent) {
+      throw new CustomError('O conteúdo da mensagem é obrigatório', 400);
+    }
+
+    if (textContent.length < 1 || textContent.length > 1000) {
+      throw new CustomError('O conteúdo da mensagem deve ter entre 1 e 1000 caracteres', 400);
+    }
+
+    const message = await prisma.message.create({
+      data: {
+        chat_id: chat_id,
+        sender_id: user_id,
+        content: textContent,
+        read_by: [user_id],
+      },
+    });
+
+    const updatedChat = await prisma.chat.update({
+      where: {
+        chat_id: chat_id,
+      },
+      data: {
+        last_message: textContent,
+        last_message_at: new Date(),
+      },
+    });
+
+    return message;
   });
 };
