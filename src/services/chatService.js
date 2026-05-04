@@ -209,6 +209,43 @@ export const saveMessage = async (userToken, chatId, content) => {
       },
     });
 
-    return message;
+    return { message: 'Mensagem enviada com sucesso!' };
+  });
+};
+
+export const markMessageAsRead = async (userToken, chatId) => {
+  const user_id = userToken.id;
+  const chat_id = chatId;
+
+  return authenticateUser(user_id, actions.markMessageAsRead, async (user) => {
+    const chat = await prisma.chat.findUnique({
+      where: {
+        chat_id: chat_id,
+      },
+    });
+
+    if (!chat) {
+      throw new CustomError('Chat não encontrado', 404);
+    }
+
+    const participant = chat.participants.find((p) => p.user_id === user_id);
+    if (!participant) {
+      throw new CustomError('Usuário não participante do chat', 403);
+    }
+
+    const updatedMessages = await prisma.message.updateMany({
+      where: {
+        chat_id: chat_id,
+        sender_id: { not: user_id },
+        NOT: {
+          read_by: { has: user_id },
+        },
+      },
+      data: {
+        read_by: { push: user_id },
+      },
+    });
+
+    return { message: 'Mensagens marcadas como lidas com sucesso!' };
   });
 };
