@@ -13,16 +13,8 @@ const startChatRateLimit = createRateLimit({
   getIdentifier: (req) => req.user?.id || req.user?.userId,
 });
 
-const saveMessageRateLimit = createRateLimit({
-  keyPrefix: 'chat-save-message',
-  windowSeconds: 60,
-  maxRequests: 15,
-  getIdentifier: (req) => req.user?.id || req.user?.userId,
-});
-
 router.post('/chat/:id', auth, authId, startChatRateLimit, chatController.startChat);
 router.get('/chat', auth, chatController.getChats);
 router.get('/chat/:id', auth, authId, chatController.getChatMessages);
-router.post('/chat/:id/message', auth, authId, saveMessageRateLimit, chatController.saveMessage);
 
 export default router;

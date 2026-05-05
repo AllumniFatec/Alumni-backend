@@ -11,6 +11,35 @@ const actions = {
   getChats: 'listar chats',
   getChatMessages: 'listar mensagens de um chat',
   saveMessage: 'enviar mensagem',
+  markMessageAsRead: 'marcar mensagens como lidas',
+  validateChatParticipation: 'acessar chat',
+};
+
+export const validateChatParticipation = async (userId, chatId) => {
+  const user_id = userId;
+  const chat_id = chatId;
+
+  return authenticateUser(user_id, actions.validateChatParticipation, async (user) => {
+    const chat = await prisma.chat.findUnique({
+      where: {
+        chat_id: chat_id,
+      },
+      include: {
+        participants: true,
+      },
+    });
+
+    if (!chat) {
+      throw new CustomError('Chat não encontrado', 404);
+    }
+
+    const participant = chat.participants.find((p) => p.user_id === user_id);
+    if (!participant) {
+      throw new CustomError('Usuário não participante do chat', 403);
+    }
+
+    return chat;
+  });
 };
 
 export const startChat = async (userToken, targetUserId) => {
@@ -129,6 +158,8 @@ export const getChatMessages = async (userToken, chatId, page = 1) => {
   const chat_id = chatId;
 
   return authenticateUser(user_id, actions.getChatMessages, async (user) => {
+    await validateChatParticipation(user_id, chat_id);
+
     const currentPageNumber = getPageNumber(page);
     const limit = 20;
     const skip = (currentPageNumber - 1) * limit;
@@ -176,10 +207,10 @@ export const getChatMessages = async (userToken, chatId, page = 1) => {
   });
 };
 
-export const saveMessage = async (userToken, chatId, content) => {
+export const saveMessage = async (userToken, chatId, content, readByUserIds = []) => {
   const user_id = userToken.id;
   const chat_id = chatId;
-  const textContent = content.trim();
+  const textContent = typeof content === 'string' ? content.trim() : '';
 
   return authenticateUser(user_id, actions.saveMessage, async (user) => {
     if (!textContent) {
@@ -190,16 +221,22 @@ export const saveMessage = async (userToken, chatId, content) => {
       throw new CustomError('O conteúdo da mensagem deve ter entre 1 e 1000 caracteres', 400);
     }
 
+    await validateChatParticipation(user_id, chat_id);
+
+    const validReadBy = Array.from(
+      new Set([user_id, ...readByUserIds].filter((id) => participantIds.includes(id)))
+    );
+
     const message = await prisma.message.create({
       data: {
         chat_id: chat_id,
         sender_id: user_id,
         content: textContent,
-        read_by: [user_id],
+        read_by: validReadBy,
       },
     });
 
-    const updatedChat = await prisma.chat.update({
+    await prisma.chat.update({
       where: {
         chat_id: chat_id,
       },
@@ -209,7 +246,7 @@ export const saveMessage = async (userToken, chatId, content) => {
       },
     });
 
-    return { message: 'Mensagem enviada com sucesso!' };
+    return message;
   });
 };
 
@@ -218,25 +255,9 @@ export const markMessageAsRead = async (userId, chatId) => {
   const chat_id = chatId;
 
   return authenticateUser(user_id, actions.markMessageAsRead, async (user) => {
-    const chat = await prisma.chat.findUnique({
-      where: {
-        chat_id: chat_id,
-      },
-      include: {
-        participants: true,
-      },
-    });
+    await validateChatParticipation(user_id, chat_id);
 
-    if (!chat) {
-      throw new CustomError('Chat não encontrado', 404);
-    }
-
-    const participant = chat.participants.find((p) => p.user_id === user_id);
-    if (!participant) {
-      throw new CustomError('Usuário não participante do chat', 403);
-    }
-
-    const updatedMessages = await prisma.message.updateMany({
+    await prisma.message.updateMany({
       where: {
         chat_id: chat_id,
         sender_id: { not: user_id },
