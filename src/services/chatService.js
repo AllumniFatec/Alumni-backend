@@ -19,27 +19,25 @@ export const validateChatParticipation = async (userId, chatId) => {
   const user_id = userId;
   const chat_id = chatId;
 
-  return authenticateUser(user_id, actions.validateChatParticipation, async (user) => {
-    const chat = await prisma.chat.findUnique({
-      where: {
-        chat_id: chat_id,
-      },
-      include: {
-        participants: true,
-      },
-    });
-
-    if (!chat) {
-      throw new CustomError('Chat não encontrado', 404);
-    }
-
-    const participant = chat.participants.find((p) => p.user_id === user_id);
-    if (!participant) {
-      throw new CustomError('Usuário não participante do chat', 403);
-    }
-
-    return chat;
+  const chat = await prisma.chat.findUnique({
+    where: {
+      chat_id: chat_id,
+    },
+    include: {
+      participants: true,
+    },
   });
+
+  if (!chat) {
+    throw new CustomError('Chat não encontrado', 404);
+  }
+
+  const participant = chat.participants.find((p) => p.user_id === user_id);
+  if (!participant) {
+    throw new CustomError('Usuário não participante do chat', 403);
+  }
+
+  return chat;
 };
 
 export const startChat = async (userToken, targetUserId) => {
@@ -153,55 +151,51 @@ export const getChats = async (userToken, page = 1) => {
   });
 };
 
-export const getChatMessages = async (userToken, chatId, page = 1) => {
+export const getChatMessages = async (userToken, chatId, cursor = null, limit) => {
   const user_id = userToken.id;
   const chat_id = chatId;
 
   return authenticateUser(user_id, actions.getChatMessages, async (user) => {
     await validateChatParticipation(user_id, chat_id);
 
-    const currentPageNumber = getPageNumber(page);
-    const limit = 20;
-    const skip = (currentPageNumber - 1) * limit;
+    const parsedLimit = parseInt(limit, 10);
+    const safeLimit =
+      Number.isFinite(parsedLimit) && parsedLimit > 0 ? Math.min(parsedLimit, 50) : 20;
 
-    const [messages, totalMessages] = await Promise.all([
-      prisma.message.findMany({
-        where: {
-          chat_id: chat_id,
-        },
-        orderBy: {
-          created_at: 'desc',
-        },
-        select: {
-          message_id: true,
-          content: true,
-          read_by: true,
-          sender_id: true,
-          created_at: true,
-          chat_id: true,
-        },
-        skip: skip,
-        take: limit,
-      }),
+    const queryOptions = {
+      where: {
+        chat_id: chat_id,
+      },
+      orderBy: [{ created_at: 'desc' }],
+      select: {
+        message_id: true,
+        content: true,
+        read_by: true,
+        sender_id: true,
+        created_at: true,
+        chat_id: true,
+      },
+      take: safeLimit + 1,
+    };
 
-      prisma.message.count({
-        where: {
-          chat_id: chat_id,
-        },
-      }),
-    ]);
+    if (cursor) {
+      queryOptions.cursor = { message_id: cursor };
+      queryOptions.skip = 1;
+    }
 
-    const totalPages = Math.ceil(totalMessages / limit);
+    const fetched = await prisma.message.findMany(queryOptions);
+
+    const hasMore = fetched.length > safeLimit;
+    const messages = hasMore ? fetched.slice(0, safeLimit) : fetched;
+    const nextCursor =
+      hasMore && messages.length > 0 ? messages[messages.length - 1].message_id : null;
 
     return {
       messages: messages,
       pagination: {
-        page: currentPageNumber,
-        limit: limit,
-        totalItems: totalMessages,
-        totalPages: totalPages,
-        hasNextPage: currentPageNumber < totalPages,
-        hasPreviousPage: currentPageNumber > 1,
+        limit: safeLimit,
+        nextCursor: nextCursor,
+        hasMore: hasMore,
       },
     };
   });
@@ -221,30 +215,39 @@ export const saveMessage = async (userToken, chatId, content, readByUserIds = []
       throw new CustomError('O conteúdo da mensagem deve ter entre 1 e 1000 caracteres', 400);
     }
 
-    await validateChatParticipation(user_id, chat_id);
+    const chat = await validateChatParticipation(user_id, chat_id);
+    const participantIds = chat.participants.map((p) => p.user_id);
 
     const validReadBy = Array.from(
       new Set([user_id, ...readByUserIds].filter((id) => participantIds.includes(id)))
     );
 
-    const message = await prisma.message.create({
-      data: {
-        chat_id: chat_id,
-        sender_id: user_id,
-        content: textContent,
-        read_by: validReadBy,
-      },
-    });
+    const messageTimestamp = new Date();
 
-    await prisma.chat.update({
-      where: {
-        chat_id: chat_id,
-      },
-      data: {
-        last_message: textContent,
-        last_message_at: new Date(),
-      },
-    });
+    const [message] = await prisma.$transaction([
+      prisma.message.create({
+        data: {
+          chat_id: chat_id,
+          sender_id: user_id,
+          content: textContent,
+          read_by: validReadBy,
+          created_at: messageTimestamp,
+        },
+      }),
+      prisma.chat.updateMany({
+        where: {
+          chat_id: chat_id,
+          OR: [
+            { last_message_at: null },
+            { last_message_at: { lt: messageTimestamp } },
+          ],
+        },
+        data: {
+          last_message: textContent,
+          last_message_at: messageTimestamp,
+        },
+      }),
+    ]);
 
     return message;
   });

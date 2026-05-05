@@ -43,9 +43,10 @@ export const getChatMessages = async (req, res) => {
   try {
     const user = req.user;
     const chatId = req.params.id;
-    const page = req.query.page || 1;
+    const cursor = req.query.cursor || null;
+    const limit = req.query.limit;
 
-    const messages = await chatService.getChatMessages(user, chatId, page);
+    const messages = await chatService.getChatMessages(user, chatId, cursor, limit);
 
     return res.status(200).json(messages);
   } catch (err) {
