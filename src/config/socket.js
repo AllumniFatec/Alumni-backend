@@ -2,6 +2,7 @@ import { Server } from 'socket.io';
 import { env } from './env.js';
 import jwt from 'jsonwebtoken';
 import { redisClient } from './redisClient.js';
+import { markMessageAsRead } from '../services/chatService.js';
 
 let io;
 const connectedUsers = new Map();
@@ -38,6 +39,26 @@ export const initSocket = (server, corsOptions) => {
       const userId = socket.data.user.id;
       connectedUsers.set(userId, socket.id);
       socket.join(`user:${userId}`);
+    });
+
+    socket.on('join-chat', (chatId, userId) => {
+      socket.join(`chat:${chatId}`);
+
+      markMessageAsRead(userId, chatId);
+    });
+
+    socket.on('leave-chat', (chatId) => {
+      socket.leave(`chat:${chatId}`);
+    });
+
+    socket.on('send-message', (chatId, message) => {
+      io.to(`chat:${chatId}`).emit('receive-message', { message, authorId: socket.data.user.id });
+    });
+
+    socket.on('typing', (chatId, { isTyping }) => {
+      socket.broadcast.to(`chat:${chatId}`).emit('typing', {
+        isTyping,
+      });
     });
 
     socket.on('disconnect', () => {

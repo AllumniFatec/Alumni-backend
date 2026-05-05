@@ -58,3 +58,23 @@ export const getChatMessages = async (req, res) => {
       .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
   }
 };
+
+export const saveMessage = async (req, res) => {
+  try {
+    const user = req.user;
+    const chatId = req.params.chatId;
+    const content = req.body.content;
+
+    const message = await chatService.saveMessage(user, chatId, content);
+
+    return res.status(201).json(message);
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    console.error('chatController(saveMessage) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
+  }
+};

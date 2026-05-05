@@ -213,14 +213,17 @@ export const saveMessage = async (userToken, chatId, content) => {
   });
 };
 
-export const markMessageAsRead = async (userToken, chatId) => {
-  const user_id = userToken.id;
+export const markMessageAsRead = async (userId, chatId) => {
+  const user_id = userId;
   const chat_id = chatId;
 
   return authenticateUser(user_id, actions.markMessageAsRead, async (user) => {
     const chat = await prisma.chat.findUnique({
       where: {
         chat_id: chat_id,
+      },
+      include: {
+        participants: true,
       },
     });
 
