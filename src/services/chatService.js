@@ -229,7 +229,7 @@ export const saveMessage = async (userToken, chatId, content, readByUserIds = []
           created_at: messageTimestamp,
         },
       }),
-      prisma.chat.updateMany({
+      prisma.chat.update({
         where: {
           chat_id: chat_id,
         },
