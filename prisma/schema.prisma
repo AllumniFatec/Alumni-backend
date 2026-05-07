@@ -72,6 +72,8 @@ model Chat {
 
   participants ChatParticipant[]
   messages     Message[]
+
+  @@index([last_message_at(sort: Desc)])
 }
 
 model ChatParticipant {
