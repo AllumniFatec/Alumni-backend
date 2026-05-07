@@ -71,6 +71,7 @@ export const loadFeed = async (page = 1, userToken) => {
           date_start: {
             gte: today,
           },
+          status: 'Active',
         },
         orderBy: {
           date_start: 'asc',
