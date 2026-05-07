@@ -63,6 +63,8 @@ model User {
 model Chat {
   chat_id String @id @default(auto()) @map("_id") @db.ObjectId
 
+  dm_key String? @unique
+
   last_message    String?
   last_message_at DateTime?
 
@@ -81,6 +83,7 @@ model ChatParticipant {
   chat Chat @relation(fields: [chat_id], references: [chat_id])
   user User @relation(fields: [user_id], references: [user_id])
 
+  @@unique([chat_id, user_id])
   @@index([chat_id])
   @@index([user_id])
 }
@@ -100,7 +103,7 @@ model Message {
   chat Chat @relation(fields: [chat_id], references: [chat_id])
   sender User @relation(fields: [sender_id], references: [user_id])
 
-  @@index([chat_id, created_at(sort: Desc)])
+  @@index([chat_id, created_at(sort: Desc), message_id(sort: Desc)])
 }
 
 model Workplace {

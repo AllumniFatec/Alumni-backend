@@ -1,5 +1,6 @@
 import * as chatService from '../services/chatService.js';
 import CustomError from '../utils/CustomError.js';
+import { getIo } from '../config/socket.js';
 
 export const startChat = async (req, res) => {
   try {
@@ -43,10 +44,9 @@ export const getChatMessages = async (req, res) => {
   try {
     const user = req.user;
     const chatId = req.params.id;
-    const cursor = req.query.cursor || null;
-    const limit = req.query.limit;
+    const cursor = req.query.lastmsg || null;
 
-    const messages = await chatService.getChatMessages(user, chatId, cursor, limit);
+    const messages = await chatService.getChatMessages(user, chatId, cursor);
 
     return res.status(200).json(messages);
   } catch (err) {
@@ -54,6 +54,55 @@ export const getChatMessages = async (req, res) => {
       return res.status(err.statusCode).json({ error: err.message });
     }
     console.error('chatController(getChatMessages) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
+  }
+};
+
+export const sendMessage = async (req, res) => {
+  try {
+    const user = req.user;
+    const chatId = req.params.id;
+    const { content } = req.body || {};
+
+    const message = await chatService.saveMessage(user, chatId, content, [user.id]);
+
+    getIo()?.to(`chat:${chatId}`).emit('receive-message', {
+      message,
+      authorId: user.id,
+    });
+
+    return res.status(201).json(message);
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    console.error('chatController(sendMessage) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
+  }
+};
+
+export const markAsRead = async (req, res) => {
+  try {
+    const user = req.user;
+    const chatId = req.params.id;
+
+    const result = await chatService.markMessageAsRead(user.id, chatId);
+
+    getIo()?.to(`chat:${chatId}`).emit('messages-read', {
+      chatId,
+      userId: user.id,
+    });
+
+    return res.status(200).json(result);
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    console.error('chatController(markAsRead) erro inesperado: ', err);
     return res
       .status(500)
       .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });

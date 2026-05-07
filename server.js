@@ -12,6 +12,7 @@ import userRoutes from './src/routes/userRoutes.js';
 import adminRoutes from './src/routes/adminRoutes.js';
 import eventRoutes from './src/routes/eventRouter.js';
 import notificationRoutes from './src/routes/notificationRoutes.js';
+import chatRoutes from './src/routes/chatRoutes.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { env } from './src/config/env.js';
@@ -65,6 +66,7 @@ app.use('/', userRoutes);
 app.use('/', adminRoutes);
 app.use('/', eventRoutes);
 app.use('/', notificationRoutes);
+app.use('/', chatRoutes);
 app.use(
   '/docs',
   swaggerUi.serve,

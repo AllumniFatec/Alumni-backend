@@ -44,42 +44,41 @@ export const startChat = async (userToken, targetUserId) => {
   const user_id = userToken.id;
   const target_user_id = targetUserId;
 
-  return authenticateUser(user_id, actions.startChat, async (user) => {
-    const chats = await prisma.chat.findMany({
-      where: {
+  return authenticateUser(user_id, actions.startChat, async () => {
+    if (user_id === target_user_id) {
+      throw new CustomError('Não é possível iniciar chat consigo mesmo', 400);
+    }
+
+    const dm_key = [user_id, target_user_id].sort().join(':');
+
+    const chat = await prisma.chat.upsert({
+      where: { dm_key },
+      update: {},
+      create: {
+        dm_key,
         participants: {
-          some: {
-            user_id: user_id,
+          create: [{ user_id }, { user_id: target_user_id }],
+        },
+      },
+      select: {
+        chat_id: true,
+        last_message: true,
+        last_message_at: true,
+        participants: {
+          select: {
+            user: {
+              select: {
+                user_id: true,
+                name: true,
+                perfil_photo: true,
+              },
+            },
           },
         },
       },
-      include: {
-        participants: true,
-      },
     });
 
-    const existingChat = chats.find((chat) => {
-      const participants = chat.participants.map((p) => p.user_id);
-      return (
-        participants.includes(user_id) &&
-        participants.includes(target_user_id) &&
-        participants.length === 2
-      );
-    });
-
-    if (existingChat) {
-      return existingChat;
-    }
-
-    const newChat = await prisma.chat.create({
-      data: {
-        participants: {
-          create: [{ user_id: user_id }, { user_id: target_user_id }],
-        },
-      },
-    });
-
-    return newChat;
+    return chat;
   });
 };
 
@@ -103,10 +102,9 @@ export const getChats = async (userToken, page = 1) => {
         select: {
           chat_id: true,
           last_message: true,
-        },
-        include: {
+          last_message_at: true,
           participants: {
-            include: {
+            select: {
               user: {
                 select: {
                   user_id: true,
@@ -151,22 +149,22 @@ export const getChats = async (userToken, page = 1) => {
   });
 };
 
-export const getChatMessages = async (userToken, chatId, cursor = null, limit) => {
+export const getChatMessages = async (userToken, chatId, cursor) => {
   const user_id = userToken.id;
   const chat_id = chatId;
 
   return authenticateUser(user_id, actions.getChatMessages, async (user) => {
     await validateChatParticipation(user_id, chat_id);
 
-    const parsedLimit = parseInt(limit, 10);
-    const safeLimit =
-      Number.isFinite(parsedLimit) && parsedLimit > 0 ? Math.min(parsedLimit, 50) : 20;
+    const limit = 20;
+
+    const safeLimit = Number.isFinite(limit) && limit > 0 ? Math.min(limit, 50) : 20;
 
     const queryOptions = {
       where: {
         chat_id: chat_id,
       },
-      orderBy: [{ created_at: 'desc' }],
+      orderBy: [{ created_at: 'desc' }, { message_id: 'desc' }],
       select: {
         message_id: true,
         content: true,
@@ -237,10 +235,6 @@ export const saveMessage = async (userToken, chatId, content, readByUserIds = []
       prisma.chat.updateMany({
         where: {
           chat_id: chat_id,
-          OR: [
-            { last_message_at: null },
-            { last_message_at: { lt: messageTimestamp } },
-          ],
         },
         data: {
           last_message: textContent,
