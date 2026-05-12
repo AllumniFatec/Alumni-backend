@@ -22,6 +22,7 @@ const sendMessageRateLimit = createRateLimit({
 
 router.post('/chat/:id', auth, authId, startChatRateLimit, chatController.startChat);
 router.get('/chat', auth, chatController.getChats);
+router.get('/chat/unread', auth, chatController.getUnreadCount);
 router.get('/chat/:id', auth, authId, chatController.getChatMessages);
 router.post('/chat/:id/message', auth, authId, sendMessageRateLimit, chatController.sendMessage);
 router.patch('/chat/:id/read', auth, authId, chatController.markAsRead);

@@ -66,12 +66,27 @@ export const sendMessage = async (req, res) => {
     const chatId = req.params.id;
     const { content } = req.body || {};
 
-    const message = await chatService.saveMessage(user, chatId, content, [user.id]);
+    const { message, participantIds } = await chatService.saveMessage(user, chatId, content, [user.id]);
 
-    getIo()?.to(`chat:${chatId}`).emit('receive-message', {
+    const io = getIo();
+    io?.to(`chat:${chatId}`).emit('receive-message', {
       message,
       authorId: user.id,
     });
+
+    if (io) {
+      const recipientIds = participantIds.filter((id) => id !== user.id);
+
+      await Promise.all(
+        recipientIds.map(async (recipientId) => {
+          const [total, chatUnread] = await Promise.all([
+            chatService.getUnreadCount(recipientId),
+            chatService.getChatUnreadCount(recipientId, chatId),
+          ]);
+          io.to(`user:${recipientId}`).emit('unread-count-update', { total, chatId, chatUnread });
+        })
+      );
+    }
 
     return res.status(201).json(message);
   } catch (err) {
@@ -79,6 +94,24 @@ export const sendMessage = async (req, res) => {
       return res.status(err.statusCode).json({ error: err.message });
     }
     console.error('chatController(sendMessage) erro inesperado: ', err);
+    return res
+      .status(500)
+      .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
+  }
+};
+
+export const getUnreadCount = async (req, res) => {
+  try {
+    const user = req.user;
+
+    const total = await chatService.getUnreadCount(user);
+
+    return res.status(200).json(total);
+  } catch (err) {
+    if (err instanceof CustomError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    console.error('chatController(getUnreadCount) erro inesperado: ', err);
     return res
       .status(500)
       .json({ error: 'Erro inesperado. Por favor, tente novamente mais tarde.' });
