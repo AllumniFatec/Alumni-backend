@@ -10,6 +10,7 @@ const actions = {
   saveMessage: 'enviar mensagem',
   markMessageAsRead: 'marcar mensagens como lidas',
   validateChatParticipation: 'acessar chat',
+  getUnreadCount: 'listar mensagens não lidas',
 };
 
 export const validateChatParticipation = async (userId, chatId) => {
@@ -132,8 +133,25 @@ export const getChats = async (userToken, page = 1) => {
 
     const totalPages = Math.ceil(totalChats / limit);
 
+    const chatIds = chats.map((c) => c.chat_id);
+    const unreadCounts = await prisma.message.groupBy({
+      by: ['chat_id'],
+      where: {
+        chat_id: { in: chatIds },
+        sender_id: { not: user_id },
+        NOT: { read_by: { has: user_id } },
+      },
+      _count: { message_id: true },
+    });
+    const unreadMap = new Map(unreadCounts.map((r) => [r.chat_id, r._count.message_id]));
+
+    const chatsWithUnread = chats.map((chat) => ({
+      ...chat,
+      unreadCount: unreadMap.get(chat.chat_id) ?? 0,
+    }));
+
     return {
-      chats: chats,
+      chats: chatsWithUnread,
       pagination: {
         page: currentPageNumber,
         limit: limit,
@@ -219,11 +237,10 @@ export const saveMessage = async (userToken, chatId, content, readByUserIds = []
 
     const messageTimestamp = new Date();
 
-    // Sem transacao para evitar write conflict com markMessageAsRead concorrente
     const [message] = await Promise.all([
       prisma.message.create({
         data: {
-          chat_id,
+          chat_id: chat_id,
           sender_id: user_id,
           content: textContent,
           read_by: validReadBy,
@@ -231,7 +248,9 @@ export const saveMessage = async (userToken, chatId, content, readByUserIds = []
         },
       }),
       prisma.chat.update({
-        where: { chat_id },
+        where: {
+          chat_id: chat_id,
+        },
         data: {
           last_message: textContent,
           last_message_at: messageTimestamp,
@@ -239,8 +258,42 @@ export const saveMessage = async (userToken, chatId, content, readByUserIds = []
       }),
     ]);
 
-    return message;
+    return { message, participantIds };
   });
+};
+
+export const getUnreadCount = async (userToken) => {
+  const user_id = userToken.id ?? userToken;
+
+  return authenticateUser(user_id, actions.getUnreadCount, async (user) => {
+    const totalUnread = await prisma.message.count({
+      where: {
+        chat: { participants: { some: { user_id: user_id } } },
+        sender_id: { not: user_id },
+        NOT: { read_by: { has: user_id } },
+      },
+    });
+
+    return totalUnread;
+  });
+};
+
+export const getChatUnreadCount = async (userId, chatId) => {
+  return prisma.message.count({
+    where: {
+      chat_id: chatId,
+      sender_id: { not: userId },
+      NOT: { read_by: { has: userId } },
+    },
+  });
+};
+
+export const getChatParticipantIds = async (chatId) => {
+  const rows = await prisma.chatParticipant.findMany({
+    where: { chat_id: chatId },
+    select: { user_id: true },
+  });
+  return rows.map((r) => r.user_id);
 };
 
 export const markMessageAsRead = async (userId, chatId) => {
