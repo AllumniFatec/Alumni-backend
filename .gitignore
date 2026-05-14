@@ -6,4 +6,6 @@ env.prod
 env.dev
 env*.dev
 
+CLAUDE.md
+
 /src/generated/prisma
