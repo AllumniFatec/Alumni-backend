@@ -1,8 +1,5 @@
-import { PrismaClient } from '../generated/prisma/index.js';
-//import prisma from '../config/prisma.js';
+import prisma from '../config/prisma.js';
 import { authenticateUser } from './userService.js';
-
-const prisma = new PrismaClient();
 
 const actions = {
   getSkills: 'listar habilidades',
