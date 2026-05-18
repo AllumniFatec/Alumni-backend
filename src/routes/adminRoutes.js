@@ -22,7 +22,7 @@ const adminCoursesRateLimit = createRateLimit({
 });
 
 router.get('/admin/dashboard', auth, adminOnly, adminController.dashboard);
-router.get('/admin/usersInAnalysis', auth, adminOnly, adminController.listAllUsersInAnalysis);
+//router.get('/admin/usersInAnalysis', auth, adminOnly, adminController.listAllUsersInAnalysis);
 router.post(
   '/admin/approve/:id',
   auth,

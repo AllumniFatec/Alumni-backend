@@ -50,37 +50,17 @@ function verifyAdminUser(user, action) {
   }
 }
 
-export const getDashboard = async (userToken) => {
+export const getDashboard = async (userToken, page) => {
   const user_id = userToken.id;
 
   return authenticateUser(user_id, actions.getDashboard, async (user) => {
-    const limit = 10;
+    const currentPageNumber = getPageNumber(page);
 
     verifyAdminUser(user, actions.getDashboard);
 
-    const usersInAnalysis = await prisma.user.findMany({
-      where: {
-        user_status: 'InAnalysis',
-      },
-      orderBy: {
-        create_date: 'asc',
-      },
-      select: {
-        user_id: true,
-        name: true,
-        email: true,
-        student_id: true,
-        courses: {
-          select: {
-            course_name: true,
-            enrollmentYear: true,
-          },
-        },
-        gender: true,
-        user_type: true,
-      },
-      take: limit,
-    });
+    const usersInAnalysis = await Promise.all([
+      listAllUsersInAnalysis(userToken, currentPageNumber),
+    ]);
 
     const [countUsersInAnalysis, countUsersActive, countJobsActive] = await Promise.all([
       prisma.user.count({ where: { user_status: 'InAnalysis' } }),
@@ -92,7 +72,7 @@ export const getDashboard = async (userToken) => {
   });
 };
 
-export const listAllUsersInAnalysis = async (userToken, page = 2) => {
+export const listAllUsersInAnalysis = async (userToken, page = 1) => {
   const user_id = userToken.id;
 
   const currentPageNumber = getPageNumber(page);

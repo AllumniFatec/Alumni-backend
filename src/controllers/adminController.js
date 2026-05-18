@@ -4,8 +4,9 @@ import CustomError from '../utils/CustomError.js';
 export const dashboard = async (req, res) => {
   try {
     const user = req.user;
+    const page = req.query.page || 1;
 
-    const dashboard = await adminService.getDashboard(user);
+    const dashboard = await adminService.getDashboard(user, page);
 
     return res.status(200).json(dashboard);
   } catch (err) {

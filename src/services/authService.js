@@ -30,7 +30,11 @@ const prepareUserData = async (userData) => {
   const userType = String(userData.userType).trim();
   const course = String(userData.course).trim();
   const enrollmentYear = Number(userData.enrollmentYear);
-  var studentId = String(userData.studentId).trim();
+  const rawStudentId = userData.studentId;
+  const studentId =
+    rawStudentId === undefined || rawStudentId === null || String(rawStudentId).trim() === ''
+      ? null
+      : String(rawStudentId).trim();
 
   validations.validateEmail(email);
 
@@ -40,10 +44,6 @@ const prepareUserData = async (userData) => {
     enrollmentYear > new Date().getFullYear()
   ) {
     throw new CustomError('Ano de ingresso inválido!', 422);
-  }
-
-  if (studentId == undefined) {
-    studentId = null;
   }
 
   if (name.length < 3 || name.length > 80) {
