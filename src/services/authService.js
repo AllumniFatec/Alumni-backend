@@ -30,7 +30,7 @@ const prepareUserData = async (userData) => {
   const userType = String(userData.userType).trim();
   const course = String(userData.course).trim();
   const enrollmentYear = Number(userData.enrollmentYear);
-  const studentId = String(userData.studentId).trim();
+  var studentId = String(userData.studentId).trim();
 
   validations.validateEmail(email);
 
