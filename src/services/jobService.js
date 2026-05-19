@@ -350,6 +350,10 @@ export const getJobById = async (userToken, jobId) => {
       throw new CustomError('Vaga não encontrada', 404);
     }
 
+    if (job.status === 'Deleted') {
+      throw new CustomError('Vaga excluída!', 404);
+    }
+
     const formattedJob = {
       id: job.job_id,
       title: job.title,
