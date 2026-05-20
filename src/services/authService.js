@@ -6,6 +6,25 @@ import CustomError from '../utils/CustomError.js';
 import * as validations from '../utils/validations.js';
 import { env } from '../config/env.js';
 
+// Partículas que devem permanecer em minúsculo quando não são a primeira palavra do nome
+const PARTICULAS_NOME = new Set(['da', 'de', 'do', 'das', 'dos', 'e', 'di', 'del']);
+
+// Formata o nome completo: primeira letra maiúscula em nomes/sobrenomes, partículas em minúsculo
+const formatarNomeCompleto = (nomeCompleto) => {
+  return nomeCompleto
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((palavra, indice) => {
+      // Partículas no meio do nome ficam em minúsculo
+      if (indice > 0 && PARTICULAS_NOME.has(palavra)) return palavra;
+
+      // Demais palavras recebem a primeira letra maiúscula
+      return palavra.charAt(0).toUpperCase() + palavra.slice(1);
+    })
+    .join(' ');
+};
+
 const prepareUserData = async (userData) => {
   const requiredFields = [
     'name',
@@ -23,7 +42,7 @@ const prepareUserData = async (userData) => {
     }
   });
 
-  const name = String(userData.name).trim();
+  const name = formatarNomeCompleto(String(userData.name));
   const email = String(userData.email).trim();
   const password = String(userData.password).trim();
   const gender = String(userData.gender).trim();
