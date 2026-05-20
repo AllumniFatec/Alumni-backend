@@ -47,7 +47,7 @@ const workplaceProfileRateLimit = createRateLimit({
 const searchUserRateLimit = createRateLimit({
   keyPrefix: 'search-user',
   windowSeconds: 60, //1 minuto
-  maxRequests: 10,
+  maxRequests: 30,
   getIdentifier: (req) => req.user?.id || req.user?.userId,
 });
 

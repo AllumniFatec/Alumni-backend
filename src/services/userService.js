@@ -1303,7 +1303,18 @@ export const searchUsers = async (userToken, search, page = 1) => {
         .sort((a, b) => b.score - a.score)
         .map((r) => r.user);
 
-      return rankedFallbackUsers.slice(0, 30);
+      const fallbackSlice = rankedFallbackUsers.slice(0, 30);
+      return {
+        users: fallbackSlice,
+        pagination: {
+          page: 1,
+          limit: limit,
+          totalItems: fallbackSlice.length,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        },
+      };
     }
 
     return {
