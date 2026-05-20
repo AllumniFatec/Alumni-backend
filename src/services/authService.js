@@ -178,20 +178,19 @@ export const getMe = async (userId) => {
 //Login
 export const loginUser = async (userData) => {
   validations.validateEmail(userData.email);
-  validations.validatePassword(userData.password);
 
   const user = await prisma.user.findUnique({
     where: { email: userData.email },
   });
 
   if (!user) {
-    throw new CustomError('Usuário não encontrado!', 404);
+    throw new CustomError('Usuário e/ou senha incorretos!', 404);
   }
 
   const isMatch = await bcrypt.compare(userData.password, user.password);
 
   if (!isMatch) {
-    throw new CustomError('Senha incorreta!', 401);
+    throw new CustomError('Usuário e/ou senha incorretos!', 401);
   }
 
   if (user.user_status === 'Banned') {
