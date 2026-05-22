@@ -296,6 +296,7 @@ export const getUsers = async (userToken, page = 1) => {
           },
           perfil_photo: true,
           user_type: true,
+          create_date: true,
           skills: {
             select: {
               user_skill_id: true,
