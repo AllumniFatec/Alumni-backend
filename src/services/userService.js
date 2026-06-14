@@ -1123,6 +1123,7 @@ export const searchUsers = async (userToken, search, page = 1) => {
               abbreviation: true,
             },
           },
+          create_date: true,
           social_media: {
             select: {
               type: true,
