@@ -3,6 +3,7 @@ import CustomError from '../utils/CustomError.js';
 import { authenticateUser } from './userService.js';
 import { capitalizeWords, getPageNumber } from '../utils/validations.js';
 import { parse } from 'date-fns';
+import { fromZonedTime } from 'date-fns-tz';
 import { enqueueNotificationForAudience } from './notificationService.js';
 import { notificationTypes } from '../utils/notificationTypes.js';
 import { env } from '../config/env.js';
@@ -69,15 +70,14 @@ function validateEventData(eventData) {
     throw new CustomError('Descrição deve ter entre 10 e 3000 caracteres', 400);
   }
 
-  const startDate = parse(
-    `${eventData.date_start} ${eventData.time_start}`,
-    'dd/MM/yyyy HH:mm',
-    new Date()
+  // Interpreta as datas recebidas como horario de Brasilia (UTC-3) e converte para UTC
+  const startDate = fromZonedTime(
+    parse(`${eventData.date_start} ${eventData.time_start}`, 'dd/MM/yyyy HH:mm', new Date()),
+    'America/Sao_Paulo'
   );
-  const endDate = parse(
-    `${eventData.date_end} ${eventData.time_end}`,
-    'dd/MM/yyyy HH:mm',
-    new Date()
+  const endDate = fromZonedTime(
+    parse(`${eventData.date_end} ${eventData.time_end}`, 'dd/MM/yyyy HH:mm', new Date()),
+    'America/Sao_Paulo'
   );
 
   if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {

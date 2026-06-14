@@ -242,6 +242,14 @@ function parseBRDate(dateString) {
   return date;
 }
 
+const sortWorkplaceHistory = (history) => {
+  return history.sort((a, b) => {
+    if (a.end_date === null) return -1;
+    if (b.end_date === null) return 1;
+    return new Date(b.end_date) - new Date(a.end_date);
+  });
+};
+
 export const authenticateUser = async (userId, action, func) => {
   const user_id = userId;
 
@@ -308,7 +316,6 @@ export const getUsers = async (userToken, page = 1) => {
             },
           },
           workplace_history: {
-            orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
             select: {
               workplace_user_id: true,
               position: true,
@@ -338,8 +345,13 @@ export const getUsers = async (userToken, page = 1) => {
 
     const totalPages = Math.ceil(totalUsers / limit);
 
+    const usersComHistoricoOrdenado = users.map((usuario) => ({
+      ...usuario,
+      workplace_history: sortWorkplaceHistory(usuario.workplace_history),
+    }));
+
     return {
-      users: users,
+      users: usersComHistoricoOrdenado,
       pagination: {
         page: currentPageNumber,
         limit: limit,
@@ -375,7 +387,6 @@ export const getUserById = async (userToken, userId) => {
           },
         },
         workplace_history: {
-          orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
           select: {
             workplace_user_id: true,
             position: true,
@@ -424,7 +435,13 @@ export const getUserById = async (userToken, userId) => {
       getPostsByUser(userToken, userId, 1),
     ]);
 
-    return { ...userData, jobs: jobs, events: events, posts: posts };
+    return {
+      ...userData,
+      workplace_history: sortWorkplaceHistory(userData.workplace_history),
+      jobs: jobs,
+      events: events,
+      posts: posts,
+    };
   });
 };
 
@@ -452,7 +469,6 @@ export const getMyProfile = async (userToken) => {
           },
         },
         workplace_history: {
-          orderBy: [{ start_date: 'desc' }, { end_date: 'desc' }],
           select: {
             workplace_user_id: true,
             position: true,
@@ -497,7 +513,13 @@ export const getMyProfile = async (userToken) => {
       getPostsByUser(userToken, user_id, 1),
     ]);
 
-    return { ...userData, jobs: jobs, events: events, posts: posts };
+    return {
+      ...userData,
+      workplace_history: sortWorkplaceHistory(userData.workplace_history),
+      jobs: jobs,
+      events: events,
+      posts: posts,
+    };
   });
 };
 

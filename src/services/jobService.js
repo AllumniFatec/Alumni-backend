@@ -223,7 +223,7 @@ export const createJob = async (data, userToken) => {
 export const getJobs = async (userToken, page = 1) => {
   const user_id = userToken.id;
 
-  const limit = 20;
+  const limit = 10;
   const currentPageNumber = getPageNumber(page);
   const skip = (currentPageNumber - 1) * limit;
 
