@@ -1261,7 +1261,10 @@ export const searchUsers = async (userToken, search, page = 1) => {
       }))
       .filter((r) => r.score > 0)
       .sort((a, b) => b.score - a.score)
-      .map((r) => r.user);
+      .map((r) => ({
+        ...r.user,
+        workplace_history: sortWorkplaceHistory(r.user.workplace_history),
+      }));
 
     if (rankedUsers.length === 0) {
       // Fallback: quando o `contains` do Prisma não encontra por causa de normalização/acentos,
@@ -1324,7 +1327,10 @@ export const searchUsers = async (userToken, search, page = 1) => {
         }))
         .filter((r) => r.score > 0)
         .sort((a, b) => b.score - a.score)
-        .map((r) => r.user);
+        .map((r) => ({
+          ...r.user,
+          workplace_history: sortWorkplaceHistory(r.user.workplace_history),
+        }));
 
       const fallbackSlice = rankedFallbackUsers.slice(0, 30);
       return {
